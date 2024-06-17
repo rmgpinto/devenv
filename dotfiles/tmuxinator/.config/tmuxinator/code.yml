@@ -1,0 +1,14 @@
+name: main
+
+on_project_start: tmux resizep -t 1 -y "70%"
+
+windows:
+  - code:
+      layout: main-horizontal
+      panes:
+        - code: nvim
+        - shell:
+  - git:
+      panes:
+        - lazygit
+

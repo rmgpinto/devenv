@@ -1,0 +1,8 @@
+.DS_Store
+.dirrc
+.mise.toml
+vendor/bundle
+Dockerfile.local
+docker-compose.local.yml
+k6.local.js
+

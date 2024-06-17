@@ -1,0 +1,47 @@
+[user]
+  email = "hessian_loom_0u@icloud.com"
+  name = "Ricardo Pinto"
+  signingkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPe+kfOfML7GvqHbNtDSzZuN7/0msde8WLEeeh5tBpSI"
+
+[core]
+  editor = "nvim"
+  hooksPath = "hooks/"
+
+[alias]
+  br = "branch"
+  ci = "commit -S"
+  co = "checkout"
+  df = "diff"
+  dfs = "diff --staged"
+  l = "log --oneline --graph"
+  lp = "log --oneline --graph -p"
+  sha = "rev-parse HEAD"
+  st = "status -s"
+  unstage = "reset HEAD --"
+
+[commit]
+  gpgsign = "true"
+
+[gpg]
+  format = "ssh"
+
+[gpg "ssh"]
+  program = "/applications/1password.app/contents/macos/op-ssh-sign"
+
+[init]
+  defaultBranch = "main"
+
+[push]
+  autoSetupRemote = true
+
+[credential "https://gist.github.com"]
+  helper = 
+  helper = !/Users/rmgpinto/.local/share/mise/installs/github-cli/latest/bin/gh auth git-credential
+
+[credential "https://github.com"]
+  helper = 
+  helper = !/Users/rmgpinto/.local/share/mise/installs/github-cli/latest/bin/gh auth git-credential
+
+[advice]
+  addIgnoredFile = false
+

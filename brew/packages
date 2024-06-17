@@ -1,0 +1,14 @@
+mas
+alacritty
+zsh-syntax-highlighting
+zsh-autosuggestions
+# needed for tmux
+automake
+pkg-config
+utf8proc
+pam-reattach
+mise
+stow
+docker
+docker-compose
+

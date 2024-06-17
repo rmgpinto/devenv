@@ -1,0 +1,18 @@
+name: terraform
+
+on_project_start: |
+  [ -f .mise.toml ] && mise install
+  tmux resizep -t 1 -x "70%"
+
+windows:
+  - code:
+      layout: main-vertical
+      panes:
+        - code: nvim ../
+        - shell: mise watch -t plan-staging -- -e tf,tfvars
+        - shell: mise watch -t plan-production -- -e tf,tfvars
+        - shell:
+  - git:
+      panes:
+        - lazygit
+
