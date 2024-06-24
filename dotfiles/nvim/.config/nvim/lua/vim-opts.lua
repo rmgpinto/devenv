@@ -4,6 +4,7 @@ vim.cmd("set tabstop=2")
 vim.cmd("set shiftwidth=2")
 vim.cmd("set softtabstop=2")
 vim.cmd("set nowrap")
+vim.cmd("inoremap <S-Tab> <C-D>")
 vim.opt.number = true
 vim.g.have_nerd_font = false
 vim.g.mapleader = " "
