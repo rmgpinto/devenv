@@ -17,6 +17,7 @@ return {
         ensure_installed = {
           -- Personal
           "lua_ls",
+          "bashls",
           "taplo", -- for toml
           "yamlls",
           "jsonls",
@@ -31,14 +32,20 @@ return {
     "neovim/nvim-lspconfig",
     lazy = false,
     config = function()
+      local capabilities = require('cmp_nvim_lsp').default_capabilities()
       local lspconfig = require("lspconfig")
       -- Personal
-      lspconfig.lua_ls.setup({})
-      lspconfig.taplo.setup({})
-      lspconfig.yamlls.setup({})
-      lspconfig.jsonls.setup({})
-      lspconfig.terraformls.setup({})
-      lspconfig.dockerls.setup({})
+      lspconfig.lua_ls.setup({
+        capabilities = capabitilies })
+      lspconfig.bashls.setup({
+        filetypes = { "sh", "bash", "zsh" },
+        capabilities = capabitilies
+      })
+      lspconfig.taplo.setup({ capabilities = capabitilies })
+      lspconfig.yamlls.setup({ capabilities = capabitilies })
+      lspconfig.jsonls.setup({ capabilities = capabitilies })
+      lspconfig.terraformls.setup({ capabilities = capabitilies })
+      lspconfig.dockerls.setup({ capabilities = capabitilies })
       -- Work
       vim.keymap.set('n', 'K', vim.lsp.buf.hover, {})
       vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, {})
