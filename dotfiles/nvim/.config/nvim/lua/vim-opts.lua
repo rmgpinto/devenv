@@ -4,7 +4,6 @@ vim.cmd("set tabstop=2")
 vim.cmd("set shiftwidth=2")
 vim.cmd("set softtabstop=2")
 vim.cmd("set nowrap")
-vim.cmd("inoremap <S-Tab> <C-D>")
 vim.opt.number = true
 vim.g.have_nerd_font = false
 vim.g.mapleader = " "
@@ -35,6 +34,8 @@ vim.api.nvim_create_autocmd("CmdlineLeave", {
 })
 
 local opts = { noremap = true, silent = true }
+vim.keymap.set('v', '<Tab>', '>gv', { noremap = true })
+vim.keymap.set('v', '<S-Tab>', '<gv', { noremap = true })
 vim.keymap.set("n", "<A-j>", "<Esc>:m .+1<CR>", opts)
 vim.keymap.set("n", "<A-Down>", "<Esc>:m .+1<CR>", opts)
 vim.keymap.set("n", "<A-k>", "<Esc>:m .-2<CR>", opts)
