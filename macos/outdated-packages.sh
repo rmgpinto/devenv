@@ -24,7 +24,12 @@ function main() {
     launchctl unload ~/Library/LaunchAgents/com.user.tmuxoutdatedpackages.plist
     launchctl load ~/Library/LaunchAgents/com.user.tmuxoutdatedpackages.plist
   fi
-
+  if ! launchctl list | grep -q "com.user.nvimoutdatedpackages"; then
+    launchctl load ~/Library/LaunchAgents/com.user.nvimoutdatedpackages.plist
+  else
+    launchctl unload ~/Library/LaunchAgents/com.user.nvimoutdatedpackages.plist
+    launchctl load ~/Library/LaunchAgents/com.user.nvimoutdatedpackages.plist
+  fi
 }
 
 main
