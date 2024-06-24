@@ -3,7 +3,13 @@ return {
   build = ":TSUpdate",
   opts = {
     ensure_installed = {
-      "lua"
+      "lua",
+      "bash",
+      "toml",
+      "yaml",
+      "json",
+      "terraform",
+      "dockerfile"
     },
     indent = { enable = true },
     highlight = { enable = true }
