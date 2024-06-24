@@ -1,6 +1,9 @@
 return {
   {
     "williamboman/mason.nvim",
+    dependencies = {
+      "Zeioth/mason-extra-cmds", opts = {}
+    },
     lazy = false,
     config = function()
       require("mason").setup({})
