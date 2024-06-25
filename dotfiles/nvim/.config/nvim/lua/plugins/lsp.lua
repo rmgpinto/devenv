@@ -35,17 +35,16 @@ return {
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
       local lspconfig = require("lspconfig")
       -- Personal
-      lspconfig.lua_ls.setup({
-        capabilities = capabitilies })
+      lspconfig.lua_ls.setup({ capabilities = capabilities })
       lspconfig.bashls.setup({
         filetypes = { "sh", "bash", "zsh" },
-        capabilities = capabitilies
+        capabilities = capabilities
       })
-      lspconfig.taplo.setup({ capabilities = capabitilies })
-      lspconfig.yamlls.setup({ capabilities = capabitilies })
-      lspconfig.jsonls.setup({ capabilities = capabitilies })
-      lspconfig.terraformls.setup({ capabilities = capabitilies })
-      lspconfig.dockerls.setup({ capabilities = capabitilies })
+      lspconfig.taplo.setup({ capabilities = capabilities })
+      lspconfig.yamlls.setup({ capabilities = capabilities })
+      lspconfig.jsonls.setup({ capabilities = capabilities })
+      lspconfig.terraformls.setup({ capabilities = capabilities })
+      lspconfig.dockerls.setup({ capabilities = capabilities })
       -- Work
       vim.keymap.set('n', 'K', vim.lsp.buf.hover, {})
       vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, {})
