@@ -2,8 +2,7 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     dependencies = {
-      "nvim-lua/plenary.nvim",
-      "debugloop/telescope-undo.nvim"
+      "nvim-lua/plenary.nvim"
     },
     config = function()
       local actions = require "telescope.actions"
@@ -31,15 +30,14 @@ return {
           }
         }
       })
-      require("telescope").load_extension("undo")
       local builtin = require("telescope.builtin")
       vim.keymap.set("n", "<leader>ff", function() builtin.find_files({ hidden = true }) end, {})
+      vim.keymap.set("n", "<leader> ", function() builtin.find_files({ hidden = true }) end, {})
       vim.keymap.set("n", "<leader>fg",
         function() builtin.live_grep({ additional_args = function() return { "--hidden" } end }) end, {})
       vim.keymap.set("n", "<leader>fb", builtin.buffers, {})
       vim.keymap.set("n", "<leader>fh", builtin.help_tags, {})
       vim.keymap.set("n", "<leader>fr", ":Telescope resume<CR>", {})
-      vim.keymap.set("n", "<leader>fu", ":Telescope undo<CR>", {})
     end
   },
   {
