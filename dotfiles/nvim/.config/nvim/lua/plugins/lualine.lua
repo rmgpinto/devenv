@@ -4,17 +4,20 @@ return {
     options = {
       theme = "catppuccin",
       padding = 2,
-      ignore_focus = { "neo-tree" },
+      ignore_focus = {
+        "alpha",
+        "neo-tree",
+        "undotree",
+        "diff"
+      },
       disabled_filetypes = {
         statusline = {
           "alpha",
           "neo-tree",
-        },
-        winbar = {
-          "alpha",
-          "neo-tree"
+          "undotree",
+          "diff"
         }
-      }
+      },
     },
     sections = {
       lualine_a = { "mode" },
