@@ -9,7 +9,8 @@ return {
       "yaml",
       "json",
       "terraform",
-      "dockerfile"
+      "dockerfile",
+      "javascript",
     },
     indent = { enable = true },
     highlight = { enable = true }
