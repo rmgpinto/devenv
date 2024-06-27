@@ -3,7 +3,7 @@
 function main() {
   mkdir -p ~/Library/LaunchAgents/bin
   mkdir -p ~/.config/tmux/custom
-  cd boot-scripts
+  cd cron-scripts
   /opt/homebrew/bin/stow outdated-packages -t ${HOME}/Library/LaunchAgents
   cd ..
   if ! launchctl list | grep -q "com.user.brewoutdatedpackages"; then

@@ -2,7 +2,7 @@
 
 function main() {
   mkdir -p ~/Library/LaunchAgents/bin
-  cd boot-scripts
+  cd cron-scripts
   /opt/homebrew/bin/stow remap-capslock-to-control -t ${HOME}/Library/LaunchAgents
   cd ..
   if ! launchctl list | grep -q "com.user.remapcapslocktocontrol"; then
