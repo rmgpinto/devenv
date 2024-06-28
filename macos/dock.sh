@@ -6,7 +6,7 @@ function main() {
 
   # Dock apps
   defaults write com.apple.dock persistent-apps -array
-  DOCK_PERSISTENT_APPS=(
+  local dock_persistent_apps=(
     "/Applications/Alacritty.app"
     "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app"
     "/Applications/Obsidian.app"
@@ -17,7 +17,7 @@ function main() {
     "/System/Applications/Reminders.app"
     "/System/Applications/System%20Settings.app"
   )
-  for DOCK_PERSISTENT_APP in "${DOCK_PERSISTENT_APPS[@]}"; do
+  for dock_persistent_app in "${dock_persistent_apps[@]}"; do
       defaults write com.apple.dock persistent-apps -array-add \
       "<dict>
           <key>tile-data</key>
@@ -25,7 +25,7 @@ function main() {
               <key>file-data</key>
               <dict>
                   <key>_CFURLString</key>
-                  <string>file://${DOCK_PERSISTENT_APP}</string>
+                  <string>file://${dock_persistent_app}</string>
                   <key>_CFURLStringType</key>
                   <integer>15</integer>
               </dict>
@@ -36,12 +36,12 @@ function main() {
   done
 
   defaults write com.apple.dock persistent-others -array
-  DOCK_PERSISTENT_OTHERS_DIRECTORIES=(
+  local dock_persistent_others_directories=(
     "${HOME}/"
     "${HOME}/Screenshots/"
     "${HOME}/Downloads/"
   )
-  for DOCK_PERSISTENT_OTHERS_DIRECTORY in "${DOCK_PERSISTENT_OTHERS_DIRECTORIES[@]}"; do
+  for dock_persistent_others_directory in "${dock_persistent_others_directories[@]}"; do
     defaults write com.apple.dock persistent-others -array-add \
       "<dict>
           <key>tile-data</key>
@@ -49,7 +49,7 @@ function main() {
               <key>file-data</key>
               <dict>
                   <key>_CFURLString</key>
-                  <string>file://${DOCK_PERSISTENT_OTHERS_DIRECTORY}</string>
+                  <string>file://${dock_persistent_others_directory}</string>
                   <key>_CFURLStringType</key>
                   <integer>15</integer>
               </dict>
