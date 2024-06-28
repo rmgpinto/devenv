@@ -60,6 +60,12 @@ function outdated_packages() {
   fi
 }
 
+function backup_git_ignored_work() {
+  if [[ -f "backup-git-ignored-work.sh" ]]; then
+    ./backup-git-ignored-work.sh
+  fi
+}
+
 function main() {
   sudo_touch_id
   system_settings
@@ -71,6 +77,7 @@ function main() {
   hostname
   remap_keys
   outdated_packages
+  backup_git_ignored_work
 }
 
 main
