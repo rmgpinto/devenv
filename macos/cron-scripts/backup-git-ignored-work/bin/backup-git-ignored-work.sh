@@ -21,7 +21,7 @@ function add_to_backup_json() {
 
 function main() {
   create_log_file
-  local backup_dir="${HOME}/dev/personal/devenv/macos/cron-scripts/backup-git-ignored-work/backups"
+  local backup_dir="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Work/code/git-ignored-backups"
   mkdir -p ${backup_dir}
   if [[ -f ${backup_dir}/backup.jsonl ]]; then
     rm ${backup_dir}/backup.jsonl
