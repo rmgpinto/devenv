@@ -3,6 +3,7 @@ return {
   build = ":TSUpdate",
   opts = {
     ensure_installed = {
+      "vimdoc",
       "lua",
       "bash",
       "toml",
