@@ -33,6 +33,7 @@ export SAMMY_SSH_USER="ricardo"
 
 # mise
 export MISE_LOG_LEVEL=warn
+export MISE_TRUSTED_CONFIG_PATHS="${HOME}/dev"
 eval "$(mise activate zsh)"
 
 # starship
@@ -75,8 +76,13 @@ fi
 # .dirrc
 function source_dirrc() {
   # checking for tmux is necessary because it's not available in the first shell session, maybe because of the way mise works
-  if [[ -f .dirrc && $(command -v tmux > /dev/null; echo $?) -eq 0 ]]; then
+  if [[ $(command -v tmux > /dev/null; echo $?) -eq 0 ]]; then
+    if [[ -f .dirrc ]]; then
       source .dirrc
+    fi
+    if [[ -f .dirrc.work ]]; then
+      source .dirrc.work
+    fi
   fi
 }
 autoload -Uz add-zsh-hook
