@@ -1,2 +1,2 @@
-tmuxinator start code -n "$(basename $(pwd))"
+tmuxinator start code -n "$(basename $(pwd) | tr "[:upper:]" "[:lower:]")"
 
