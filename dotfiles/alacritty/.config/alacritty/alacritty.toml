@@ -13,8 +13,6 @@ size = 12
 family = "FiraCode Nerd Font"
 
 [window]
-blur = true
-opacity = 0.8
 option_as_alt = "OnlyLeft"
 startup_mode = "Maximized"
 
