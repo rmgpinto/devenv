@@ -1,6 +1,6 @@
 # Personal
 alias zs='source ~/.zshrc'
-alias upgrade_packages='brew update && brew outdated && sh -c "read -p \"Press enter to continue\"" && brew upgrade && echo 0 > ~/.config/tmux/custom/brew-outdated && brew cleanup && mise plugins update && mise outdated && sh -c "read -p \"Press enter to continue\"" && mise upgrade && echo 0 > ~/.config/tmux/custom/mise-outdated'
+alias upgrade_packages='brew update && brew outdated --cask --greedy && sh -c "read -p \"Press enter to continue\"" && brew upgrade && brew upgrade --cask --greedy && brew cleanup && echo 0 > ~/.config/tmux/custom/brew-outdated && brew cleanup && mise plugins update && mise outdated && sh -c "read -p \"Press enter to continue\"" && mise upgrade && echo 0 > ~/.config/tmux/custom/mise-outdated'
 alias vi='nvim'
 alias v='nvim'
 alias ls='eza --icons -lah'
