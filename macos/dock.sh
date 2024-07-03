@@ -3,6 +3,7 @@
 function main() {
   # Screenshots
   mkdir -p ${HOME}/Screenshots
+  defaults write com.apple.screencapture location ${HOME}/Screenshots
 
   # Dock apps
   defaults write com.apple.dock persistent-apps -array
