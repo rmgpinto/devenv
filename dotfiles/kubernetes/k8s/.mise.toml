@@ -1,0 +1,4 @@
+[tools]
+kubectl = "1.30.2"
+kubectx = "latest"
+k9s = "latest"

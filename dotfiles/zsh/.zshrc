@@ -26,6 +26,8 @@ autoload -Uz compinit
 compinit
 
 # Environment variables
+# Common
+export XDG_CONFIG_HOME=${HOME}/.config
 # Personal
 export EDITOR="nvim"
 # Work

@@ -108,7 +108,7 @@ function setup_docker() {
 }
 
 function setup_ghost() {
-  log info "Setting up Ghost CLIs..."
+  log info "Setting up Ghost Toolbox..."
   ORIGINAL_DIR=$(pwd)
   TOOLBOX_DIR=~/dev/work/Toolbox
   if [[ -d ${TOOLBOX_DIR} ]]; then
@@ -118,6 +118,13 @@ function setup_ghost() {
     log error "Toolbox not found in ~/dev/work."
   fi
   cd ${ORIGINAL_DIR}
+  log info "Done."
+  log info "Setting up Ghost kubectl..."
+  mkdir -p ~/.kube
+  stow kubernetes -t ${HOME}/dev/work
+  log info "Done."
+  log info "Setting up Ghost k9s..."
+  stow k9s -t ${HOME}
   log info "Done."
 }
 

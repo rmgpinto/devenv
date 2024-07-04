@@ -1,9 +1,17 @@
-format = "$directory$git_branch$git_commit$git_state$git_metrics$git_status$cmd_duration$line_break$character\n"
+format = "$directory$git_branch$git_commit$git_state$git_metrics$git_status$kubernetes$cmd_duration$line_break$character\n"
 palette = "catppuccin_mocha"
 
 [directory]
 truncation_length = 4
 style = "bold lavender"
+
+[kubernetes]
+disabled = false
+detect_folders = ["k8s"]
+detect_env_vars = ["INVALID"]                           # this is a workaround, in 1.20 it will be fixed
+format = '[$symbol$context in \($namespace\)]($style) '
+style = "bold blue"
+
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"

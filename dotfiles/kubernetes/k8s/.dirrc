@@ -1,0 +1,2 @@
+tmuxinator start k9s -n k8s
+

@@ -24,6 +24,10 @@ alias credentials-edit-dev='rails credentials:edit --environment development'
 alias credentials-edit-test='rails credentials:edit --environment test'
 alias credentials-edit-prod='rails credentials:edit --environment production'
 
+# Work
+alias k8s='cd ~/dev/work/k8s'
+alias k='kubectl'
+
 function tfpl() {
   if [[ "$1" != "" ]]; then
     ENVIRONMENTS=(development dev staging stage stg qa production prod prd)

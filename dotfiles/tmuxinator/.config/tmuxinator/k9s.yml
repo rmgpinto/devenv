@@ -1,0 +1,14 @@
+name: k9s
+
+on_project_start: |
+  [ -f .mise.toml ] && mise install
+  tmux resizep -t 1 -y "50%"
+
+windows:
+  - k8s:
+      layout: main-horizontal
+      panes:
+        - k9s: k9s
+        - shell:
+        - shell:
+
