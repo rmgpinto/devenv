@@ -110,20 +110,10 @@ function setup_docker() {
 function setup_ghost() {
   log info "Setting up Ghost CLIs..."
   ORIGINAL_DIR=$(pwd)
-  sudo mkdir -p /usr/local/bin
-  mkdir -p ~/.config/toolbox
   TOOLBOX_DIR=~/dev/work/Toolbox
   if [[ -d ${TOOLBOX_DIR} ]]; then
-    cd ${TOOLBOX_DIR}
-    mkdir -p stow/bin stow/toolbox
-    for SCRIPT in "scripts/"*.sh; do
-      FILENAME_WITHOUT_EXTENSION=$(basename "${SCRIPT}" .sh)
-      cp "${SCRIPT}" "stow/bin/${FILENAME_WITHOUT_EXTENSION}"
-    done
-    cd stow
-    sudo /opt/homebrew/bin/stow bin -t /usr/local/bin
-    cp ../.toolbox/sammy.json toolbox
-    /opt/homebrew/bin/stow toolbox -t ${HOME}/.config/toolbox
+    cd ${TOOLBOX_DIR}/stow
+    ./stow.sh
   else
     log error "Toolbox not found in ~/dev/work."
   fi
