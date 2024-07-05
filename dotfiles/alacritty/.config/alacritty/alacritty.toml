@@ -14,7 +14,6 @@ family = "FiraCode Nerd Font"
 
 [window]
 option_as_alt = "OnlyLeft"
-startup_mode = "Maximized"
 
 [window.padding]
 x = 5
