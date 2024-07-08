@@ -1,15 +1,21 @@
-format = "$directory$kubernetes$cmd_duration$line_break$character\n"
+format = "$directory$custom$kubernetes$cmd_duration$line_break$character\n"
 palette = "catppuccin_mocha"
 
 [directory]
 truncation_length = 4
 style = "bold lavender"
 
+[custom.dirrc]
+detect_files = [".dirrc", ".dirrc.work"]
+symbol = "λ"
+format = "[$symbol]($style) "
+style = "bold mauve"
+
 [kubernetes]
 disabled = false
 detect_folders = ["k8s"]
-detect_env_vars = ["INVALID"]                           # this is a workaround, in 1.20 it will be fixed
-format = '[$symbol$context in \($namespace\)]($style) '
+detect_env_vars = ["INVALID"]                             # this is a workaround, in 1.20 it will be fixed
+format = "[$symbol$context in \\($namespace\\)]($style) "
 style = "bold blue"
 
 
