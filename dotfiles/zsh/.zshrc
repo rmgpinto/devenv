@@ -21,10 +21,6 @@ source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 # Auto suggestions
 source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-# Completion
-autoload -Uz compinit
-compinit
-
 # Environment variables
 # Common
 export XDG_CONFIG_HOME=${HOME}/.config
@@ -90,4 +86,8 @@ function source_dirrc() {
 autoload -Uz add-zsh-hook
 add-zsh-hook chpwd source_dirrc
 source_dirrc
+
+# zsh Completion
+autoload -Uz compinit
+compinit
 
