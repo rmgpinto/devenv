@@ -24,10 +24,6 @@ alias credentials-edit-dev='rails credentials:edit --environment development'
 alias credentials-edit-test='rails credentials:edit --environment test'
 alias credentials-edit-prod='rails credentials:edit --environment production'
 
-# Work
-alias k8s='cd ~/dev/work/k8s'
-alias k='kubectl'
-
 function tfpl() {
   if [[ "$1" != "" ]]; then
     ENVIRONMENTS=(development dev staging stage stg qa production prod prd)
@@ -77,4 +73,5 @@ function tfde() {
 alias gha_watch='test -d .git && while true do GHA_RUN_ID=$(gh run list --user rmgpinto --commit $(git rev-parse HEAD) --json databaseId | jq -r ".[0].databaseId") gh run watch $GHA_RUN_ID if [ "$?" -ne 0 ] then gh run view $GHA_RUN_ID --log fi while true do GHA_NEXT_RUN_ID=$(gh run list --user rmgpinto --commit $(git rev-parse HEAD) --json databaseId | jq -r ".[0].databaseId") if [ "$GHA_RUN_ID" -eq "$GHA_NEXT_RUN_ID" ] then sleep 10 else break fi done done'
 alias halstg='NODE_ENV=staging hal'
 alias k='kubectl'
+alias k8s='cd ~/dev/work/k8s'
 
