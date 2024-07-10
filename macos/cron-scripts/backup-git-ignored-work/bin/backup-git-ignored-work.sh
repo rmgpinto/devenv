@@ -26,7 +26,7 @@ function main() {
   if [[ -f ${backup_dir}/backup.jsonl ]]; then
     rm ${backup_dir}/backup.jsonl
   fi
-  local git_ignored_files=($(find "${HOME}/dev/work" -type f -name "*.work"))
+  local git_ignored_files=($(find "${HOME}/dev/work" -type f \( -name ".dirrc.work" -o -name ".mise.local.toml" \)))
   local index=1
   for git_ignored_file in ${git_ignored_files[@]}; do
     add_to_backup_json ${index} ${backup_dir} ${git_ignored_file}

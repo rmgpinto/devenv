@@ -1,6 +1,6 @@
 .DS_Store
 .dirrc.work
-.mise.toml.work
+.mise.local.toml
 vendor/bundle
 Dockerfile.local
 docker-compose.local.yml
