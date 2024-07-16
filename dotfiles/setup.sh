@@ -38,6 +38,7 @@ function setup_hushlogin() {
 
 function setup_git() {
   log info "Setting up git..."
+  mkdir -p ${HOME}/.config/git/hooks
   /opt/homebrew/bin/stow git -t ${HOME}
   log info "Done."
 }

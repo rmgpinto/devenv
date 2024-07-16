@@ -2,6 +2,7 @@
 starship
 github-cli
 lazygit
+gitleaks
 1password-cli
 tmux
 ripgrep

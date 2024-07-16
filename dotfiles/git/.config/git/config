@@ -5,7 +5,7 @@
 
 [core]
   editor = "nvim"
-  hooksPath = "hooks/"
+  hooksPath = "~/.config/git/hooks/"
 
 [alias]
   br = "branch"
