@@ -27,45 +27,45 @@ alias credentials-edit-prod='rails credentials:edit --environment production'
 function tfpl() {
   if [[ "$1" != "" ]]; then
     ENVIRONMENTS=(development dev staging stage stg qa production prod prd)
-    if [[ "''${ENVIRONMENTS[(r)$1]}" == "$1" ]]; then
+    if [[ "${ENVIRONMENTS[(r)$1]}" == "$1" ]]; then
       export TF_WORKSPACE="$1"
       export TF_VAR_FILE="-var-file=vars.$1.tfvars"
-      export TF_EXTRA_ARGS="''${@: (($#-1)),2}"
+      export TF_EXTRA_ARGS="${@: (($#-1)),2}"
     else
-      export TF_EXTRA_ARGS="''${@: (($#-1)),1}"
+      export TF_EXTRA_ARGS="${@: (($#-1)),1}"
     fi
   fi
-  terraform plan ''${TF_VAR_FILE} -lock=false ''${TF_EXTRA_ARGS}
+  terraform plan ${TF_VAR_FILE} -lock=false ${TF_EXTRA_ARGS}
   unset TF_WORKSPACE TF_VAR_FILE TF_EXTRA_ARGS
 }
 
 function tfap() {
   if [[ "$1" != "" ]]; then
     ENVIRONMENTS=(development dev staging stage stg qa production prod prd)
-    if [[ "''${ENVIRONMENTS[(r)$1]}" == "$1" ]]; then
+    if [[ "${ENVIRONMENTS[(r)$1]}" == "$1" ]]; then
       export TF_WORKSPACE="$1"
       export TF_VAR_FILE="-var-file=vars.$1.tfvars"
-      export TF_EXTRA_ARGS="''${@: (($#-1)),2}"
+      export TF_EXTRA_ARGS="${@: (($#-1)),2}"
     else
-      export TF_EXTRA_ARGS="''${@: (($#-1)),1}"
+      export TF_EXTRA_ARGS="${@: (($#-1)),1}"
     fi
   fi
-  terraform apply ''${TF_VAR_FILE} ''${TF_EXTRA_ARGS}
+  terraform apply ${TF_VAR_FILE} ${TF_EXTRA_ARGS}
   unset TF_WORKSPACE TF_VAR_FILE TF_EXTRA_ARGS
 }
 
 function tfde() {
   if [[ "$1" != "" ]]; then
     ENVIRONMENTS=(development dev staging stage stg qa production prod prd)
-    if [[ "''${ENVIRONMENTS[(r)$1]}" == "$1" ]]; then
+    if [[ "${ENVIRONMENTS[(r)$1]}" == "$1" ]]; then
       export TF_WORKSPACE="$1"
       export TF_VAR_FILE="-var-file=vars.$1.tfvars"
-      export TF_EXTRA_ARGS="''${@: (($#-1)),2}"
+      export TF_EXTRA_ARGS="${@: (($#-1)),2}"
     else
-      export TF_EXTRA_ARGS="''${@: (($#-1)),1}"
+      export TF_EXTRA_ARGS="${@: (($#-1)),1}"
     fi
   fi
-  terraform destroy ''${TF_VAR_FILE} ''${TF_EXTRA_ARGS}
+  terraform destroy ${TF_VAR_FILE} ${TF_EXTRA_ARGS}
   unset TF_WORKSPACE TF_VAR_FILE TF_EXTRA_ARGS
 }
 
