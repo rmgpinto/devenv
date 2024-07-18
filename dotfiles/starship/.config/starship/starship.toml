@@ -5,8 +5,8 @@ palette = "catppuccin_mocha"
 truncation_length = 4
 style = "bold lavender"
 
-[custom.dirrc]
-detect_files = [".dirrc", ".dirrc.work"]
+[custom.mise]
+detect_files = [".mise.toml", ".mise.local.toml"]
 symbol = "λ"
 format = "[$symbol]($style) "
 style = "bold mauve"

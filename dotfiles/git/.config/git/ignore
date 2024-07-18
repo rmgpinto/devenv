@@ -1,5 +1,4 @@
 .DS_Store
-.dirrc.work
 .mise.local.toml
 vendor/bundle
 Dockerfile.local

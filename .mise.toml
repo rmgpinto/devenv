@@ -1,0 +1,3 @@
+[tasks.tmuxinator]
+description = "tmuxinator"
+run = "tmuxinator start code -n \"$(basename $(pwd) | tr \"[:upper:]\" \"[:lower:]\")\""
