@@ -1,4 +1,4 @@
 #!/bin/zsh -eo pipefail
 
-gitleaks detect
+gitleaks detect --gitleaks-ignore-path ~/.config/git -v
 
