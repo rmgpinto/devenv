@@ -10,8 +10,8 @@ function main() {
   local dock_persistent_apps=(
     "/Applications/Alacritty.app"
     "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app"
-    "/Applications/Obsidian.app"
     "/Applications/Notion.app"
+    "/System/Applications/Notes.app"
     "/System/Applications/Mail.app"
     "/System/Applications/Calendar.app"
     "/Applications/Slack.app"
