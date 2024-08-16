@@ -23,6 +23,7 @@ return {
           "jsonls",
           "terraformls",
           "dockerls",
+          "ruby_lsp",
           -- Work
           "tsserver"
         }
@@ -46,6 +47,7 @@ return {
       lspconfig.jsonls.setup({ capabilities = capabilities })
       lspconfig.terraformls.setup({ capabilities = capabilities })
       lspconfig.dockerls.setup({ capabilities = capabilities })
+      lspconfig.ruby_lsp.setup({ capabilities = capabilities })
       -- Work
       lspconfig.tsserver.setup({ capabilities = capabilities })
       vim.keymap.set('n', 'K', vim.lsp.buf.hover, {})

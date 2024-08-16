@@ -3,6 +3,7 @@ return {
   build = ":TSUpdate",
   opts = {
     ensure_installed = {
+      -- Personal
       "vimdoc",
       "lua",
       "bash",
@@ -11,6 +12,8 @@ return {
       "json",
       "terraform",
       "dockerfile",
+      "ruby",
+      -- Work
       "javascript",
     },
     indent = { enable = true },
