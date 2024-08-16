@@ -11,4 +11,6 @@ mise
 stow
 docker
 docker-compose
+# needed for ruby
+libyaml
 
