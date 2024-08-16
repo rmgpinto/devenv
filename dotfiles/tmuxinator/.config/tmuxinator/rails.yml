@@ -1,0 +1,17 @@
+name: rails
+
+on_project_start: |
+  [ -f .mise.toml ] && mise install
+  tmux resizep -t 1 -y "70%"
+
+windows:
+  - code:
+      layout: main-horizontal
+      panes:
+        - code: nvim
+        - shell: mise watch -t rails-test -- -e rb,erb,yml
+        - shell: rails server
+  - git:
+      panes:
+        - lazygit
+
