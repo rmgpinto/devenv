@@ -25,7 +25,7 @@ function setup_mise() {
 
 function setup_starship() {
   log info "Setting up starship..."
-  curl -s -L -o starship/.config/starship/catppuccin-mocha.toml https://github.com/catppuccin/starship/raw/main/palettes/mocha.toml
+  curl -s -L -o starship/.config/starship/catppuccin-mocha.toml https://raw.githubusercontent.com/catppuccin/starship/main/themes/mocha.toml
   /opt/homebrew/bin/stow starship -t ${HOME}
   log info "Done."
 }
