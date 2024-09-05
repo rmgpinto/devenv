@@ -7,13 +7,14 @@ bindkey '^[[1;3D' backward-word
 bindkey -a -r '\e'  # Disable vi mode
 bindkey -v -r '\e'  # Disable vi mode
 
-
-# Larger bash history (allow 32³ entries)
+# History
 export HISTFILE=~/.zsh_history
 export HISTSIZE=32768
 export SAVEHIST=32768
 export HISTFILESIZE=$HISTSIZE
 export HISTCONTROL=ignoredups
+setopt INC_APPEND_HISTORY
+setopt SHARE_HISTORY
 
 # Syntax highlighting
 source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
