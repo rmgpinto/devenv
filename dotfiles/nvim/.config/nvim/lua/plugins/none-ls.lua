@@ -7,7 +7,7 @@ return {
         null_ls.builtins.formatting.stylua,
         null_ls.builtins.formatting.shfmt,
         null_ls.builtins.formatting.terraform_fmt,
-        null_ls.builtins.formatting.rubyfmt
+        null_ls.builtins.formatting.rubocop
       }
     })
     vim.keymap.set("n", "<leader>gf", vim.lsp.buf.format, {})
