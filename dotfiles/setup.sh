@@ -105,7 +105,9 @@ function setup_bundle() {
 function setup_docker() {
   log info "Setting up docker..."
   docker completion zsh | sudo tee /usr/local/share/zsh/site-functions/_docker > /dev/null
-  ln -s $(brew --prefix)/lib/docker/cli-plugins ~/.docker/cli-plugins
+  if [[ ! -d ~/.docker/cli-plugins ]]; then
+    ln -s $(brew --prefix)/lib/docker/cli-plugins ~/.docker/cli-plugins
+  fi
   log info "Done."
 }
 
