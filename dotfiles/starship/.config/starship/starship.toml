@@ -1,9 +1,18 @@
-format = "$directory$custom$kubernetes$cmd_duration$line_break$character\n"
+format = "$directory$custom$kubernetes$fill$time$cmd_duration$line_break$character"
 palette = "catppuccin_mocha"
 
 [directory]
 truncation_length = 4
 style = "bold lavender"
+
+[fill]
+symbol = " "
+
+[time]
+disabled = false
+format = '[$time]($style) '
+time_format = '%T'
+style = "bold peach"
 
 [custom.mise]
 detect_files = [".mise.toml", ".mise.local.toml"]
