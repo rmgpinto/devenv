@@ -9,8 +9,8 @@ windows:
       layout: main-vertical
       panes:
         - code: cd ../.. && nvim
-        - shell: mise watch -t plan-staging -- -e tf,tfvars
-        - shell: mise watch -t plan-production -- -e tf,tfvars
+        - shell: mise watch -t plan-staging -- -e tf,tfvars --watch ../../modules
+        - shell: mise watch -t plan-production -- -e tf,tfvars --watch ../../modules
         - shell:
   - git:
       panes:
