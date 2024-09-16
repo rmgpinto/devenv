@@ -25,7 +25,7 @@ return {
           "dockerls",
           "ruby_lsp",
           -- Work
-          "tsserver"
+          "ts_ls"
         }
       })
     end
@@ -49,7 +49,7 @@ return {
       lspconfig.dockerls.setup({ capabilities = capabilities })
       lspconfig.ruby_lsp.setup({ capabilities = capabilities })
       -- Work
-      lspconfig.tsserver.setup({ capabilities = capabilities })
+      lspconfig.ts_ls.setup({ capabilities = capabilities })
       vim.keymap.set('n', 'K', vim.lsp.buf.hover, {})
       vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, {})
       vim.keymap.set('n', '<leader>gr', vim.lsp.buf.references, {})
