@@ -60,6 +60,8 @@ function main() {
   defaults write com.apple.dock wvous-br-corner -int 1
   # Disable automatically arranje spaces based on most recent use
   defaults write com.apple.dock mru-spaces -bool false
+  # Disable tiled windows margins
+  defaults write com.apple.WindowManager EnableTiledWindowMargins -bool false
 
   # Wallpaper
   WALLPAPER_PATH="/System/Library/Desktop Pictures/Solid Colors/Black.png"
