@@ -1,3 +1,6 @@
+[env]
+TMUX_SESSION_NAME = "{{exec(command='basename $(pwd) | tr \"[:upper:]\" \"[:lower:]\"')}}"
+
 [tasks.tmuxinator]
 description = "tmuxinator"
-run = "tmuxinator start code -n \"$(basename $(pwd) | tr \"[:upper:]\" \"[:lower:]\")\""
+run = "tmuxinator start code -n ${TMUX_SESSION_NAME}"
