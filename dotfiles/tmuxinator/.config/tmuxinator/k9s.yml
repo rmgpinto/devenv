@@ -1,7 +1,7 @@
 name: k9s
 
 on_project_start: |
-  [ -f .mise.toml ] && mise install
+  ([ -f .mise.toml ] || [ -f mise.local.toml ]) && mise install
   tmux resizep -t 1 -y "50%"
 
 windows:

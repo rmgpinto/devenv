@@ -1,7 +1,7 @@
 name: terraform
 
 on_project_start: |
-  [ -f .mise.toml ] && mise install
+  ([ -f .mise.toml ] || [ -f mise.local.toml ]) && mise install
   tmux resizep -t 1 -x "65%"
 
 windows:
@@ -9,7 +9,7 @@ windows:
       layout: main-vertical
       panes:
         - code: cd ../.. && nvim
-        - shell: mise watch -t plan -- -e tf,tfvars
+        - shell: mise watch -t plan -- --watch . --watch ../../modules
         - shell:
   - git:
       panes:
