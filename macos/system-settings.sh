@@ -49,8 +49,10 @@ function main() {
 
 
   # Desktop & Dock
-  # # Icon size of Dock: 48 pixels
+  # Icon size of Dock: 48 pixels
   defaults write com.apple.dock tilesize -int 48
+  # Auto-hide Dock
+  defaults write com.apple.dock autohide -bool true
   # Don't show recent applications in Dock
   defaults write com.apple.dock show-recents -bool false
   # Disable Hot Corners
