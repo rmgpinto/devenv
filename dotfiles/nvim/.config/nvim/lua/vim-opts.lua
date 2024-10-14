@@ -21,21 +21,9 @@ vim.opt.list = true
 vim.opt.listchars = { tab = "⇥ ", space = "·" }
 vim.o.termguicolors = true
 
--- clear command line 5 seconds after leaving it
-local function clear_cmdline()
-  vim.api.nvim_command('echo ""')
-end
-vim.api.nvim_create_augroup("ClearCmdLine", { clear = true })
-vim.api.nvim_create_autocmd("CmdlineLeave", {
-  group = "ClearCmdLine",
-  callback = function()
-    vim.defer_fn(clear_cmdline, 10000)
-  end
-})
-
 local opts = { noremap = true, silent = true }
-vim.keymap.set('v', '<Tab>', '>gv', { noremap = true })
-vim.keymap.set('v', '<S-Tab>', '<gv', { noremap = true })
+vim.keymap.set("v", "<Tab>", ">gv", { noremap = true })
+vim.keymap.set("v", "<S-Tab>", "<gv", { noremap = true })
 vim.keymap.set("n", "<A-j>", "<Esc>:m .+1<CR>", opts)
 vim.keymap.set("n", "<A-Down>", "<Esc>:m .+1<CR>", opts)
 vim.keymap.set("n", "<A-k>", "<Esc>:m .-2<CR>", opts)
