@@ -15,6 +15,7 @@ function main() {
     "/System/Applications/Mail.app"
     "/System/Applications/Calendar.app"
     "/Applications/Slack.app"
+    "/Applications/Spotify.app"
     "/System/Applications/Reminders.app"
     "/System/Applications/System%20Settings.app"
   )
