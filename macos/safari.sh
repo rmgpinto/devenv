@@ -13,8 +13,11 @@ function main() {
   defaults write com.apple.Safari ShowFullURLInSmartSearchField -bool true
   # Search provider
   defaults write com.apple.Safari SearchProviderShortName "DuckDuckGo"
-  # Disable autofill passwords
+  # Disable autofill
   defaults write com.apple.Safari AutoFillPasswords -bool false
+  defaults write com.apple.Safari AutoFillFromAddressBook -bool false
+  defaults write com.apple.Safari AutoFillCreditCardData -bool false
+  defaults write com.apple.Safari AutoFillMiscellaneousForms -bool false
   # Enable the Develop menu and the Web Inspector in Safari
   defaults write com.apple.Safari IncludeDevelopMenu -bool true
   defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
