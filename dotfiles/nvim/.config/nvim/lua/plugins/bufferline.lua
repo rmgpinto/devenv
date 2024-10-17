@@ -6,10 +6,10 @@ return {
         offsets = {
           {
             filetype = "neo-tree",
-            text_align = "left"
-          }
-        }
-      }
+            text_align = "left",
+          },
+        },
+      },
     })
-  end
+  end,
 }

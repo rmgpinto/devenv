@@ -17,6 +17,6 @@ return {
       "javascript",
     },
     indent = { enable = true },
-    highlight = { enable = true }
-  }
+    highlight = { enable = true },
+  },
 }

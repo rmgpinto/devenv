@@ -1,7 +1,6 @@
 return {
   {
     "github/copilot.vim",
-    config = function()
-    end
-  }
+    config = function() end,
+  },
 }

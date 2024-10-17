@@ -12,7 +12,7 @@ return {
         components = {
           -- only show last part of path
           name = function(config, node, state)
-            local components = require('neo-tree.sources.common.components')
+            local components = require("neo-tree.sources.common.components")
             local name = components.name(config, node, state)
             if node:get_depth() == 1 then
               name.text = name.text:match("([^/]+)$")
@@ -23,17 +23,17 @@ return {
         hijack_netrw_behavior = "open_default",
         use_libuv_file_watcher = true,
         follow_current_file = {
-          enabled = true
+          enabled = true,
         },
         filtered_items = {
           visible = true,
           hide_dotfiles = false,
           hide_gitignored = false,
           never_show = {
-            ".git"
-          }
-        }
-      }
+            ".git",
+          },
+        },
+      },
     })
-  end
+  end,
 }

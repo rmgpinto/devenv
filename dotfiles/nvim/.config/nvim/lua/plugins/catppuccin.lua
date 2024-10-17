@@ -7,11 +7,11 @@ return {
     require("catppuccin").setup({
       integrations = {
         mason = true,
-        neotree = true
-      }
+        neotree = true,
+      },
     })
-    vim.cmd.colorscheme "catppuccin-mocha"
+    vim.cmd.colorscheme("catppuccin-mocha")
     -- Highlight String to teal
-    vim.cmd [[highlight String guifg=#94e2d5]]
-  end
+    vim.cmd([[highlight String guifg=#94e2d5]])
+  end,
 }
