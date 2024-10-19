@@ -77,7 +77,7 @@ function run_mise_tmuxinator() {
   # checking for tmux is necessary because it's not available in the first shell session, maybe because of the way mise works
   if [[ $(command -v tmux > /dev/null; echo $?) -eq 0 ]]; then
     MISE_TMUXINATOR_FILE=$(find . -maxdepth 1 -name ".mise*.toml" -print -quit)
-    if [[ -n "${MISE_TMUXINATOR_FILE}" ]]; then
+    if [[ -n "${MISE_TMUXINATOR_FILE}" ]] && [[ -z "$TMUX" ]]; then
       if [[ "$(yq '.tasks.tmuxinator' ${MISE_TMUXINATOR_FILE} 2> /dev/null)" != "null" ]]; then
         mise run tmuxinator
       fi
