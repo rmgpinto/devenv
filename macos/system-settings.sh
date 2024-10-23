@@ -85,6 +85,12 @@ function main() {
   defaults write NSGlobalDomain NSAutomaticTextCompletionEnabled -bool false
   # Enable long press
   defaults write -g ApplePressAndHoldEnabled -bool true
+  # Shortcuts
+  # Disable Mission Control shortcuts
+  for key in 32 34 79 80; do
+    /usr/libexec/PlistBuddy -c 'Delete AppleSymbolicHotKeys:'${key} ${HOME}/Library/Preferences/com.apple.symbolichotkeys.plist || true
+    /usr/libexec/PlistBuddy -c 'Add AppleSymbolicHotKeys:'${key}':enabled bool false' ${HOME}/Library/Preferences/com.apple.symbolichotkeys.plist || true
+  done
   # Trackpad
   # Tracking speed
   defaults write NSGlobalDomain com.apple.trackpad.scaling 2.5
