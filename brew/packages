@@ -9,8 +9,6 @@ utf8proc
 pam-reattach
 mise
 stow
-docker
-docker-compose
 # needed for ruby
 libyaml
 

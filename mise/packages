@@ -17,6 +17,8 @@ eza
 zoxide
 lima
 colima
+docker
+docker-compose
 
 # Work
 gcloud
