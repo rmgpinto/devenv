@@ -1,0 +1,22 @@
+layout {
+    default_tab_template {
+        pane size=2 borderless=true {
+            plugin location="zjstatus"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    tab name="code" split_direction="horizontal" focus=true {
+        pane name="nvim" size="70%" command="nvim" focus=true
+        pane split_direction="vertical" name="shell" size="30%" {
+            pane command="mise watch -t rails-test -- -e rb,erb,yml"
+            pane command="rails server"
+        }
+    }
+    tab name="git" {
+        pane command="lazygit" borderless=true
+    }
+}
+

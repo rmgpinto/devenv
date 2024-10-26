@@ -1,0 +1,39 @@
+layout {
+    default_tab_template {
+        pane size=2 borderless=true {
+            plugin location="zjstatus"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    tab name="code" split_direction="vertical" hide_floating_panes=true focus=true {
+        pane name="nvim" size="65%" command="nvim" focus=true
+        pane split_direction="horizontal" {
+            pane  {
+                name "tf plan staging"
+                command "zsh"
+                args "-c" "mise watch -t plan-staging -- --watch . --watch ../../modules"
+            }
+            pane  {
+                name "tf plan production"
+                command "zsh"
+                args "-c" "mise watch -t plan-production -- --watch . --watch ../../modules"
+            }
+        }
+        floating_panes {
+            pane {
+                name "tf apply"
+                x "15%"
+                y "15%"
+                height "70%"
+                width "70%"
+            }
+        }
+    }
+    tab name="git" {
+        pane command="lazygit" borderless=true
+    }
+}
+

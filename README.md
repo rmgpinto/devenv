@@ -23,3 +23,17 @@ op account add --address my.1password.com --signin
 4. Copy `config/alacritty/Alacritty.incs`, in Finder, go to `Applications`, right-click on Alacritty, `Get Info` and paste on application icon.
 5. Follow 1Password SSH agent [instructions](https://developer.1password.com/docs/ssh/get-started#step-3-turn-on-the-1password-ssh-agent)
 
+## Notes
+Due to 1Password CLI being slow (`op read`), I've used the following:
+
+```
+# add secret to keychain
+security add-generic-password -a “${USER}” -s name-of-my-secret -w
+
+# read secret from keychain
+security find-generic-password -a “${USER}” -s name-of-my-secret -w
+
+# delete secret from keychain
+security delete-generic-password -a “${USER}” -s name-of-my-secret
+```
+

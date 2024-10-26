@@ -3,6 +3,6 @@ kubectl = "1.30.2"
 kubectx = "latest"
 k9s = "latest"
 
-[tasks.tmuxinator]
-description = "tmuxinator"
-run = "tmuxinator start k9s -n k8s"
+[tasks.zellij]
+description = "zellij"
+run = "zellij --session k8s --layout k9s"

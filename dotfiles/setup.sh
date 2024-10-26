@@ -62,23 +62,11 @@ function setup_ssh() {
   /opt/homebrew/bin/stow ssh -t ${HOME}
 }
 
-function setup_tmux() {
-  log info "Setting up tmux..."
-  mkdir -p ~/.config/tmux/plugins/tpm
-  if [[ ! -f ~/.config/tmux/plugins/tpm/tpm ]]; then
-    git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
-  fi  
-  /opt/homebrew/bin/stow tmux -t ${HOME}
-  log info "Done."
-}
-
-function setup_tmuxinator() {
-  log info "Setting up tmuxinator..."
-  if ! command -v tmuxinator &> /dev/null; then
-    sudo gem install tmuxinator
-    sudo curl -o /usr/local/share/zsh/site-functions/_tmuxinator https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.zsh
-  fi
-  /opt/homebrew/bin/stow tmuxinator -t ${HOME}
+function setup_zellij() {
+  log info "Setting up zellij..."
+  mkdir -p ${XDG_CONFIG_HOME}/zellij/zsh
+  ~/.local/share/mise/shims/zellij setup --generate-completion zsh > ${XDG_CONFIG_HOME}/zellij/zsh/_zellij
+  /opt/homebrew/bin/stow zellij -t ${HOME}
   log info "Done."
 }
 
@@ -145,8 +133,7 @@ function main() {
   setup_gh
   setup_lazygit
   setup_ssh
-  setup_tmux
-  setup_tmuxinator
+  setup_zellij
   setup_neovim
   setup_bat
   setup_bundle

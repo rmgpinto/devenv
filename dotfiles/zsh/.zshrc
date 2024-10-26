@@ -35,8 +35,11 @@ export MISE_LOG_LEVEL=warn
 export MISE_TRUSTED_CONFIG_PATHS="${HOME}/dev"
 eval "$(mise activate zsh)"
 
+# zellij
+FPATH="${XDG_CONFIG_HOME}/zellij/zsh:${FPATH}"
+
 # starship
-export STARSHIP_CONFIG="${HOME}/.config/starship/starship.toml"
+export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/starship.toml"
 eval "$(~/.local/share/mise/shims/starship init zsh)"
 
 # homebrew
@@ -75,21 +78,21 @@ if [ -f ~/.zshaliases ]; then
   source ~/.zshaliases
 fi
 
-# tmuxinator auto-layout
-function run_mise_tmuxinator() {
-  # checking for tmux is necessary because it's not available in the first shell session, maybe because of the way mise works
-  if [[ $(command -v tmux > /dev/null; echo $?) -eq 0 ]]; then
-    MISE_TMUXINATOR_FILE=$(find . -maxdepth 1 -name ".mise*.toml" -print -quit)
-    if [[ -n "${MISE_TMUXINATOR_FILE}" ]] && [[ -z "$TMUX" ]]; then
-      if [[ "$(yq '.tasks.tmuxinator' ${MISE_TMUXINATOR_FILE} 2> /dev/null)" != "null" ]]; then
-        mise run tmuxinator
+# mise zellij layout
+function run_mise_zellij() {
+  # checking for zellij is necessary because it's not available in the first shell session, maybe because of the way mise works
+  if [[ $(command -v zellij > /dev/null; echo $?) -eq 0 ]]; then
+    MISE_FILE=$(find . -maxdepth 1 -name ".mise*.toml" -print -quit)
+    if [[ -n "${MISE_FILE}" ]] && [[ -z "$ZELLIJ" ]]; then
+      if [[ "$(yq '.tasks.zellij' ${MISE_FILE} 2> /dev/null)" != "null" ]]; then
+        mise run zellij
       fi
     fi
   fi
 }
 autoload -Uz add-zsh-hook
-add-zsh-hook chpwd run_mise_tmuxinator
-run_mise_tmuxinator
+add-zsh-hook chpwd run_mise_zellij
+run_mise_zellij
 
 # zsh Completion
 autoload -Uz compinit

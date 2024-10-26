@@ -2,7 +2,6 @@
 
 function main() {
   mkdir -p ~/Library/LaunchAgents/bin
-  mkdir -p ~/.config/tmux/custom
   cd cron-scripts
   /opt/homebrew/bin/stow outdated-packages -t ${HOME}/Library/LaunchAgents
   cd ..
@@ -10,8 +9,6 @@ function main() {
   launchctl load ~/Library/LaunchAgents/com.user.brewoutdatedpackages.plist
   launchctl unload ~/Library/LaunchAgents/com.user.miseoutdatedpackages.plist > /dev/null
   launchctl load ~/Library/LaunchAgents/com.user.miseoutdatedpackages.plist
-  launchctl unload ~/Library/LaunchAgents/com.user.tmuxoutdatedpackages.plist > /dev/null
-  launchctl load ~/Library/LaunchAgents/com.user.tmuxoutdatedpackages.plist
   launchctl unload ~/Library/LaunchAgents/com.user.nvimoutdatedpackages.plist > /dev/null
   launchctl load ~/Library/LaunchAgents/com.user.nvimoutdatedpackages.plist
 }

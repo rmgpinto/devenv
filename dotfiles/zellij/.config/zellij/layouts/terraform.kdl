@@ -1,0 +1,21 @@
+layout {
+    default_tab_template {
+        pane size=2 borderless=true {
+            plugin location="zjstatus"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    tab name="code" split_direction="horizontal" focus=true {
+          pane name="nvim" size="70%" command="nvim" focus=true
+          pane split_direction="vertical" {
+            pane name="shell"
+            pane name="tf plan" command="mise watch -t plan -- --watch . --watch ../../modules" focus=true
+    }
+    tab name="git" {
+          pane command="lazygit" borderless=true
+    }
+}
+

@@ -4,7 +4,8 @@ github-cli
 lazygit
 gitleaks
 1password-cli
-tmux
+zellij
+zjstatus # zellij plugin
 ripgrep
 nodejs
 neovim

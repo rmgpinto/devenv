@@ -1,6 +1,3 @@
-[env]
-TMUX_SESSION_NAME = "{{exec(command='basename $(pwd) | tr \"[:upper:]\" \"[:lower:]\"')}}"
-
-[tasks.tmuxinator]
-description = "tmuxinator"
-run = "tmuxinator start code -n ${TMUX_SESSION_NAME}"
+[tasks.zellij]
+description = "zellij"
+run = "zellij --session devenv --layout code"
