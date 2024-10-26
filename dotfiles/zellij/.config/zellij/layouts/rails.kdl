@@ -11,8 +11,12 @@ layout {
     tab name="code" split_direction="horizontal" focus=true {
         pane name="nvim" size="70%" command="nvim" focus=true
         pane split_direction="vertical" name="shell" size="30%" {
-            pane command="mise watch -t rails-test -- -e rb,erb,yml"
-            pane command="rails server"
+            pane {
+                name "test"
+                command "zsh"
+                args "-c" "mise watch -t rails-test -- -e rb,erb,yml"
+            }
+            pane name="rails" command="rails server"
         }
     }
     tab name="git" {
