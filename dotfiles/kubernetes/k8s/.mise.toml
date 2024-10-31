@@ -5,4 +5,4 @@ k9s = "latest"
 
 [tasks.zellij]
 description = "zellij"
-run = "zellij --session k8s --layout k9s"
+run = "zellij --layout k9s --create {{ cwd | basename }}"
