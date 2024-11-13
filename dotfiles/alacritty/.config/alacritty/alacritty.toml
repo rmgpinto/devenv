@@ -11,6 +11,7 @@ family = "FiraCode Nerd Font"
 
 [window]
 option_as_alt = "OnlyLeft"
+dynamic_title = false
 
 [window.padding]
 x = 5
