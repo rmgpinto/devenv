@@ -1,8 +1,9 @@
 [tools]
+doctl = "latest"
 kubectl = "1.30.2"
 kubectx = "latest"
 k9s = "latest"
 
 [tasks.zellij]
 description = "zellij"
-run = "zellij --layout k9s --create {{ cwd | basename }}"
+run = "zellij --layout k9s attach --create k8s"
