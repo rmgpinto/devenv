@@ -1,4 +1,4 @@
 #!/bin/zsh -eo pipefail
 
-gitleaks detect --no-banner --gitleaks-ignore-path ~/.config/git -v
+gitleaks detect --no-banner --gitleaks-ignore-path ~/.config/git --log-opts="--branches=$(git rev-parse --abbrev-ref HEAD)" -v
 
