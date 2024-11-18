@@ -16,7 +16,11 @@ layout {
                 command "zsh"
                 args "-c" "mise watch -t rails-test -- -e rb,erb,yml"
             }
-            pane name="rails" command="rails server"
+            pane {
+                name "server"
+                command "zsh"
+                args "-c" "mise run rails-dev"
+            }
         }
     }
     tab name="git" {
