@@ -20,6 +20,7 @@ lima
 colima
 docker
 docker-compose
+lazydocker
 
 # Work
 gcloud
