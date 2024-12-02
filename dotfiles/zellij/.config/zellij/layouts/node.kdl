@@ -16,7 +16,11 @@ layout {
                 command "yarn"
                 args "test" "-w"
             }
-            pane name="ci" command="gha_watch"
+            pane {
+              name "ci"
+              command "zsh"
+              args "-i" "-c" "gha_watch"
+            }
         }
     }
     tab name="git" {
