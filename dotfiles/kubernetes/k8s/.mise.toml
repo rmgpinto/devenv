@@ -7,3 +7,6 @@ k9s = "latest"
 [tasks.zellij]
 description = "zellij"
 run = "zellij --layout k9s attach --create k8s"
+
+[hooks]
+enter = "if [ -z ${ZELLIJ} ]; then mise run zellij; fi"

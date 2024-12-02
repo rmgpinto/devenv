@@ -78,22 +78,6 @@ if [ -f ~/.zshaliases ]; then
   source ~/.zshaliases
 fi
 
-# mise zellij layout
-function run_mise_zellij() {
-  # checking for zellij is necessary because it's not available in the first shell session, maybe because of the way mise works
-  if [[ $(command -v zellij > /dev/null; echo $?) -eq 0 ]]; then
-    MISE_FILE=$(find . -maxdepth 1 -name ".mise*.toml" -print -quit)
-    if [[ -n "${MISE_FILE}" ]] && [[ -z "$ZELLIJ" ]]; then
-      if [[ "$(yq '.tasks.zellij' ${MISE_FILE} 2> /dev/null)" != "null" ]]; then
-        mise run zellij
-      fi
-    fi
-  fi
-}
-autoload -Uz add-zsh-hook
-add-zsh-hook chpwd run_mise_zellij
-run_mise_zellij
-
 # zsh Completion
 autoload -Uz compinit
 compinit
