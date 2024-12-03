@@ -23,10 +23,8 @@ style = "bold mauve"
 [kubernetes]
 disabled = false
 detect_folders = ["k8s"]
-detect_env_vars = ["INVALID"]                             # this is a workaround, in 1.20 it will be fixed
-format = "[$symbol$context in \\($namespace\\)]($style) "
+format = "[$symbol$context]($style) "
 style = "bold blue"
-
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"
