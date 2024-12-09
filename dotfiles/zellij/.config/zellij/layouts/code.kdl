@@ -4,9 +4,6 @@ layout {
             plugin location="zjstatus"
         }
         children
-        pane size=2 borderless=true {
-            plugin location="zellij:status-bar"
-        }
     }
     tab name="code" split_direction="horizontal" focus=true {
         pane name="nvim" size="70%" command="nvim" focus=true

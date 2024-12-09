@@ -4,9 +4,6 @@ layout {
             plugin location="zjstatus"
         }
         children
-        pane size=2 borderless=true {
-            plugin location="zellij:status-bar"
-        }
     }
     tab name="k9s" split_direction="horizontal" focus=true {
         pane name="k9s" size="60%" command="k9s" focus=true
