@@ -2,7 +2,6 @@
 starship
 github-cli
 lazygit
-gitleaks
 1password-cli
 zellij
 zjstatus # zellij plugin
@@ -20,8 +19,8 @@ lima
 colima
 docker
 docker-compose
-lazydocker
 
 # Work
+gitleaks
 gcloud
-
+multitail

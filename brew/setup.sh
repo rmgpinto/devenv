@@ -12,19 +12,19 @@ function install_brew() {
 
 function install_brew_packages() {
   log info "Installing brew packages..."
-  [ -f packages ] && cat packages | grep -vE "^(#|$)" | xargs /opt/homebrew/bin/brew install
+  [ -f packages ] && cat packages | grep -vE "^(#|$)" | sed 's/#.*//' | sed '/^\s*$/d' | xargs /opt/homebrew/bin/brew install
   log info "Done."
 }
 
 function install_brew_cask_packages() {
   log info "Installing brew cask packages..."
-  [ -f cask_packages ] && cat cask_packages | grep -vE "^(#|$)" | xargs /opt/homebrew/bin/brew install --cask
+  [ -f cask_packages ] && cat cask_packages | grep -vE "^(#|$)" | sed 's/#.*//' | sed '/^\s*$/d' | xargs /opt/homebrew/bin/brew install --cask
   log info "Done."
 }
 
 function install_brew_mas_packages() {
   log info "Installing brew mas packages..."
-  [ -f mas_packages ] && cat mas_packages | grep -vE "^(#|$)" | xargs /opt/homebrew/bin/mas install
+  [ -f mas_packages ] && cat mas_packages | grep -vE "^(#|$)" | sed 's/#.*//' | sed '/^\s*$/d' | xargs /opt/homebrew/bin/mas install
   log info "Done."
 }
 

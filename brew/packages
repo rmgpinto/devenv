@@ -5,7 +5,6 @@ zsh-autosuggestions
 pam-reattach
 mise
 stow
-# needed for ruby start
-libyaml
-# needed for ruby end
+cmake # needed for multitail
+libyaml # needed for ruby
 
