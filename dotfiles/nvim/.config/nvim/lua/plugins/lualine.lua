@@ -5,19 +5,6 @@ return {
       theme = "catppuccin",
       padding = 2,
       globalstatus = true,
-      --   ignore_focus = {
-      --     "alpha",
-      --     "neo-tree",
-      --     "undotree",
-      --     "diff"
-      --   },
-      --   disabled_filetypes = {
-      --     statusline = {
-      --       "alpha",
-      --       "neo-tree",
-      --       "undotree",
-      --       "diff"
-      --     }
     },
     sections = {
       lualine_a = { "mode" },
@@ -34,7 +21,6 @@ return {
         },
       },
       lualine_x = {
-        { "encoding", separator = "", padding = 0 },
         { "filetype", separator = "" },
       },
     },
