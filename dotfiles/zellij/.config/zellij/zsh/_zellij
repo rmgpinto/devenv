@@ -20,8 +20,10 @@ _zellij() {
 '*--server=[Run server listening at the specified socket path]:SERVER:_files' \
 '*-s+[Specify name of a new session]:SESSION: ' \
 '*--session=[Specify name of a new session]:SESSION: ' \
-'*-l+[Name of a predefined layout inside the layout directory or the path to a layout file]:LAYOUT:_files' \
-'*--layout=[Name of a predefined layout inside the layout directory or the path to a layout file]:LAYOUT:_files' \
+'*-l+[Name of a predefined layout inside the layout directory or the path to a layout file if inside a session (or using the --session flag) will be added to the session as a new tab or tabs, otherwise will start a new session]:LAYOUT:_files' \
+'*--layout=[Name of a predefined layout inside the layout directory or the path to a layout file if inside a session (or using the --session flag) will be added to the session as a new tab or tabs, otherwise will start a new session]:LAYOUT:_files' \
+'*-n+[Name of a predefined layout inside the layout directory or the path to a layout file Will always start a new session, even if inside an existing session]:NEW_SESSION_WITH_LAYOUT:_files' \
+'*--new-session-with-layout=[Name of a predefined layout inside the layout directory or the path to a layout file Will always start a new session, even if inside an existing session]:NEW_SESSION_WITH_LAYOUT:_files' \
 '*-c+[Change where zellij looks for the configuration file]:CONFIG:_files' \
 '*--config=[Change where zellij looks for the configuration file]:CONFIG:_files' \
 '*--config-dir=[Change where zellij looks for the configuration directory]:CONFIG_DIR:_files' \
@@ -81,6 +83,7 @@ tmux\:"`Tmux` mode allows for basic tmux keybindings functionality"))' \
 '*--styled-underlines=[Whether to use ANSI styled underlines]:STYLED_UNDERLINES:(true false)' \
 '*--serialization-interval=[The interval at which to serialize sessions for resurrection (in seconds)]:SERIALIZATION_INTERVAL: ' \
 '*--disable-session-metadata=[If true, will disable writing session metadata to disk]:DISABLE_SESSION_METADATA:(true false)' \
+'*--support-kitty-keyboard-protocol=[Whether to enable support for the Kitty keyboard protocol (must also be supported by the host terminal), defaults to true if the terminal supports it]:SUPPORT_KITTY_KEYBOARD_PROTOCOL:(true false)' \
 '(--mouse-mode)*--disable-mouse-mode[Disable handling of mouse events]' \
 '(--pane-frames)*--no-pane-frames[Disable display of pane frames]' \
 '-h[Print help information]' \
@@ -182,6 +185,7 @@ tmux\:"`Tmux` mode allows for basic tmux keybindings functionality"))' \
 '*--styled-underlines=[Whether to use ANSI styled underlines]:STYLED_UNDERLINES:(true false)' \
 '*--serialization-interval=[The interval at which to serialize sessions for resurrection (in seconds)]:SERIALIZATION_INTERVAL: ' \
 '*--disable-session-metadata=[If true, will disable writing session metadata to disk]:DISABLE_SESSION_METADATA:(true false)' \
+'*--support-kitty-keyboard-protocol=[Whether to enable support for the Kitty keyboard protocol (must also be supported by the host terminal), defaults to true if the terminal supports it]:SUPPORT_KITTY_KEYBOARD_PROTOCOL:(true false)' \
 '(--mouse-mode)*--disable-mouse-mode[Disable handling of mouse events]' \
 '(--pane-frames)*--no-pane-frames[Disable display of pane frames]' \
 '-h[Print help information]' \
