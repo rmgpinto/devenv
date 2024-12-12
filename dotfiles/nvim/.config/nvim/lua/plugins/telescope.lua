@@ -65,9 +65,19 @@ return {
         if cached_pickers == nil or vim.tbl_isempty(cached_pickers) then
           builtin.find_files({ hidden = true })
         else
-          builtin.resume()
+          local resume = false
+          for k, v in ipairs(cached_pickers) do
+            if v.prompt_title == "Find Files" or v.prompt_title == "Live Grep (Args)" then
+              resume = true
+            end
+          end
+          if resume then
+            builtin.resume()
+          else
+            builtin.find_files({ hidden = true })
+          end
         end
-      end, { silent = true })
+      end, {})
       vim.keymap.set("n", "<leader>ff", function()
         builtin.find_files({ hidden = true })
       end, { silent = true })
