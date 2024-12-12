@@ -22,10 +22,6 @@ vim.opt.listchars = { tab = "⇥ ", space = "·" }
 vim.o.termguicolors = true
 
 local opts = { noremap = true, silent = true }
-vim.keymap.set("n", "<A-j>", "<Esc>:m .+1<CR>", opts)
-vim.keymap.set("n", "<A-Down>", "<Esc>:m .+1<CR>", opts)
-vim.keymap.set("n", "<A-k>", "<Esc>:m .-2<CR>", opts)
-vim.keymap.set("n", "<A-Up>", "<Esc>:m .-2<CR>", opts)
 vim.keymap.set("v", "<Tab>", ">gv", opts)
 vim.keymap.set("v", "<S-Tab>", "<gv", opts)
 vim.keymap.set("n", "<S-l>", ":bnext<CR>", opts)
