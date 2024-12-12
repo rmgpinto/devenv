@@ -7,7 +7,6 @@ return {
     require("catppuccin").setup({
       integrations = {
         mason = true,
-        neotree = true,
       },
     })
     vim.cmd.colorscheme("catppuccin-mocha")
