@@ -28,3 +28,12 @@ vim.keymap.set("n", "<S-l>", ":bnext<CR>", opts)
 vim.keymap.set("n", "<S-h>", ":bprevious<CR>", opts)
 vim.keymap.set("n", "<leader>mn", ":BufferLineMoveNext<CR>", opts)
 vim.keymap.set("n", "<leader>mp", ":BufferLineMovePrev<CR>", opts)
+-- Restore cursor position when opening a file
+vim.api.nvim_create_autocmd("BufReadPost", {
+  callback = function()
+    local line = vim.fn.line
+    if line("'\"") > 0 and line("'\"") <= line("$") then
+      vim.cmd('normal! g`"')
+    end
+  end,
+})
