@@ -10,7 +10,7 @@ keybinds {
     }
     resize {
         unbind "Ctrl n"
-        bind "Super n" { SwitchToMode "Normal"; }
+        bind "Super r" { SwitchToMode "Normal"; }
         bind "h" "Left" { Resize "Increase Left"; }
         bind "j" "Down" { Resize "Increase Down"; }
         bind "k" "Up" { Resize "Increase Up"; }
@@ -42,7 +42,7 @@ keybinds {
     }
     move {
         unbind "Ctrl h"
-        bind "Super h" { SwitchToMode "Normal"; }
+        bind "Super z" { SwitchToMode "Normal"; }
         bind "n" "Tab" { MovePane; }
         bind "p" { MovePaneBackwards; }
         bind "h" "Left" { MovePane "Left"; }
@@ -159,7 +159,7 @@ keybinds {
     }
     shared_except "resize" "locked" {
         unbind "Ctrl n"
-        bind "Super n" { SwitchToMode "Resize"; }
+        bind "Super r" { SwitchToMode "Resize"; }
     }
     shared_except "scroll" "locked" {
         unbind "Ctrl s"
@@ -176,8 +176,8 @@ keybinds {
         bind "Super a" { SwitchToMode "Tab"; }
     }
     shared_except "move" "locked" {
-        unbind "Ctrl h"
-        bind "Super h" { SwitchToMode "Move"; }
+        unbind "Ctrl z"
+        bind "Super z" { SwitchToMode "Move"; }
     }
     shared_except "tmux" "locked" {
         unbind "Ctrl b"
@@ -249,7 +249,7 @@ plugins {
         mode_resize        "#[bg=$yellow,fg=$crust,bold] RESIZE  #[bg=$lavender,fg=$yellow]"
         mode_rename_tab    "#[bg=$yellow,fg=$crust,bold] RENAME-TAB #[bg=$lavender,fg=$yellow]"
         mode_rename_pane   "#[bg=$yellow,fg=$crust,bold] RENAME-PANE #[bg=$lavender,fg=$yellow]"
-        mode_move          "#[bg=$yellow,fg=$crust,bold] MOVE    #[bg=$lavender,fg=$yellow]"
+        mode_move          "#[bg=$yellow,fg=$crust,bold] MOVE    #[bg=$lavender,fg=$yellow]"
         mode_session       "#[bg=$pink,fg=$crust,bold] SESSION #[bg=$lavender,fg=$pink]"
         mode_prompt        "#[bg=$pink,fg=$crust,bold] PROMPT  #[bg=$lavender,fg=$pink]"
 
