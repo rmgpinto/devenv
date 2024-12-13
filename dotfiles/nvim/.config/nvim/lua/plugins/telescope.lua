@@ -106,7 +106,7 @@ return {
           if resume then
             builtin.resume()
           else
-            builtin.find_files({ hidden = true })
+            telescope.extensions.file_browser.file_browser()
           end
         end
       end, { silent = true })
