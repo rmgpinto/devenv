@@ -90,7 +90,25 @@ return {
         telescope.extensions.live_grep_args.live_grep_args()
       end, { silent = true })
       vim.keymap.set("n", "<leader>b", function()
-        telescope.extensions.file_browser.file_browser()
+        -- The check for cached pickers comes from Telescope's source code, link below.
+        -- https://github.com/nvim-telescope/telescope.nvim/blob/2eca9ba22002184ac05eddbe47a7fe2d5a384dfc/lua/telescope/builtin/__internal.lua#L135-L136
+        local state = require("telescope.state")
+        local cached_pickers = state.get_global_key("cached_pickers")
+        if cached_pickers == nil or vim.tbl_isempty(cached_pickers) then
+          telescope.extensions.file_browser.file_browser()
+        else
+          local resume = false
+          for k, v in ipairs(cached_pickers) do
+            if v.prompt_title == "File Browser" then
+              resume = true
+            end
+          end
+          if resume then
+            builtin.resume()
+          else
+            builtin.find_files({ hidden = true })
+          end
+        end
       end, { silent = true })
       vim.keymap.set("n", "<leader>fu", function()
         telescope.extensions.undo.undo()
