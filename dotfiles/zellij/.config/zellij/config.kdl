@@ -225,7 +225,7 @@ plugins {
         color_mantle "#181825"
         color_crust "#11111b"
 
-        format_left   "#[bg=$base]{mode}#[bg=$lavender,fg=$crust,bold]  {session} #[bg=$base,fg=$lavender]#[bg=$base] {tabs}"
+        format_left   "#[bg=$base]{mode}#[bg=$lavender,fg=$crust,bold]  {session} #[bg=$base,fg=$lavender]#[bg=$base]{tabs}"
         format_center "{notifications}"
         format_space  "#[bg=$base]"
         format_hide_on_overlength "true"
