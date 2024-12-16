@@ -11,6 +11,8 @@ function main() {
   defaults write com.apple.Safari AlwaysRestoreSessionAtLaunch -bool true
   # Show full URL
   defaults write com.apple.Safari ShowFullURLInSmartSearchField -bool true
+  # Open pages in tabs instead of windows
+  defaults write com.apple.Safari TabCreationPolicy -int 2
   # Search provider
   defaults write com.apple.Safari SearchProviderShortName "DuckDuckGo"
   # Disable autofill
