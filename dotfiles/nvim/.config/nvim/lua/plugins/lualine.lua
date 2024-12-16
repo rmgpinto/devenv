@@ -6,6 +6,7 @@ return {
       theme = "catppuccin",
       padding = 2,
       globalstatus = true,
+      disabled_filetypes = { "alpha" },
     },
     sections = {
       lualine_a = { "mode" },
@@ -22,7 +23,6 @@ return {
         },
       },
       lualine_x = {
-        { "filetype", separator = "" },
         {
           function()
             local buf_clients = vim.lsp.get_active_clients({ bufnr = vim.api.nvim_get_current_buf() })
@@ -40,6 +40,7 @@ return {
             vim.api.nvim_command("che lspconfig")
           end,
         },
+        { "filetype" },
       },
     },
   },
