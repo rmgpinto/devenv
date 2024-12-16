@@ -11,7 +11,7 @@ layout {
             pane {
                 name "test"
                 command "zsh"
-                args "-c" "mise watch -t rails-test -- -e rb,erb,yml"
+                args "-c" "mise watch -t rails-test -e rb,erb,yml"
             }
             pane {
                 name "server"
