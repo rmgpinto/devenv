@@ -22,6 +22,23 @@ return {
       },
       lualine_x = {
         { "filetype", separator = "" },
+        {
+          function()
+            local buf_clients = vim.lsp.get_active_clients({ bufnr = vim.api.nvim_get_current_buf() })
+            if #buf_clients == 0 then
+              return "0"
+            end
+            local clients = 0
+            for _, client in pairs(buf_clients) do
+              clients = clients + 1
+            end
+            return clients
+          end,
+          icon = { " ", color = { fg = "#89b4fa" } },
+          on_click = function()
+            vim.api.nvim_command("che lspconfig")
+          end,
+        },
       },
     },
   },
