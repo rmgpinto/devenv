@@ -253,19 +253,19 @@ plugins {
         mode_session       "#[bg=$pink,fg=$crust,bold] SESSION #[bg=$lavender,fg=$pink]"
         mode_prompt        "#[bg=$pink,fg=$crust,bold] PROMPT  #[bg=$lavender,fg=$pink]"
 
-        tab_normal              "#[bg=$blue,fg=$base] #[bg=$blue,fg=$crust]{index} #[bg=$surface1,fg=$blue]#[bg=$surface1,fg=$text] {name}{floating_indicator} #[bg=$base,fg=$surface1]"
-        tab_normal_fullscreen   "#[bg=$blue,fg=$base] #[bg=$blue,fg=$crust]{index} #[bg=$surface1,fg=$text] {name}{fullscreen_indicator} #[bg=$base,fg=$surface1]"
-        tab_normal_sync         "#[bg=$blue,fg=$base] #[bg=$blue,fg=$crust]{index} #[bg=$surface1,fg=$text] {name}{sync_indicator}  #[bg=$base,fg=$surface1]"
-        tab_active              "#[bg=$peach,fg=$base] #[bg=$peach,fg=$crust]{index} #[bg=$surface1,fg=$peach]#[bg=$surface1,fg=$text] {name}{floating_indicator} #[bg=$base,fg=$surface1]"
-        tab_active_fullscreen   "#[bg=$peach,fg=$base] #[bg=$peach,fg=$crust]{index} #[bg=$surface1,fg=$text] {name}{fullscreen_indicator}  #[bg=$base,fg=$surface1]"
-        tab_active_sync         "#[bg=$peach,fg=$base] #[bg=$peach,fg=$crust]{index} #[bg=$surface1,fg=$text] {name}{sync_indicator} #[bg=$base,fg=$surface1]"
+        tab_normal              "#[bg=$blue,fg=$base] #[bg=$blue,fg=$crust]{index} #[bg=$surface0,fg=$blue]#[bg=$surface0,fg=$text] {name}{floating_indicator} #[bg=$base,fg=$surface0]"
+        tab_normal_fullscreen   "#[bg=$blue,fg=$base] #[bg=$blue,fg=$crust]{index} #[bg=$surface0,fg=$text] {name}{fullscreen_indicator} #[bg=$base,fg=$surface0]"
+        tab_normal_sync         "#[bg=$blue,fg=$base] #[bg=$blue,fg=$crust]{index} #[bg=$surface0,fg=$text] {name}{sync_indicator}  #[bg=$base,fg=$surface0]"
+        tab_active              "#[bg=$peach,fg=$base] #[bg=$peach,fg=$crust]{index} #[bg=$surface0,fg=$peach]#[bg=$surface0,fg=$text] {name}{floating_indicator} #[bg=$base,fg=$surface0]"
+        tab_active_fullscreen   "#[bg=$peach,fg=$base] #[bg=$peach,fg=$crust]{index} #[bg=$surface0,fg=$text] {name}{fullscreen_indicator}  #[bg=$base,fg=$surface0]"
+        tab_active_sync         "#[bg=$peach,fg=$base] #[bg=$peach,fg=$crust]{index} #[bg=$surface0,fg=$text] {name}{sync_indicator} #[bg=$base,fg=$surface0]"
         tab_separator           "#[bg=$base]"
 
         tab_sync_indicator       " "
         tab_fullscreen_indicator " 󰊓"
         tab_floating_indicator   " 󰹙"
 
-        notification_format_unread "#[bg=surface0,fg=$yellow]#[bg=$yellow,fg=$crust] #[bg=$surface1,fg=$yellow] {message}#[bg=$surface0,fg=$yellow]"
+        notification_format_unread "#[bg=surface0,fg=$yellow]#[bg=$yellow,fg=$crust] #[bg=$surface0,fg=$yellow] {message}#[bg=$surface0,fg=$yellow]"
         notification_format_no_notifications ""
         notification_show_interval "10"
     }
