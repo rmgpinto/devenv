@@ -15,6 +15,7 @@ return {
       telescope.setup({
         defaults = {
           file_ignore_patterns = {
+            "%.git$",
             "^.git/.*",
             "node_modules",
             "build",
@@ -44,7 +45,6 @@ return {
             hide_parent_dir = true,
             collapse_dirs = true,
             hidden = { file_browser = true, folder_browser = true },
-            file_ignore_patterns = { ".git/.*" },
             sorting_strategy = "ascending",
           },
           undo = {
