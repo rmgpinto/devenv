@@ -9,7 +9,7 @@ layout {
           pane name="nvim" size="70%" command="nvim" focus=true
           pane split_direction="vertical" {
             pane name="shell"
-            pane name="tf plan" command="mise watch -t plan -- --watch . --watch ../../modules" focus=true
+            pane name="tf plan" command="mise watch -t plan --watch . --watch ../../modules" focus=true
     }
     tab name="git" {
           pane command="lazygit" borderless=true

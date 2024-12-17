@@ -11,12 +11,12 @@ layout {
             pane  {
                 name "tf plan staging"
                 command "zsh"
-                args "-c" "mise watch -t plan-staging -- --watch . --watch ../../modules"
+                args "-c" "mise watch -t plan-staging --watch . --watch ../../modules"
             }
             pane  {
                 name "tf plan production"
                 command "zsh"
-                args "-c" "mise watch -t plan-production -- --watch . --watch ../../modules"
+                args "-c" "mise watch -t plan-production --watch . --watch ../../modules"
             }
         }
         floating_panes {
