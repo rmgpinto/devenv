@@ -6,22 +6,28 @@ layout {
         children
     }
     tab name="code" split_direction="vertical" hide_floating_panes=true focus=true {
-        pane name="nvim" size="65%" command="nvim" focus=true
+        pane {
+            name "nvim"
+            size "65%"
+            command "zsh"
+            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && nvim"
+            focus true
+        }
         pane split_direction="horizontal" {
             pane  {
-                name "tf plan staging"
+                name "terraform plan staging"
                 command "zsh"
                 args "-c" "mise watch -t plan-staging --watch . --watch ../../modules"
             }
             pane  {
-                name "tf plan production"
+                name "terraform plan production"
                 command "zsh"
                 args "-c" "mise watch -t plan-production --watch . --watch ../../modules"
             }
         }
         floating_panes {
             pane {
-                name "tf apply"
+                name "terraform apply"
                 x "15%"
                 y "15%"
                 height "70%"
