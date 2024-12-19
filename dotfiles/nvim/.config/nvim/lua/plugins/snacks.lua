@@ -23,12 +23,13 @@ return {
         { title = "MRU", padding = 1 },
         { section = "recent_files", cwd = true, limit = 9, padding = 1 },
         { section = "startup" },
-        { pane = 2, padding = 7 },
+        { pane = 2, padding = 7, enabled = vim.fn.isdirectory(".git") ~= 0 },
         {
           pane = 2,
           icon = " ",
           desc = "Browse Repo",
           padding = 1,
+          enabled = vim.fn.isdirectory(".git") ~= 0,
           key = "b",
           action = function()
             ---@diagnostic disable-next-line: undefined-global
@@ -36,6 +37,8 @@ return {
           end,
         },
         function()
+          ---@diagnostic disable-next-line: undefined-global
+          local in_git = Snacks.git.get_root() ~= nil
           local cmds = {
             {
               icon = " ",
@@ -58,6 +61,7 @@ return {
             return vim.tbl_extend("force", {
               pane = 2,
               section = "terminal",
+              enabled = in_git,
               padding = 1,
               ttl = 10,
               indent = 3,
