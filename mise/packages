@@ -8,6 +8,7 @@ zjstatus # zellij plugin
 ripgrep
 nodejs
 neovim
+cmake # telescope-fzf-native
 watchexec
 jq
 yq

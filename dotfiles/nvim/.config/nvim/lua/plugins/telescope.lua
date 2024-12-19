@@ -3,6 +3,10 @@ return {
     "nvim-telescope/telescope.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim",
+      {
+        "nvim-telescope/telescope-fzf-native.nvim",
+        build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release",
+      },
       "echasnovski/mini.icons",
       "nvim-telescope/telescope-live-grep-args.nvim",
       "nvim-telescope/telescope-file-browser.nvim",
@@ -54,9 +58,9 @@ return {
             },
             entry_format = "#$ID, $STAT, $TIME",
           },
-        },
-        ["ui-select"] = {
-          require("telescope.themes").get_dropdown({}),
+          ["ui-select"] = {
+            require("telescope.themes").get_dropdown({}),
+          },
         },
       })
       local builtin = require("telescope.builtin")
