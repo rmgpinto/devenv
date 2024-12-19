@@ -5,5 +5,6 @@ zsh-autosuggestions
 pam-reattach
 mise
 stow
+gnupg # needed for yarn
 libyaml # needed for ruby
 
