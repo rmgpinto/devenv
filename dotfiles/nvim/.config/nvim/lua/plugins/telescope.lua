@@ -90,7 +90,7 @@ return {
       vim.keymap.set("n", "<leader>fg", function()
         telescope.extensions.live_grep_args.live_grep_args()
       end, { silent = true })
-      vim.keymap.set("n", "<leader>b", function()
+      vim.keymap.set("n", "<leader>bb", function()
         -- The check for cached pickers comes from Telescope's source code, link below.
         -- https://github.com/nvim-telescope/telescope.nvim/blob/2eca9ba22002184ac05eddbe47a7fe2d5a384dfc/lua/telescope/builtin/__internal.lua#L135-L136
         local state = require("telescope.state")
