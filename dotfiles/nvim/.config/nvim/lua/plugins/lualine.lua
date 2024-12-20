@@ -25,15 +25,42 @@ return {
       lualine_x = {
         {
           function()
+            return ""
+          end,
+          cond = function()
+            local buf_clients = vim.lsp.get_active_clients({ bufnr = vim.api.nvim_get_current_buf() })
+            for _, client in pairs(buf_clients) do
+              if client.name == "GitHub Copilot" then
+                return true
+              end
+            end
+            return false
+          end,
+          color = { fg = "#89b4fa" },
+          on_click = function()
+            vim.api.nvim_command("che lspconfig")
+          end,
+        },
+        {
+          function()
             local buf_clients = vim.lsp.get_active_clients({ bufnr = vim.api.nvim_get_current_buf() })
             if #buf_clients == 0 then
               return "0"
             end
             local clients = 0
             for _, client in pairs(buf_clients) do
-              clients = clients + 1
+              if client.name ~= "GitHub Copilot" then
+                clients = clients + 1
+              end
             end
             return clients
+          end,
+          cond = function()
+            local buf_clients = vim.lsp.get_active_clients({ bufnr = vim.api.nvim_get_current_buf() })
+            if #buf_clients == 0 then
+              return false
+            end
+            return true
           end,
           icon = { " ", color = { fg = "#89b4fa" } },
           on_click = function()
