@@ -19,11 +19,11 @@ return {
       },
       sections = {
         { section = "header" },
-        { section = "keys", gap = 1, padding = 2 },
-        { title = "MRU", padding = 1 },
-        { section = "recent_files", cwd = true, limit = 9, padding = 1 },
+        { section = "keys",         gap = 1,     padding = 2 },
+        { title = "MRU",            padding = 1 },
+        { section = "recent_files", cwd = true,  limit = 9,                                padding = 1 },
         { section = "startup" },
-        { pane = 2, padding = 7, enabled = vim.fn.isdirectory(".git") ~= 0 },
+        { pane = 2,                 padding = 7, enabled = vim.fn.isdirectory(".git") ~= 0 },
         {
           pane = 2,
           icon = " ",
@@ -43,7 +43,8 @@ return {
             {
               icon = " ",
               title = "Git Status",
-              cmd = "git log main -10 --pretty=format:'%h %<(10,trunc)%al %<(35,trunc)%s' | head -n 10 && git fetch origin main --quiet",
+              cmd =
+              "git log main -10 --pretty=format:'%h %<(10,trunc)%al %<(35,trunc)%s' | head -n 10 && git fetch origin main --quiet",
               height = 10,
             },
             {
@@ -70,7 +71,14 @@ return {
         end,
       },
     },
+    indent = {
+      enabled = true,
+      only_scope = true,
+    },
     lazygit = {
+      enabled = true,
+    },
+    notifier = {
       enabled = true,
     },
   },
