@@ -2,10 +2,9 @@
 
 source "../utils/log.sh"
 
-function setup_alacritty() {
-  log info "Setting up alacritty..."
-  curl -s -L -o alacritty/.config/alacritty/catppuccin-mocha.toml https://github.com/catppuccin/alacritty/raw/main/catppuccin-mocha.toml
-  /opt/homebrew/bin/stow alacritty -t ${HOME}
+function setup_ghostty() {
+  log info "Setting up ghostty..."
+  /opt/homebrew/bin/stow ghostty -t ${HOME}
   log info "Done."
 }
 
@@ -124,7 +123,7 @@ function setup_ghost() {
 }
 
 function main() {
-  setup_alacritty
+  setup_ghostty
   setup_zsh
   setup_mise
   setup_starship

@@ -1,0 +1,15 @@
+theme = "catppuccin-mocha"
+title = " "
+font-family = "FiraCode Nerd Font Mono"
+window-padding-x = 5
+window-padding-y = 5
+window-width = 1000
+window-height = 1000
+macos-titlebar-proxy-icon = "hidden"
+working-directory = "home"
+shell-integration = "zsh"
+keybind = cmd+a=unbind
+keybind = cmd+up=unbind
+keybind = cmd+down=unbind
+keybind = cmd+left=unbind
+keybind = cmd+right=unbind

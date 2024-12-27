@@ -8,7 +8,7 @@ function main() {
   # Dock apps
   defaults write com.apple.dock persistent-apps -array
   local dock_persistent_apps=(
-    "/Applications/Alacritty.app"
+    "/Applications/Ghostty.app"
     "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app"
     "/Applications/Notion.app"
     "/System/Applications/Notes.app"
