@@ -1,9 +1,9 @@
 # zsh
 # Key bindings
-bindkey '\eOH' beginning-of-line
-bindkey '\eOF' end-of-line
 bindkey '^[[1;3C' forward-word
 bindkey '^[[1;3D' backward-word
+bindkey "^[[H" beginning-of-line
+bindkey "^[[F" end-of-line
 bindkey -a -r '\e'  # Disable vi mode
 bindkey -v -r '\e'  # Disable vi mode
 
