@@ -4,8 +4,8 @@ bindkey '^[[1;3C' forward-word
 bindkey '^[[1;3D' backward-word
 bindkey "^[[H" beginning-of-line
 bindkey "^[[F" end-of-line
-bindkey -a -r '\e'  # Disable vi mode
-bindkey -v -r '\e'  # Disable vi mode
+bindkey -a -r '\e'  # Disable vi mode on shell prompt
+bindkey -v -r '\e'  # Disable vi mode on shell prompt
 
 # History
 export HISTFILE=~/.zsh_history
