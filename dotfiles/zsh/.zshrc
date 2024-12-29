@@ -1,7 +1,7 @@
 # zsh
 # Key bindings
-bindkey '^[[1;3C' forward-word
-bindkey '^[[1;3D' backward-word
+bindkey "^[b" backward-word
+bindkey "^[f" forward-word
 bindkey "^[[H" beginning-of-line
 bindkey "^[[F" end-of-line
 bindkey -a -r '\e'  # Disable vi mode on shell prompt
