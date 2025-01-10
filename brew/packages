@@ -2,7 +2,6 @@ mas
 ghostty
 zsh-syntax-highlighting
 zsh-autosuggestions
-pam-reattach
 mise
 stow
 gnupg # needed for yarn
