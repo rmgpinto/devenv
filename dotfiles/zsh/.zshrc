@@ -70,9 +70,6 @@ source <(~/.local/share/mise/shims/fzf --zsh)
 # zoxide
 eval "$(~/.local/share/mise/shims/zoxide init zsh)"
 
-# docker
-export DOCKER_HOST=unix://$HOME/.config/colima/default/docker.sock
-
 # aliases
 if [ -f ~/.zshaliases ]; then
   source ~/.zshaliases

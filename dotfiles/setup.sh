@@ -89,12 +89,6 @@ function setup_bundle() {
   log info "Done."
 }
 
-function setup_colima() {
-  log info "Setting up colima..."
-  /opt/homebrew/bin/stow colima -t ${HOME}
-  log info "Done."
-}
-
 function setup_docker() {
   log info "Setting up docker..."
   docker completion zsh | sudo tee /usr/local/share/zsh/site-functions/_docker > /dev/null
@@ -136,7 +130,6 @@ function main() {
   setup_neovim
   setup_bat
   setup_bundle
-  setup_colima
   setup_docker
   setup_ghost
 }
