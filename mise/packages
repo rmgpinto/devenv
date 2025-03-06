@@ -19,6 +19,7 @@ zoxide
 lima
 colima
 docker
+docker-buildx
 docker-compose
 
 # Work
