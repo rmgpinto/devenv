@@ -1,4 +1,5 @@
 theme = "catppuccin-mocha"
+term = xterm-256color
 title = " "
 font-family = "FiraCode Nerd Font Mono"
 window-padding-x = 5
