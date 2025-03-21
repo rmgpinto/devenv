@@ -12,7 +12,6 @@ return {
       "json",
       "terraform",
       "dockerfile",
-      "ruby",
       -- Work
       "javascript",
     },
