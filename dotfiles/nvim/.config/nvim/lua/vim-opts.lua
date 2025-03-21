@@ -37,3 +37,10 @@ vim.api.nvim_create_autocmd("BufReadPost", {
     end
   end,
 })
+-- Fix terraform LSP attach
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = "*.tf,*.tfvars",
+  callback = function()
+    vim.bo.filetype = "terraform"
+  end,
+})
