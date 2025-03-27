@@ -28,7 +28,7 @@ return {
             return ""
           end,
           cond = function()
-            local buf_clients = vim.lsp.get_active_clients({ bufnr = vim.api.nvim_get_current_buf() })
+            local buf_clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
             for _, client in pairs(buf_clients) do
               if client.name == "GitHub Copilot" then
                 return true
@@ -43,7 +43,7 @@ return {
         },
         {
           function()
-            local buf_clients = vim.lsp.get_active_clients({ bufnr = vim.api.nvim_get_current_buf() })
+            local buf_clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
             if #buf_clients == 0 then
               return "0"
             end
@@ -56,7 +56,7 @@ return {
             return clients
           end,
           cond = function()
-            local buf_clients = vim.lsp.get_active_clients({ bufnr = vim.api.nvim_get_current_buf() })
+            local buf_clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
             if #buf_clients == 0 then
               return false
             end
