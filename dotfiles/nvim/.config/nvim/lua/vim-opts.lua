@@ -24,10 +24,6 @@ vim.o.termguicolors = true
 local opts = { noremap = true, silent = true }
 vim.keymap.set("v", "<Tab>", ">gv", opts)
 vim.keymap.set("v", "<S-Tab>", "<gv", opts)
-vim.keymap.set("n", "<S-l>", ":bnext<CR>", opts)
-vim.keymap.set("n", "<S-h>", ":bprevious<CR>", opts)
-vim.keymap.set("n", "<leader>mn", ":BufferLineMoveNext<CR>", opts)
-vim.keymap.set("n", "<leader>mp", ":BufferLineMovePrev<CR>", opts)
 -- Restore cursor position when opening a file
 vim.api.nvim_create_autocmd("BufReadPost", {
   callback = function()

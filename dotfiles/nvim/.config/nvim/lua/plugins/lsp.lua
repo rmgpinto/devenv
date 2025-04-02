@@ -16,15 +16,12 @@ return {
     config = function()
       require("mason-lspconfig").setup({
         ensure_installed = {
-          -- Personal
-          "lua_ls",
           "bashls",
           "taplo", -- for toml
           "yamlls",
           "jsonls",
           "terraformls",
           "dockerls",
-          -- Work
           "ts_ls",
         },
       })
@@ -34,26 +31,41 @@ return {
     "neovim/nvim-lspconfig",
     lazy = false,
     config = function()
-      local capabilities = require("cmp_nvim_lsp").default_capabilities()
       local lspconfig = require("lspconfig")
-      -- Personal
-      lspconfig.lua_ls.setup({ capabilities = capabilities })
+      lspconfig.lua_ls.setup({})
       lspconfig.bashls.setup({
         filetypes = { "sh", "bash", "zsh" },
-        capabilities = capabilities,
       })
-      lspconfig.taplo.setup({ capabilities = capabilities })
-      lspconfig.yamlls.setup({ capabilities = capabilities })
-      lspconfig.jsonls.setup({ capabilities = capabilities })
-      lspconfig.terraformls.setup({ capabilities = capabilities })
-      lspconfig.dockerls.setup({ capabilities = capabilities })
-      -- Work
-      lspconfig.ts_ls.setup({ capabilities = capabilities })
+      lspconfig.taplo.setup({})
+      lspconfig.yamlls.setup({})
+      lspconfig.jsonls.setup({})
+      lspconfig.terraformls.setup({})
+      lspconfig.dockerls.setup({})
+      lspconfig.ts_ls.setup({})
       vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
       vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
       vim.keymap.set("n", "<leader>gr", vim.lsp.buf.references, {})
       vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, {})
-      vim.cmd([[autocmd BufWritePre * lua vim.lsp.buf.format()]])
+      vim.keymap.set("n", "<leader>gf", vim.lsp.buf.format, {})
+      -- Enable completion
+      vim.api.nvim_create_autocmd('LspAttach', {
+        callback = function(ev)
+          local client = vim.lsp.get_client_by_id(ev.data.client_id)
+          if client:supports_method('textDocument/completion') then
+            vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+          end
+        end,
+      })
+      vim.cmd("set completeopt+=noselect")
+      -- Enable diagnostics
+      vim.diagnostic.config({ virtual_lines = true })
+      -- Enable formatting on save
+      vim.api.nvim_create_autocmd("BufWritePre", {
+        pattern = "*",
+        callback = function()
+          vim.lsp.buf.format()
+        end,
+      })
     end,
   },
 }
