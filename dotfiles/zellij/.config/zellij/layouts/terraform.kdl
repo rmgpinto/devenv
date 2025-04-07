@@ -5,17 +5,27 @@ layout {
         }
         children
     }
-    tab name="code" split_direction="horizontal" focus=true {
+    tab name="code" split_direction="vertical" hide_floating_panes=true focus=true {
         pane {
             name "nvim"
-            size "70%"
+            size "65%"
             command "zsh"
             args "-c" "if [ -d ../../modules ]; then cd ../../; fi && nvim"
             focus true
         }
-        pane split_direction="vertical" {
-          pane name="shell"
-          pane name="terraform plan" command="mise watch -t plan --watch . --watch ../../modules"
+        pane split_direction="horizontal" {
+            name "terraform plan"
+            command "zsh"
+            args "-c" "mise watch -t plan --watch . --watch ../../modules"
+        }
+        floating_panes {
+            pane {
+                name "terraform apply"
+                x "15%"
+                y "15%"
+                height "70%"
+                width "70%"
+            }
         }
     }
     tab name="git" {
