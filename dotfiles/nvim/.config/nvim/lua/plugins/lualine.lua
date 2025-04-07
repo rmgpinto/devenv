@@ -62,7 +62,7 @@ return {
             end
             return true
           end,
-          icon = { " ", color = { fg = "#89b4fa" } },
+          icon = { "󰙅 ", color = { fg = "#89b4fa" } },
           on_click = function()
             vim.api.nvim_command("che vim.lsp")
           end,
