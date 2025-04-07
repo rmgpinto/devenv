@@ -43,11 +43,6 @@ return {
       lspconfig.terraformls.setup({})
       lspconfig.dockerls.setup({})
       lspconfig.ts_ls.setup({})
-      vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
-      vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
-      vim.keymap.set("n", "<leader>gr", vim.lsp.buf.references, {})
-      vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, {})
-      vim.keymap.set("n", "<leader>gf", vim.lsp.buf.format, {})
       -- Enable completion
       vim.api.nvim_create_autocmd('LspAttach', {
         callback = function(ev)
@@ -68,5 +63,12 @@ return {
         end,
       })
     end,
-  },
+    keys = {
+      { "K",          function() vim.lsp.buf.hover() end,       {} },
+      { "<leader>gd", function() vim.lsp.buf.definition() end,  {} },
+      { "<leader>gr", function() vim.lsp.buf.references() end,  {} },
+      { "<leader>ca", function() vim.lsp.buf.code_action() end, {} },
+      { "<leader>gf", function() vim.lsp.buf.format() end,      {} }
+    }
+  }
 }

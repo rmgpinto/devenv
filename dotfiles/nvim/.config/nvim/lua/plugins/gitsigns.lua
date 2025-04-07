@@ -1,8 +1,11 @@
 return {
   "lewis6991/gitsigns.nvim",
+  lazy = false,
   config = function()
     require("gitsigns").setup({})
-    vim.keymap.set("n", "<leader>gp", ":Gitsigns preview_hunk<CR>", {})
-    vim.keymap.set("n", "<leader>gb", ":Gitsigns toggle_current_line_blame<CR>", {})
   end,
+  keys = {
+    { "<leader>gp", "<cmd>Gitsigns preview_hunk<CR>",              silent = true },
+    { "<leader>gb", "<cmd>Gitsigns toggle_current_line_blame<CR>", silent = true },
+  }
 }

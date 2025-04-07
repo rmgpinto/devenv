@@ -1,16 +1,27 @@
 return {
   "akinsho/bufferline.nvim",
+  lazy = false,
   config = function()
-    require("bufferline").setup({})
-    local opts = { noremap = true, silent = true }
-    vim.keymap.set("n", "<S-l>", ":BufferLineCycleNext<CR>", opts)
-    vim.keymap.set("n", "<S-h>", ":BufferLineCyclePrev<CR>", opts)
-    vim.keymap.set("n", "<leader>1", ":BufferLineGoToBuffer 1<CR>", opts)
-    vim.keymap.set("n", "<leader>2", ":BufferLineGoToBuffer 2<CR>", opts)
-    vim.keymap.set("n", "<leader>3", ":BufferLineGoToBuffer 3<CR>", opts)
-    vim.keymap.set("n", "<leader>4", ":BufferLineGoToBuffer 4<CR>", opts)
-    vim.keymap.set("n", "<leader>5", ":BufferLineGoToBuffer 5<CR>", opts)
-    vim.keymap.set("n", "<leader>mn", ":BufferLineMoveNext<CR>", opts)
-    vim.keymap.set("n", "<leader>mp", ":BufferLineMovePrev<CR>", opts)
+    require("bufferline").setup({
+      options = {
+        numbers = "ordinal",
+        diagnostics = "nvim_lsp",
+        diagnostics_indicator = function(count, level)
+          local icon = level:match("error") and " " or " "
+          return " " .. icon .. count
+        end
+      }
+    })
   end,
+  keys = {
+    { "<S-l>",      "<cmd>BufferLineCycleNext<CR>",    silent = true },
+    { "<S-h>",      "<cmd>BufferLineCyclePrev<CR>",    silent = true },
+    { "<leader>1",  "<cmd>BufferLineGoToBuffer 1<CR>", silent = true },
+    { "<leader>2",  "<cmd>BufferLineGoToBuffer 2<CR>", silent = true },
+    { "<leader>3",  "<cmd>BufferLineGoToBuffer 3<CR>", silent = true },
+    { "<leader>4",  "<cmd>BufferLineGoToBuffer 4<CR>", silent = true },
+    { "<leader>5",  "<cmd>BufferLineGoToBuffer 5<CR>", silent = true },
+    { "<leader>mn", "<cmd>BufferLineMoveNext<CR>",     silent = true },
+    { "<leader>mp", "<cmd>BufferLineMovePrev<CR>",     silent = true },
+  }
 }
