@@ -38,7 +38,7 @@ return {
           end,
           color = { fg = "#89b4fa" },
           on_click = function()
-            vim.api.nvim_command("che lspconfig")
+            vim.api.nvim_command("che vim.lsp")
           end,
         },
         {
@@ -64,7 +64,7 @@ return {
           end,
           icon = { " ", color = { fg = "#89b4fa" } },
           on_click = function()
-            vim.api.nvim_command("che lspconfig")
+            vim.api.nvim_command("che vim.lsp")
           end,
         },
         { "filetype" },
