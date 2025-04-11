@@ -67,24 +67,45 @@ return {
             args = { vim.fn.stdpath("data") .. "/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js", "${port}" },
           }
         }
-        for _, language in ipairs(js_based_languages) do
-          dap.configurations[language] = {
-            {
-              type = "pwa-node",
-              request = "launch",
-              name = "Launch file",
-              program = "${file}",
-              cwd = "${workspaceFolder}",
-            },
-            {
-              type = "pwa-node",
-              request = "attach",
-              name = "Attach",
-              processId = require("dap.utils").pick_process,
-              cwd = "${workspaceFolder}",
-            },
+        dap.configurations["javascript"] = {
+          {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch file",
+            program = "${file}",
+            cwd = "${workspaceFolder}"
+          },
+          {
+            type = "pwa-node",
+            request = "attach",
+            name = "Attach",
+            processId = require("dap.utils").pick_process,
+            cwd = "${workspaceFolder}"
+          },
+        }
+        dap.configurations["typescript"] = {
+          {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch compiled file (TS)",
+            program = "${workspaceFolder}/dist/${fileBasenameNoExtension}.js",
+            cwd = "${workspaceFolder}",
+            sourceMaps = true,
+            protocol = "inspector",
+            outFiles = { "${workspaceFolder}/dist/**/*.js" },
+            preLaunchTask = function()
+              local handle = io.popen("yarn build")
+              handle:close()
+            end
+          },
+          {
+            type = "pwa-node",
+            request = "attach",
+            name = "Attach",
+            processId = require("dap.utils").pick_process,
+            cwd = "${workspaceFolder}"
           }
-        end
+        }
       end
     }
   }
