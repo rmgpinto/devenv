@@ -5,5 +5,3 @@ zsh-autosuggestions
 mise
 stow
 gnupg # needed for yarn
-libyaml # needed for ruby
-
