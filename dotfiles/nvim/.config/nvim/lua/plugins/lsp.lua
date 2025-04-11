@@ -64,11 +64,11 @@ return {
       })
     end,
     keys = {
-      { "K",          function() vim.lsp.buf.hover() end,       {} },
-      { "<leader>gd", function() vim.lsp.buf.definition() end,  {} },
-      { "<leader>gr", function() vim.lsp.buf.references() end,  {} },
-      { "<leader>ca", function() vim.lsp.buf.code_action() end, {} },
-      { "<leader>gf", function() vim.lsp.buf.format() end,      {} }
+      { "K",          function() vim.lsp.buf.hover() end,                           {} },
+      { "<leader>gd", function() vim.lsp.buf.definition() end,                      {} },
+      { "<leader>gr", function() require('telescope.builtin').lsp_references() end, {} },
+      { "<leader>ca", function() vim.lsp.buf.code_action() end,                     {} },
+      { "<leader>gf", function() vim.lsp.buf.format() end,                          {} }
     }
   }
 }
