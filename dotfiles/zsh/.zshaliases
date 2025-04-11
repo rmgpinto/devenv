@@ -27,6 +27,14 @@ function tfpl() {
       export TF_WORKSPACE="$1"
       export TF_VAR_FILE="-var-file=vars.$1.tfvars"
       export TF_EXTRA_ARGS="${@: (($#-1)),2}"
+    elif [[ -f "vars.tfvars" ]]; then
+      export TF_VAR_FILE="-var-file=vars.tfvars"
+      export TF_EXTRA_ARGS="${@: (($#-1)),1}"
+    fi
+  else
+    if [[ -f "vars.tfvars" ]]; then
+      export TF_VAR_FILE="-var-file=vars.tfvars"
+      export TF_EXTRA_ARGS="${@: (($#-1)),1}"
     else
       export TF_EXTRA_ARGS="${@: (($#-1)),1}"
     fi
@@ -42,6 +50,14 @@ function tfap() {
       export TF_WORKSPACE="$1"
       export TF_VAR_FILE="-var-file=vars.$1.tfvars"
       export TF_EXTRA_ARGS="${@: (($#-1)),2}"
+    elif [[ -f "vars.tfvars" ]]; then
+      export TF_VAR_FILE="-var-file=vars.tfvars"
+      export TF_EXTRA_ARGS="${@: (($#-1)),1}"
+    fi
+  else
+    if [[ -f "vars.tfvars" ]]; then
+      export TF_VAR_FILE="-var-file=vars.tfvars"
+      export TF_EXTRA_ARGS="${@: (($#-1)),1}"
     else
       export TF_EXTRA_ARGS="${@: (($#-1)),1}"
     fi
@@ -57,6 +73,14 @@ function tfde() {
       export TF_WORKSPACE="$1"
       export TF_VAR_FILE="-var-file=vars.$1.tfvars"
       export TF_EXTRA_ARGS="${@: (($#-1)),2}"
+    elif [[ -f "vars.tfvars" ]]; then
+      export TF_VAR_FILE="-var-file=vars.tfvars"
+      export TF_EXTRA_ARGS="${@: (($#-1)),1}"
+    fi
+  else
+    if [[ -f "vars.tfvars" ]]; then
+      export TF_VAR_FILE="-var-file=vars.tfvars"
+      export TF_EXTRA_ARGS="${@: (($#-1)),1}"
     else
       export TF_EXTRA_ARGS="${@: (($#-1)),1}"
     fi
