@@ -21,6 +21,10 @@ return {
     { "<leader>3",  "<cmd>BufferLineGoToBuffer 3<CR>", silent = true },
     { "<leader>4",  "<cmd>BufferLineGoToBuffer 4<CR>", silent = true },
     { "<leader>5",  "<cmd>BufferLineGoToBuffer 5<CR>", silent = true },
+    { "<leader>6",  "<cmd>BufferLineGoToBuffer 6<CR>", silent = true },
+    { "<leader>7",  "<cmd>BufferLineGoToBuffer 7<CR>", silent = true },
+    { "<leader>8",  "<cmd>BufferLineGoToBuffer 8<CR>", silent = true },
+    { "<leader>9",  "<cmd>BufferLineGoToBuffer 9<CR>", silent = true },
     { "<leader>mn", "<cmd>BufferLineMoveNext<CR>",     silent = true },
     { "<leader>mp", "<cmd>BufferLineMovePrev<CR>",     silent = true },
   }
