@@ -9,8 +9,5 @@ layout {
         pane name="nvim" size="70%" command="nvim" focus=true
         pane name="shell" size="30%"
     }
-    tab name="git" {
-        pane command="lazygit" borderless=true
-    }
 }
 

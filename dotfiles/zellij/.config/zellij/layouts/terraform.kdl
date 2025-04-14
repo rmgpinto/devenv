@@ -28,8 +28,5 @@ layout {
             }
         }
     }
-    tab name="git" {
-          pane command="lazygit" borderless=true
-    }
 }
 
