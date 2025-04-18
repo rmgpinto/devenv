@@ -22,8 +22,14 @@ vim.opt.listchars = { tab = "⇥ ", space = "·" }
 vim.o.termguicolors = true
 
 local opts = { noremap = true, silent = true }
+-- Indent with <Tab> and <S-Tab>
 vim.keymap.set("v", "<Tab>", ">gv", opts)
 vim.keymap.set("v", "<S-Tab>", "<gv", opts)
+-- Map :W to write
+vim.api.nvim_create_user_command("W", "write", {})
+vim.api.nvim_create_user_command("Wa", "wall", {})
+vim.api.nvim_create_user_command("Wq", "wq", {})
+vim.api.nvim_create_user_command("Wqa", "wq", {})
 -- Restore cursor position when opening a file
 vim.api.nvim_create_autocmd("BufReadPost", {
   callback = function()
