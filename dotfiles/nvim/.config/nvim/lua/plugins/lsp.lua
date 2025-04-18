@@ -24,6 +24,7 @@ return {
           "terraformls",
           "dockerls",
           "ts_ls",
+          "biome"
         },
       })
     end,
@@ -43,6 +44,7 @@ return {
       lspconfig.terraformls.setup({})
       lspconfig.dockerls.setup({})
       lspconfig.ts_ls.setup({})
+      lspconfig.biome.setup({})
       -- Enable completion
       vim.api.nvim_create_autocmd('LspAttach', {
         callback = function(ev)
