@@ -32,6 +32,17 @@ return {
   {
     "neovim/nvim-lspconfig",
     lazy = false,
+    opts = {
+      servers = {
+        tsserver = {
+          on_attach = function(client)
+            -- Disable formatting for tsserver, rely on biome instead
+            client.server_capabilities.documentFormattingProvider = false
+          end,
+        },
+        biome = {},
+      },
+    },
     config = function()
       local lspconfig = require("lspconfig")
       lspconfig.lua_ls.setup({})
@@ -39,7 +50,18 @@ return {
         filetypes = { "sh", "bash", "zsh" },
       })
       lspconfig.taplo.setup({})
-      lspconfig.yamlls.setup({})
+      lspconfig.yamlls.setup({
+        settings = {
+          yaml = {
+            format = {
+              enable = true
+            },
+            schemaStore = {
+              enable = true
+            }
+          }
+        }
+      })
       lspconfig.jsonls.setup({})
       lspconfig.terraformls.setup({})
       lspconfig.dockerls.setup({})
