@@ -6,7 +6,13 @@ layout {
         children
     }
     tab name="code" split_direction="horizontal" focus=true {
-        pane name="nvim" size="70%" command="nvim" focus=true
+        pane {
+            name "nvim"
+            size "70%"
+            command "zsh"
+            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && mise activate --shims && nvim"
+            focus true
+        }
         pane split_direction="vertical" {
             pane {
                 name "test"

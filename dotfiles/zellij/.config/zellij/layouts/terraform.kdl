@@ -10,7 +10,7 @@ layout {
             name "nvim"
             size "65%"
             command "zsh"
-            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && nvim"
+            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && mise activate --shims && nvim"
             focus true
         }
         pane split_direction="horizontal" {
