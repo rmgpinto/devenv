@@ -40,6 +40,12 @@ return {
             client.server_capabilities.documentFormattingProvider = false
           end,
         },
+        ts_ls = {
+          on_attach = function(client)
+            -- Disable formatting for ts_ls, rely on biome instead
+            client.server_capabilities.documentFormattingProvider = false
+          end,
+        },
         biome = {},
       },
     },
