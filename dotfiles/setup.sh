@@ -39,6 +39,9 @@ function setup_git() {
   log info "Setting up git..."
   mkdir -p ${HOME}/.config/git/hooks
   /opt/homebrew/bin/stow git -t ${HOME}
+  if [[ ! -f ${HOME}/.gitconfig ]]; then
+    ln -s ${HOME}/.config/git/config ~/.gitconfig # this is necessary for TryGhost/Ghost
+  fi
   log info "Done."
 }
 
