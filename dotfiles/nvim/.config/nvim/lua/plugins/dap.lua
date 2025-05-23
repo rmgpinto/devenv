@@ -43,6 +43,24 @@ return {
         { "<leader>dw", function() require("dap.ui.widgets").hover() end,                                    desc = "DAP Hover" },
       },
       config = function()
+        local function get_dockerfile_workdir()
+          local paths = { "Dockerfile", ".docker/Dockerfile" }
+          for _, path in ipairs(paths) do
+            local file = io.open(path, "r")
+            if file then
+              for line in file:lines() do
+                local workdir = line:match("^%s*WORKDIR%s+(.+)$")
+                if workdir then
+                  file:close()
+                  return workdir
+                end
+              end
+              file:close()
+            end
+          end
+          return nil
+        end
+
         local dap = require("dap")
         local dapui = require("dapui")
         dap.listeners.before.attach.dapui_config = function()
@@ -77,16 +95,18 @@ return {
           {
             type = "pwa-node",
             request = "attach",
-            name = "Attach",
-            processId = require("dap.utils").pick_process,
-            cwd = "${workspaceFolder}"
-          },
+            name = "Attach to Docker Container",
+            protocol = "inspector",
+            cwd = "${workspaceFolder}",
+            localRoot = "${workspaceFolder}",
+            remoteRoot = get_dockerfile_workdir()
+          }
         }
         dap.configurations["typescript"] = {
           {
             type = "pwa-node",
             request = "launch",
-            name = "Launch compiled file (TS)",
+            name = "Launch compiled file",
             program = "${workspaceFolder}/dist/${fileBasenameNoExtension}.js",
             cwd = "${workspaceFolder}",
             sourceMaps = true,
@@ -101,9 +121,25 @@ return {
           {
             type = "pwa-node",
             request = "attach",
-            name = "Attach",
-            processId = require("dap.utils").pick_process,
-            cwd = "${workspaceFolder}"
+            name = "Attach to Docker Container",
+            protocol = "inspector",
+            sourceMaps = true,
+            cwd = "${workspaceFolder}",
+            localRoot = "${workspaceFolder}",
+            remoteRoot = get_dockerfile_workdir(),
+            outFiles = { "${workspaceFolder}/dist/**/*.js" }
+          },
+          {
+            type = "pwa-node",
+            request = "attach",
+            name = "Attach to Docker Container (tests)",
+            protocol = "inspector",
+            port = 9230,
+            sourceMaps = true,
+            cwd = "${workspaceFolder}",
+            localRoot = "${workspaceFolder}",
+            remoteRoot = get_dockerfile_workdir(),
+            outFiles = { "${workspaceFolder}/dist/**/*.js" }
           }
         }
       end
