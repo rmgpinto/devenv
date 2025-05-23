@@ -97,6 +97,7 @@ return {
       { "K",          function() vim.lsp.buf.hover() end,                           desc = "LSP Hover",           {} },
       { "<leader>gd", function() vim.lsp.buf.definition() end,                      desc = "LSP Goto Definition", {} },
       { "<leader>gr", function() require('telescope.builtin').lsp_references() end, desc = "LSP References",      {} },
+      { "<leader>gD", function() require('telescope.builtin').diagnostics() end,    desc = "LSP Diagnostics",     {} },
       { "<leader>ca", function() vim.lsp.buf.code_action() end,                     desc = "LSP Code Actions",    {} },
       { "<leader>gf", function() vim.lsp.buf.format() end,                          desc = "LSP Format",          {} },
       { "<leader>lr", "<cmd>LspRestart<cr>",                                        desc = "LSP Restart",         {} },
