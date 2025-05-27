@@ -50,7 +50,7 @@ return {
             if file then
               for line in file:lines() do
                 local workdir = line:match("^%s*WORKDIR%s+(.+)$")
-                if workdir then
+                if workdir and workdir ~= "/tmp" then
                   file:close()
                   return workdir
                 end
@@ -60,7 +60,6 @@ return {
           end
           return nil
         end
-
         local dap = require("dap")
         local dapui = require("dapui")
         dap.listeners.before.attach.dapui_config = function()
@@ -98,8 +97,13 @@ return {
             name = "Attach to Docker Container",
             protocol = "inspector",
             cwd = "${workspaceFolder}",
+            sourceMaps = true,
             localRoot = "${workspaceFolder}",
-            remoteRoot = get_dockerfile_workdir()
+            remoteRoot = get_dockerfile_workdir(),
+            outFiles = {
+              "${workspaceFolder}/dist/**/*.js",
+              "${workspaceFolder}/ghost/core/**/*.js"
+            }
           }
         }
         dap.configurations["typescript"] = {
@@ -111,7 +115,9 @@ return {
             cwd = "${workspaceFolder}",
             sourceMaps = true,
             protocol = "inspector",
-            outFiles = { "${workspaceFolder}/dist/**/*.js" },
+            outFiles = {
+              "${workspaceFolder}/dist/**/*.js",
+            },
             preLaunchTask = function()
               local handle = io.popen("yarn build")
               ---@diagnostic disable-next-line: need-check-nil
@@ -127,7 +133,9 @@ return {
             cwd = "${workspaceFolder}",
             localRoot = "${workspaceFolder}",
             remoteRoot = get_dockerfile_workdir(),
-            outFiles = { "${workspaceFolder}/dist/**/*.js" }
+            outFiles = {
+              "${workspaceFolder}/dist/**/*.js",
+            }
           },
           {
             type = "pwa-node",
@@ -139,7 +147,9 @@ return {
             cwd = "${workspaceFolder}",
             localRoot = "${workspaceFolder}",
             remoteRoot = get_dockerfile_workdir(),
-            outFiles = { "${workspaceFolder}/dist/**/*.js" }
+            outFiles = {
+              "${workspaceFolder}/dist/**/*.js"
+            }
           }
         }
       end
