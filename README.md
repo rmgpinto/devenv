@@ -21,6 +21,7 @@ op account add --address my.1password.com --signin
 ```
 3. Load `config/raycast/raycast.rayconfig` into Raycast
 4. Follow 1Password SSH agent [instructions](https://developer.1password.com/docs/ssh/get-started#step-3-turn-on-the-1password-ssh-agent)
+5. Download [AppCleaner](https://freemacsoft.net/appcleaner/)
 
 ## Notes
 Due to 1Password CLI being slow (`op read`), I've used the following:
