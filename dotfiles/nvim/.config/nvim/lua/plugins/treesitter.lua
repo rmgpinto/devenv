@@ -11,6 +11,7 @@ return {
       "json",
       "terraform",
       "dockerfile",
+      "ruby",
       "javascript",
     },
     indent = { enable = true },

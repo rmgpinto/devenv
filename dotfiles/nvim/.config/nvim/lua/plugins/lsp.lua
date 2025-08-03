@@ -23,6 +23,7 @@ return {
           "jsonls",
           "terraformls",
           "dockerls",
+          "rubocop",
           "ts_ls",
           "biome"
         },
@@ -71,6 +72,7 @@ return {
       lspconfig.jsonls.setup({})
       lspconfig.terraformls.setup({})
       lspconfig.dockerls.setup({})
+      lspconfig.rubocop.setup({})
       lspconfig.ts_ls.setup({})
       lspconfig.biome.setup({})
       -- Enable completion
