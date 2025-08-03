@@ -70,6 +70,9 @@ source <(~/.local/share/mise/shims/fzf --zsh)
 # zoxide
 eval "$(~/.local/share/mise/shims/zoxide init zsh)"
 
+# yarn
+PATH="${PATH}:${HOME}/.yarn/bin"
+
 # aliases
 if [ -f ~/.zshaliases ]; then
   source ~/.zshaliases
