@@ -16,8 +16,8 @@ layout {
         pane split_direction="vertical" {
             pane {
                 name "test"
-                command "yarn"
-                args "test" "-w"
+                command "zsh"
+                args "-c" "mise watch -t test --watch ."
             }
             pane {
               name "ci"
