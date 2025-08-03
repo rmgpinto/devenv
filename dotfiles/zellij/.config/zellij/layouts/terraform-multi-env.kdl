@@ -17,12 +17,12 @@ layout {
             pane  {
                 name "terraform plan staging"
                 command "zsh"
-                args "-c" "mise watch -t plan-staging --watch . --watch ../../modules"
+                args "-c" "mise watch -t plan-staging --watch . --watch ../../../terraform/modules"
             }
             pane  {
                 name "terraform plan production"
                 command "zsh"
-                args "-c" "mise watch -t plan-production --watch . --watch ../../modules"
+                args "-c" "mise watch -t plan-production --watch . --watch ../../../terraform/modules"
             }
         }
         floating_panes {
