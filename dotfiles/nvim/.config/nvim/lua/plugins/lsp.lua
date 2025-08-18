@@ -24,9 +24,11 @@ return {
           "terraformls",
           "dockerls",
           "rubocop",
+          "herb_ls", -- for erb
+          "tailwindcss",
           "ts_ls",
           "biome"
-        },
+        }
       })
     end,
   },
@@ -47,17 +49,22 @@ return {
             client.server_capabilities.documentFormattingProvider = false
           end,
         },
+        herb_ls = {
+          on_attach = function(client)
+            -- Disable formatting for herb_ls for ruby files
+            if vim.bo.filetype == "ruby" then
+              client.server_capabilities.documentFormattingProvider = false
+            end
+          end,
+        },
         biome = {},
       },
     },
     config = function()
-      local lspconfig = require("lspconfig")
-      lspconfig.lua_ls.setup({})
-      lspconfig.bashls.setup({
-        filetypes = { "sh", "bash", "zsh" },
+      vim.lsp.config("bash_ls", {
+        filetypes = { "sh", "bash", "zsh" }
       })
-      lspconfig.taplo.setup({})
-      lspconfig.yamlls.setup({
+      vim.lsp.config("yamlls", {
         settings = {
           yaml = {
             format = {
@@ -69,17 +76,14 @@ return {
           }
         }
       })
-      lspconfig.jsonls.setup({})
-      lspconfig.terraformls.setup({})
-      lspconfig.dockerls.setup({})
-      lspconfig.rubocop.setup({})
-      lspconfig.ts_ls.setup({})
-      lspconfig.biome.setup({})
+      vim.lsp.config("herb_ls", {
+        filetypes = { "eruby", "html" }
+      })
       -- Enable completion
-      vim.api.nvim_create_autocmd('LspAttach', {
+      vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(ev)
           local client = vim.lsp.get_client_by_id(ev.data.client_id)
-          if client:supports_method('textDocument/completion') then
+          if client:supports_method("textDocument/completion") then
             vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
           end
         end,
@@ -98,8 +102,8 @@ return {
     keys = {
       { "K",          function() vim.lsp.buf.hover() end,                           desc = "LSP Hover",           {} },
       { "<leader>gd", function() vim.lsp.buf.definition() end,                      desc = "LSP Goto Definition", {} },
-      { "<leader>gr", function() require('telescope.builtin').lsp_references() end, desc = "LSP References",      {} },
-      { "<leader>gD", function() require('telescope.builtin').diagnostics() end,    desc = "LSP Diagnostics",     {} },
+      { "<leader>gr", function() require("telescope.builtin").lsp_references() end, desc = "LSP References",      {} },
+      { "<leader>gD", function() require("telescope.builtin").diagnostics() end,    desc = "LSP Diagnostics",     {} },
       { "<leader>ca", function() vim.lsp.buf.code_action() end,                     desc = "LSP Code Actions",    {} },
       { "<leader>gf", function() vim.lsp.buf.format() end,                          desc = "LSP Format",          {} },
       { "<leader>lr", "<cmd>LspRestart<cr>",                                        desc = "LSP Restart",         {} },

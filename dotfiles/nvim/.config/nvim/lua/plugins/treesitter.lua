@@ -12,7 +12,7 @@ return {
       "terraform",
       "dockerfile",
       "ruby",
-      "javascript",
+      "javascript"
     },
     indent = { enable = true },
     highlight = { enable = true },
