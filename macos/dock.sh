@@ -9,7 +9,7 @@ function main() {
   defaults write com.apple.dock persistent-apps -array
   local dock_persistent_apps=(
     "/Applications/Ghostty.app"
-    "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app"
+    "/Applications/Google Chrome.app"
     "/Applications/Notion.app"
     "/System/Applications/Notes.app"
     "/System/Applications/Mail.app"
