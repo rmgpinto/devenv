@@ -102,6 +102,7 @@ return {
             remoteRoot = get_dockerfile_workdir(),
             outFiles = {
               "${workspaceFolder}/dist/**/*.js",
+              "${workspaceFolder}/ghost/core/*.js",
               "${workspaceFolder}/ghost/core/**/*.js"
             }
           }
