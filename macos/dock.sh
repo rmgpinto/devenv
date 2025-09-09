@@ -11,6 +11,7 @@ function main() {
     "/Applications/Ghostty.app"
     "/Applications/Google Chrome.app"
     "/Applications/Notion.app"
+    "/Applications/Linear.app"
     "/System/Applications/Notes.app"
     "/System/Applications/Mail.app"
     "/System/Applications/Calendar.app"
