@@ -2,3 +2,9 @@
 
 ~/.local/share/mise/installs/gitleaks/latest/bin/gitleaks detect --no-banner --gitleaks-ignore-path ~/.config/git --log-opts="--branches=$(git rev-parse --abbrev-ref HEAD)" -v
 
+pattern="\.\.\/\.\.\/terraform\/modules"
+count=$(git diff --cached --name-only | grep -v "pre-commit" | xargs -r git diff --cached 2>/dev/null | grep -c "$pattern" || true)
+if [ "$count" -gt 0 ]; then
+    echo "Error: Found $count occurrence(s) of relative terraform module paths in staged changes"
+    exit 1
+fi
