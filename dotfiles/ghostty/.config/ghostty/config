@@ -1,4 +1,4 @@
-theme = "catppuccin-mocha"
+theme = "Catppuccin Mocha"
 term = xterm-256color
 title = " "
 font-family = "FiraCode Nerd Font Mono"
@@ -14,3 +14,4 @@ keybind = cmd+up=unbind
 keybind = cmd+down=unbind
 keybind = cmd+left=unbind
 keybind = cmd+right=unbind
+keybind = shift+enter=text:\x1b\r
