@@ -16,6 +16,7 @@ bat
 fzf
 eza
 zoxide
+claude-code
 
 # Work
 gitleaks
