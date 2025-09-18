@@ -5,3 +5,5 @@ Dockerfile.local
 docker-compose.local.yml
 k6.local.js
 
+
+**/.claude/settings.local.json
