@@ -16,7 +16,7 @@ layout {
         pane split_direction="horizontal" {
             name "terraform plan"
             command "zsh"
-            args "-c" "mise watch -t plan --watch . --watch ../../modules"
+            args "-c" "mise watch -t plan --watch . --watch ../../../terraform/modules"
         }
         floating_panes {
             pane {
