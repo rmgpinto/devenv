@@ -12,6 +12,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("vim-opts")
+require("macros")
 require("lazy").setup("plugins", {
   rocks = {
     enabled = false,
