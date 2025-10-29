@@ -75,9 +75,6 @@ return {
       enabled = true,
       only_scope = true,
     },
-    lazygit = {
-      enabled = true,
-    },
     notifier = {
       enabled = true,
     },
@@ -107,14 +104,6 @@ return {
       end,
       desc = "Git Browse",
       mode = { "n", "v" },
-    },
-    {
-      "<leader>gg",
-      function()
-        ---@diagnostic disable-next-line: undefined-global
-        Snacks.lazygit()
-      end,
-      desc = "Lazygit",
     },
   },
 }
