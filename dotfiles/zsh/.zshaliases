@@ -1,6 +1,6 @@
 # Personal
 alias zs='source ~/.zshrc'
-alias upgrade_packages='brew update && brew outdated --cask --greedy && brew upgrade && brew upgrade --cask --greedy && brew cleanup && brew cleanup && mise plugins update && mise outdated && mise upgrade && mise prune -y'
+alias upgrade_packages='brew update && brew outdated --cask --greedy && brew upgrade && brew upgrade --cask --greedy && brew cleanup && mise plugins update && mise outdated && mise upgrade && mise prune -y'
 alias vi='nvim'
 alias v='nvim'
 alias zcode='SESSION_NAME=$(basename $(pwd) | tr "[:upper:]" "[:lower:]"); zellij --layout code attach --create ${SESSION_NAME}'

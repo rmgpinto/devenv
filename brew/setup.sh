@@ -28,12 +28,23 @@ function install_brew_mas_packages() {
   log info "Done."
 }
 
+function upgrade_brew_packages() {
+  log info "Upgrading brew packages..."
+  brew update
+  brew outdated --cask --greedy
+  brew upgrade
+  brew upgrade --cask --greedy
+  brew cleanup
+  log info "Done."
+}
+
 function main() {
   install_brew
   /opt/homebrew/bin/brew update
   install_brew_packages
   install_brew_cask_packages
   install_brew_mas_packages
+  upgrade_brew_packages
 }
 
 main
