@@ -35,31 +35,6 @@ return {
   {
     "neovim/nvim-lspconfig",
     lazy = false,
-    opts = {
-      servers = {
-        tsserver = {
-          on_attach = function(client)
-            -- Disable formatting for tsserver, rely on biome instead
-            client.server_capabilities.documentFormattingProvider = false
-          end,
-        },
-        ts_ls = {
-          on_attach = function(client)
-            -- Disable formatting for ts_ls, rely on biome instead
-            client.server_capabilities.documentFormattingProvider = false
-          end,
-        },
-        herb_ls = {
-          on_attach = function(client)
-            -- Disable formatting for herb_ls for ruby files
-            if vim.bo.filetype == "ruby" then
-              client.server_capabilities.documentFormattingProvider = false
-            end
-          end,
-        },
-        biome = {},
-      },
-    },
     config = function()
       vim.lsp.config("bash_ls", {
         filetypes = { "sh", "bash", "zsh" }
@@ -85,6 +60,12 @@ return {
           local client = vim.lsp.get_client_by_id(ev.data.client_id)
           if client:supports_method("textDocument/completion") then
             vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+          end
+          if client.name == "ts_ls" or client.name == "tsserver" then
+            client.server_capabilities.documentFormattingProvider = false
+            client.server_capabilities.documentRangeFormattingProvider = false
+          elseif client.name == "biome" then
+            client.server_capabilities.documentFormattingProvider = true
           end
         end,
       })
