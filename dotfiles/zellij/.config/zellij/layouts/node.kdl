@@ -10,7 +10,7 @@ layout {
             name "nvim"
             size "70%"
             command "zsh"
-            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && mise activate --shims && nvim"
+            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && mise activate --shims && ~/.local/share/mise/shims/nvim"
             focus true
         }
         pane split_direction="vertical" {
@@ -27,7 +27,7 @@ layout {
         }
     }
     tab name="git" {
-        pane command="lazygit" borderless=true
+        pane command="~/.local/share/mise/shims/lazygit" borderless=true
     }
 }
 
