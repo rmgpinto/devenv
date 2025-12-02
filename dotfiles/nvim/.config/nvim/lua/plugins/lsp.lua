@@ -1,3 +1,18 @@
+local servers = {
+  "lua_ls",
+  "bashls",
+  "taplo", -- for toml
+  "yamlls",
+  "jsonls",
+  "terraformls",
+  "dockerls",
+  "rubocop",
+  "herb_ls", -- for erb
+  "tailwindcss",
+  "ts_ls",
+  "biome",
+}
+
 return {
   {
     "williamboman/mason.nvim",
@@ -15,20 +30,7 @@ return {
     lazy = false,
     config = function()
       require("mason-lspconfig").setup({
-        ensure_installed = {
-          "lua_ls",
-          "bashls",
-          "taplo", -- for toml
-          "yamlls",
-          "jsonls",
-          "terraformls",
-          "dockerls",
-          "rubocop",
-          "herb_ls", -- for erb
-          "tailwindcss",
-          "ts_ls",
-          "biome"
-        }
+        ensure_installed = servers,
       })
     end,
   },
@@ -54,6 +56,8 @@ return {
       vim.lsp.config("herb_ls", {
         filetypes = { "eruby", "html" }
       })
+      -- Enable LSP servers
+      vim.lsp.enable(servers)
       -- Enable completion
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(ev)
