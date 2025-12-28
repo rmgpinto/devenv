@@ -38,8 +38,12 @@ return {
     "neovim/nvim-lspconfig",
     lazy = false,
     config = function()
-      vim.lsp.config("bash_ls", {
+      vim.lsp.config("bashls", {
         filetypes = { "sh", "bash", "zsh" }
+      })
+      vim.lsp.config("rubocop", {
+        cmd = { "/Users/rmgpinto/.local/share/mise/installs/gem-rubocop/latest/bin/rubocop", "--lsp" },
+        filetypes = { "ruby" }
       })
       vim.lsp.config("yamlls", {
         settings = {
