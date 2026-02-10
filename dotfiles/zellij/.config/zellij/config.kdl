@@ -58,7 +58,6 @@ keybinds clear-defaults=true {
         bind "l" "Right" "Down" "j" { GoToNextTab; }
         bind "n" { NewTab; SwitchToMode "Normal"; }
         bind "x" { CloseTab; SwitchToMode "Normal"; }
-        bind "s" { ToggleActiveSyncTab; SwitchToMode "Normal"; }
         bind "b" { BreakPane; SwitchToMode "Normal"; }
         bind "]" { BreakPaneRight; SwitchToMode "Normal"; }
         bind "[" { BreakPaneLeft; SwitchToMode "Normal"; }
@@ -255,10 +254,8 @@ plugins {
 
         tab_normal              "#[bg=$blue,fg=$base] #[bg=$blue,fg=$crust]{index} #[bg=$surface0,fg=$blue]#[bg=$surface0,fg=$text] {name}{floating_indicator} #[bg=$base,fg=$surface0]"
         tab_normal_fullscreen   "#[bg=$blue,fg=$base] #[bg=$blue,fg=$crust]{index} #[bg=$surface0,fg=$text] {name}{fullscreen_indicator} #[bg=$base,fg=$surface0]"
-        tab_normal_sync         "#[bg=$blue,fg=$base] #[bg=$blue,fg=$crust]{index} #[bg=$surface0,fg=$text] {name}{sync_indicator}  #[bg=$base,fg=$surface0]"
         tab_active              "#[bg=$peach,fg=$base] #[bg=$peach,fg=$crust]{index} #[bg=$surface0,fg=$peach]#[bg=$surface0,fg=$text] {name}{floating_indicator} #[bg=$base,fg=$surface0]"
         tab_active_fullscreen   "#[bg=$peach,fg=$base] #[bg=$peach,fg=$crust]{index} #[bg=$surface0,fg=$text] {name}{fullscreen_indicator}  #[bg=$base,fg=$surface0]"
-        tab_active_sync         "#[bg=$peach,fg=$base] #[bg=$peach,fg=$crust]{index} #[bg=$surface0,fg=$text] {name}{sync_indicator} #[bg=$base,fg=$surface0]"
         tab_separator           "#[bg=$base]"
 
         tab_sync_indicator       " "
