@@ -29,6 +29,9 @@ export XDG_CONFIG_HOME=${HOME}/.config
 export EDITOR="nvim"
 # Work
 export SAMMY_SSH_USER="ricardo"
+export HAL_1P_ACCOUNT_ID="GHXJDH3PVNHG3PLWLS5RT4HOHI"
+export HAL_1P_STAGING="op://Employee/Ghost - staging"
+export HAL_1P_PRODUCTION="op://Employee/Ghost - production"
 
 # mise
 export MISE_LOG_LEVEL=warn
