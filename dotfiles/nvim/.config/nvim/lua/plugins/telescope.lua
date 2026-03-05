@@ -95,13 +95,48 @@ return {
           end
         end,
         desc = "Telescope",
-        silent = true
+        silent = true,
       },
-      { "<leader>ff", function() require("telescope.builtin").find_files({ hidden = true }) end,      desc = "Telescope Find Files",       silent = true },
-      { "<leader>fb", function() require("telescope.builtin").buffers() end,                          desc = "Telescope Buffers",          silent = true },
-      { "<leader>fh", function() require("telescope.builtin").help_tags() end,                        desc = "Telescope Help Tags",        silent = true },
-      { "<leader>fr", function() require("telescope.builtin").resume() end,                           desc = "Telescope Resume",           silent = true },
-      { "<leader>fg", function() require("telescope").extensions.live_grep_args.live_grep_args() end, desc = "Telescope Live Grep (Args)", silent = true },
+      {
+        "<leader>ff",
+        function()
+          require("telescope.builtin").find_files({ hidden = true })
+        end,
+        desc = "Telescope Find Files",
+        silent = true,
+      },
+      {
+        "<leader>fb",
+        function()
+          require("telescope.builtin").buffers()
+        end,
+        desc = "Telescope Buffers",
+        silent = true,
+      },
+      {
+        "<leader>fh",
+        function()
+          require("telescope.builtin").help_tags()
+        end,
+        desc = "Telescope Help Tags",
+        silent = true,
+      },
+      {
+        "<leader>fr",
+        function()
+          require("telescope.builtin").resume()
+        end,
+        desc = "Telescope Resume",
+        silent = true,
+      },
+      {
+        "<leader>fg",
+        function()
+          require("telescope").extensions.live_grep_args.live_grep_args()
+        end,
+        desc = "Telescope Live Grep (Args)",
+        silent = true,
+      },
       {
         "<leader>bb",
         function()
@@ -127,7 +162,7 @@ return {
           end
         end,
         desc = "Telescope File Browser",
-        silent = true
+        silent = true,
       },
       {
         "<leader>fu",
@@ -135,8 +170,8 @@ return {
           require("telescope").extensions.undo.undo()
         end,
         desc = "Telescope Undo",
-        silent = true
-      }
-    }
-  }
+        silent = true,
+      },
+    },
+  },
 }
