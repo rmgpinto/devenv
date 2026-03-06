@@ -1,4 +1,4 @@
-format = "$directory$custom$kubernetes$fill$time$cmd_duration$line_break$character"
+format = "$directory${custom.git_worktree}${custom.mise}$kubernetes$fill$time$cmd_duration$line_break$character"
 palette = "catppuccin_mocha"
 
 [directory]
@@ -19,6 +19,16 @@ detect_files = [".mise.toml", ".mise.local.toml"]
 symbol = "λ"
 format = "[$symbol]($style) "
 style = "bold mauve"
+
+[custom.git_worktree]
+when = "test -n \"$(git rev-parse --show-superproject-working-tree 2>/dev/null)\" || git rev-parse --git-dir 2>/dev/null | grep -q '/worktrees/'"
+command = """
+toplevel=$(git rev-parse --show-toplevel 2>/dev/null); \
+echo "$(basename $(dirname "$toplevel"))/$(basename "$toplevel")"
+"""
+symbol = ""
+format = "on [$symbol $output]($style) "
+style = "bold blue"
 
 [kubernetes]
 disabled = false

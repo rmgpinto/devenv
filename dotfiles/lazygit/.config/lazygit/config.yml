@@ -1,5 +1,14 @@
 git:
   overrideGpg: true
+customCommands:
+  - key: "W"
+    description: "Create worktree from main"
+    command: "git worktree add '../{{.Form.WorktreeName}}' -b '{{.Form.WorktreeName}}' main"
+    context: "localBranches"
+    prompts:
+      - type: "input"
+        title: "Worktree/branch name:"
+        key: "WorktreeName"
 theme:
   activeBorderColor:
   - '#89b4fa'
