@@ -42,6 +42,12 @@ function mise() {
   fi
 }
 
+function docker_images() {
+  log info "Building docker images..."
+  docker build --no-cache -t claude-code docker/claude-code/
+  log info "Done."
+}
+
 function main() {
   log info "Setting up devenv..."
   rosetta
@@ -49,6 +55,7 @@ function main() {
   brew
   mise
   dotfiles
+  docker_images
   log info "Done."
 }
 
