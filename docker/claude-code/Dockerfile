@@ -1,4 +1,4 @@
-FROM node:22-slim
+FROM debian:bookworm-slim
 
 RUN apt-get update && \
     apt-get install -y \
@@ -11,13 +11,13 @@ RUN apt-get update && \
     && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g @anthropic-ai/claude-code@latest
-
 RUN useradd -m claude
 USER claude
 
-RUN curl https://mise.run | sh
+RUN curl -fsSL https://claude.ai/install.sh | bash
 ENV PATH="/home/claude/.local/bin:${PATH}"
+
+RUN curl https://mise.run | sh
 
 WORKDIR /workspace
 
