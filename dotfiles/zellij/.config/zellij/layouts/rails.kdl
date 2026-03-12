@@ -10,7 +10,7 @@ layout {
           name "nvim"
           size "70%"
           command "~/.local/share/mise/shims/nvim"
-          focus=true
+          focus true
         }
         pane split_direction="vertical" name="shell" size="30%" {
             pane {
