@@ -44,7 +44,7 @@ function mise() {
 
 function docker_images() {
   log info "Building docker images..."
-  docker build --no-cache -t claude-code docker/claude-code/
+  docker build -f docker/claude-code/Dockerfile --no-cache -t claude-code docker/claude-code/
   log info "Done."
 }
 
