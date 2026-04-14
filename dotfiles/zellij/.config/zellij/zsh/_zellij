@@ -22,6 +22,7 @@ _zellij() {
 '*--session=[Specify name of a new session]:SESSION: ' \
 '*-l+[Name of a predefined layout inside the layout directory or the path to a layout file if inside a session (or using the --session flag) will be added to the session as a new tab or tabs, otherwise will start a new session]:LAYOUT:_files' \
 '*--layout=[Name of a predefined layout inside the layout directory or the path to a layout file if inside a session (or using the --session flag) will be added to the session as a new tab or tabs, otherwise will start a new session]:LAYOUT:_files' \
+'(-l --layout -n --new-session-with-layout)*--layout-string=[Raw KDL layout string to use directly (instead of a file path) if inside a session (or using the --session flag) will be added to the session as a new tab or tabs, otherwise will start a new session]:LAYOUT_STRING: ' \
 '*-n+[Name of a predefined layout inside the layout directory or the path to a layout file Will always start a new session, even if inside an existing session]:NEW_SESSION_WITH_LAYOUT:_files' \
 '*--new-session-with-layout=[Name of a predefined layout inside the layout directory or the path to a layout file Will always start a new session, even if inside an existing session]:NEW_SESSION_WITH_LAYOUT:_files' \
 '*-c+[Change where zellij looks for the configuration file]:CONFIG:_files' \
@@ -215,6 +216,13 @@ _arguments "${_arguments_options[@]}" \
 '--help[Print help information]' \
 && ret=0
 ;;
+(focus-pane-id)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+':pane-id -- The pane_id of the pane, eg. terminal_1, plugin_2 or 3:' \
+&& ret=0
+;;
 (move-focus)
 _arguments "${_arguments_options[@]}" \
 '-h[Print help information]' \
@@ -393,6 +401,7 @@ _arguments "${_arguments_options[@]}" \
 '--height=[The height if the pane is floating as a bare integer (eg. 1) or percent (eg. 10%)]:HEIGHT: ' \
 '--pinned=[Whether to pin a floating pane so that it is always on top]:PINNED: ' \
 '*--borderless=[start this pane without a border (warning: will make it impossible to move with the mouse)]:BORDERLESS:(true false)' \
+'(--near-current-pane -i --in-place)*--tab-id=[Target a specific tab by ID]:TAB_ID: ' \
 '*-f[Open the new pane in floating mode]' \
 '*--floating[Open the new pane in floating mode]' \
 '(-f --floating -d --direction)*-i[Open the new pane in place of the current pane, temporarily suspending it]' \
@@ -431,6 +440,7 @@ _arguments "${_arguments_options[@]}" \
 '--pinned=[Whether to pin a floating pane so that it is always on top]:PINNED: ' \
 '*-b+[start this pane without a border (warning: will make it impossible to move with the mouse)]:BORDERLESS:(true false)' \
 '*--borderless=[start this pane without a border (warning: will make it impossible to move with the mouse)]:BORDERLESS:(true false)' \
+'(--near-current-pane -i --in-place)*--tab-id=[Target a specific tab by ID]:TAB_ID: ' \
 '*-f[Open the new pane in floating mode]' \
 '*--floating[Open the new pane in floating mode]' \
 '(-f --floating -d --direction)*-i[Open the new pane in place of the current pane, temporarily suspending it]' \
@@ -474,6 +484,14 @@ _arguments "${_arguments_options[@]}" \
 && ret=0
 ;;
 (hide-floating-panes)
+_arguments "${_arguments_options[@]}" \
+'*-t+[]:TAB_ID: ' \
+'*--tab-id=[]:TAB_ID: ' \
+'-h[Print help information]' \
+'--help[Print help information]' \
+&& ret=0
+;;
+(are-floating-panes-visible)
 _arguments "${_arguments_options[@]}" \
 '*-t+[]:TAB_ID: ' \
 '*--tab-id=[]:TAB_ID: ' \
@@ -583,8 +601,9 @@ _arguments "${_arguments_options[@]}" \
 ;;
 (new-tab)
 _arguments "${_arguments_options[@]}" \
-'*-l+[Layout to use for the new tab]:LAYOUT:_files' \
-'*--layout=[Layout to use for the new tab]:LAYOUT:_files' \
+'(--layout-string)*-l+[Layout to use for the new tab]:LAYOUT:_files' \
+'(--layout-string)*--layout=[Layout to use for the new tab]:LAYOUT:_files' \
+'(-l --layout)*--layout-string=[Raw KDL layout string to use directly (instead of a layout file path)]:LAYOUT_STRING: ' \
 '*--layout-dir=[Default folder to look for layouts]:LAYOUT_DIR:_files' \
 '*-n+[Name of the new tab]:NAME: ' \
 '*--name=[Name of the new tab]:NAME: ' \
@@ -628,13 +647,14 @@ _arguments "${_arguments_options[@]}" \
 ;;
 (override-layout)
 _arguments "${_arguments_options[@]}" \
+'()*--layout-string=[Raw KDL layout string to use directly (instead of a layout file path)]:LAYOUT_STRING: ' \
 '*--layout-dir=[Default folder to look for layouts]:LAYOUT_DIR:_files' \
 '*--retain-existing-terminal-panes[Retain existing terminal panes that do not fit in the layout (default: false)]' \
 '*--retain-existing-plugin-panes[Retain existing plugin panes that do not fit with the layout default: false)]' \
 '*--apply-only-to-active-tab[Only apply the layout to the active tab (uses just the first layout tab if it has multiple)]' \
 '-h[Print help information]' \
 '--help[Print help information]' \
-':layout -- Path to the layout file:_files' \
+'::layout -- Path to the layout file:_files' \
 && ret=0
 ;;
 (query-tab-names)
@@ -656,6 +676,7 @@ _arguments "${_arguments_options[@]}" \
 _arguments "${_arguments_options[@]}" \
 '*-c+[]:CONFIGURATION: ' \
 '*--configuration=[]:CONFIGURATION: ' \
+'(-i --in-place)*--tab-id=[Target a specific tab by ID]:TAB_ID: ' \
 '*-f[]' \
 '*--floating[]' \
 '*-i[]' \
@@ -674,6 +695,7 @@ _arguments "${_arguments_options[@]}" \
 _arguments "${_arguments_options[@]}" \
 '*-c+[]:CONFIGURATION: ' \
 '*--configuration=[]:CONFIGURATION: ' \
+'(-i --in-place)*--tab-id=[Target a specific tab by ID]:TAB_ID: ' \
 '*-f[]' \
 '*--floating[]' \
 '*-i[]' \
@@ -830,8 +852,9 @@ _arguments "${_arguments_options[@]}" \
 _arguments "${_arguments_options[@]}" \
 '--tab-position=[Optional tab position to focus]:TAB_POSITION: ' \
 '--pane-id=[Optional pane ID to focus (eg. "terminal_1" for terminal pane with id 1, or "plugin_2" for plugin pane with id 2)]:PANE_ID: ' \
-'*-l+[Layout to apply when switching to the session (relative paths start at layout-dir)]:LAYOUT:_files' \
-'*--layout=[Layout to apply when switching to the session (relative paths start at layout-dir)]:LAYOUT:_files' \
+'(--layout-string)*-l+[Layout to apply when switching to the session (relative paths start at layout-dir)]:LAYOUT:_files' \
+'(--layout-string)*--layout=[Layout to apply when switching to the session (relative paths start at layout-dir)]:LAYOUT:_files' \
+'(-l --layout)*--layout-string=[Raw KDL layout string to use directly]:LAYOUT_STRING: ' \
 '*--layout-dir=[Default folder to look for layouts]:LAYOUT_DIR:_files' \
 '*-c+[Change the working directory when switching]:CWD:_files' \
 '*--cwd=[Change the working directory when switching]:CWD:_files' \
@@ -1037,6 +1060,7 @@ _arguments "${_arguments_options[@]}" \
 '--pinned=[Whether to pin a floating pane so that it is always on top]:PINNED: ' \
 '*-b+[start this pane without a border (warning: will make it impossible to move with the mouse)]:BORDERLESS:(true false)' \
 '*--borderless=[start this pane without a border (warning: will make it impossible to move with the mouse)]:BORDERLESS:(true false)' \
+'(--near-current-pane -i --in-place)*--tab-id=[Target a specific tab by ID]:TAB_ID: ' \
 '*-f[Open the new pane in floating mode]' \
 '*--floating[Open the new pane in floating mode]' \
 '(-f --floating -d --direction)*-i[Open the new pane in place of the current pane, temporarily suspending it]' \
@@ -1070,6 +1094,7 @@ _arguments "${_arguments_options[@]}" \
 '--pinned=[Whether to pin a floating pane so that it is always on top]:PINNED: ' \
 '*-b+[start this pane without a border (warning: will make it impossible to move with the mouse)]:BORDERLESS:(true false)' \
 '*--borderless=[start this pane without a border (warning: will make it impossible to move with the mouse)]:BORDERLESS:(true false)' \
+'(-i --in-place)*--tab-id=[Target a specific tab by ID]:TAB_ID: ' \
 '*-f[Open the new pane in floating mode]' \
 '*--floating[Open the new pane in floating mode]' \
 '(-f --floating)*-i[Open the new pane in place of the current pane, temporarily suspending it]' \
@@ -1098,6 +1123,7 @@ _arguments "${_arguments_options[@]}" \
 '--pinned=[Whether to pin a floating pane so that it is always on top]:PINNED: ' \
 '*-b+[start this pane without a border (warning: will make it impossible to move with the mouse)]:BORDERLESS:(true false)' \
 '*--borderless=[start this pane without a border (warning: will make it impossible to move with the mouse)]:BORDERLESS:(true false)' \
+'(--near-current-pane -i --in-place)*--tab-id=[Target a specific tab by ID]:TAB_ID: ' \
 '(-f --floating -d --direction)*-i[Open the new pane in place of the current pane, temporarily suspending it]' \
 '(-f --floating -d --direction)*--in-place[Open the new pane in place of the current pane, temporarily suspending it]' \
 '*--close-replaced-pane[Close the replaced pane instead of suspending it (only effective with --in-place)]' \
@@ -1217,6 +1243,7 @@ _zellij__action_commands() {
 'resize:\[increase|decrease\] the focused panes area at the \[left|down|up|right\] border' \
 'focus-next-pane:Change focus to the next pane' \
 'focus-previous-pane:Change focus to the previous pane' \
+'focus-pane-id:Focus a specific pane by its ID' \
 'move-focus:Move the focused pane in the specified direction. \[right|left|up|down\]' \
 'move-focus-or-tab:Move focus to the pane or tab (if on screen edge) in the specified direction \[right|left|up|down\]' \
 'move-pane:Change the location of the focused pane in the specified direction or rotate forwrads \[right|left|up|down\]' \
@@ -1244,6 +1271,7 @@ _zellij__action_commands() {
 'toggle-floating-panes:Toggle the visibility of all floating panes in the current Tab, open one if none exist' \
 'show-floating-panes:Show all floating panes in the specified tab (or active tab if tab_id is not provided)' \
 'hide-floating-panes:Hide all floating panes in the specified tab (or active tab if tab_id is not provided)' \
+'are-floating-panes-visible:Check if floating panes are visible in the specified tab (or active tab)' \
 'close-pane:Close the focused pane' \
 'rename-pane:Renames the focused pane' \
 'undo-rename-pane:Remove a previously set pane name' \
@@ -1283,6 +1311,11 @@ _zellij__action_commands() {
 'help:Print this message or the help of the given subcommand(s)' \
     )
     _describe -t commands 'zellij action commands' commands "$@"
+}
+(( $+functions[_zellij__action__are-floating-panes-visible_commands] )) ||
+_zellij__action__are-floating-panes-visible_commands() {
+    local commands; commands=()
+    _describe -t commands 'zellij action are-floating-panes-visible commands' commands "$@"
 }
 (( $+functions[_zellij__attach_commands] )) ||
 _zellij__attach_commands() {
@@ -1381,6 +1414,11 @@ _zellij__action__edit-scrollback_commands() {
 _zellij__action__focus-next-pane_commands() {
     local commands; commands=()
     _describe -t commands 'zellij action focus-next-pane commands' commands "$@"
+}
+(( $+functions[_zellij__action__focus-pane-id_commands] )) ||
+_zellij__action__focus-pane-id_commands() {
+    local commands; commands=()
+    _describe -t commands 'zellij action focus-pane-id commands' commands "$@"
 }
 (( $+functions[_zellij__action__focus-previous-pane_commands] )) ||
 _zellij__action__focus-previous-pane_commands() {
