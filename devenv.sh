@@ -16,7 +16,7 @@ function rosetta() {
 function macos() {
   if [[ -f "macos/setup.sh" ]]; then
     log info "Setting up Mac OS..."
-    cd macos && ./setup.sh && cd ..
+    (cd macos && ./setup.sh)
     log info "Done."
   fi
 }
@@ -24,7 +24,7 @@ function macos() {
 function brew() {
   if [[ -f "brew/setup.sh" ]]; then
     log info "Setting up brew..."
-    cd brew && ./setup.sh && cd ..
+    (cd brew && ./setup.sh)
     log info "Done."
   fi
 }
@@ -32,7 +32,7 @@ function brew() {
 function dotfiles() {
   if [[ -f "dotfiles/setup.sh" ]]; then
     log info "Setting up dotfiles..."
-    cd dotfiles && ./setup.sh && cd ..
+    (cd dotfiles && ./setup.sh)
     log info "Done."
   fi
 }
@@ -40,7 +40,7 @@ function dotfiles() {
 function mise() {
   if [[ -f "mise/setup.sh" ]]; then
     log info "Setting up mise..."
-    cd mise && ./setup.sh && cd ..
+    (cd mise && ./setup.sh)
     log info "Done."
   fi
 }
