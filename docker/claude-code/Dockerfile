@@ -22,4 +22,4 @@ RUN mise install gh jq sqlite node python
 WORKDIR /workspace
 
 ENV DISABLE_AUTOUPDATER=1
-ENTRYPOINT ["claude", "--dangerously-skip-permissions", "--resume"]
+ENTRYPOINT ["claude", "--dangerously-skip-permissions", "--continue"]
