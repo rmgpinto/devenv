@@ -18,17 +18,19 @@ ENV PATH="/home/claude/.local/bin:${PATH}"
 
 RUN curl https://mise.run | sh
 ENV PATH="/home/claude/.local/share/mise/shims:/home/claude/.local/share/mise/bin:${PATH}"
-RUN mise install \
+RUN mise settings ruby.compile=false
+RUN mise use -g \
   gh \
   jq \
   sqlite \
   node \
   yarn \
   python \
-  ruby
+  ruby@3.4.9
 
 WORKDIR /workspace
 
+ENV MISE_TRUSTED_CONFIG_PATHS="/workspace"
 ENV DISABLE_AUTOUPDATER=1
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
