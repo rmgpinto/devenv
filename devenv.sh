@@ -47,7 +47,7 @@ function mise() {
 
 function docker_images() {
   log info "Building docker images..."
-  docker build -f docker/claude-code/Dockerfile --no-cache -t claude-code docker/claude-code/
+  docker build -f docker/claude-code/Dockerfile --no-cache --build-arg CC_GITHUB_TOKEN="$CC_GITHUB_TOKEN" -t claude-code docker/claude-code/
   log info "Done."
 }
 

@@ -18,6 +18,8 @@ ENV PATH="/home/claude/.local/bin:${PATH}"
 
 RUN curl https://mise.run | sh
 ENV PATH="/home/claude/.local/share/mise/shims:/home/claude/.local/share/mise/bin:${PATH}"
+ARG CC_GITHUB_TOKEN
+ENV GITHUB_TOKEN=${CC_GITHUB_TOKEN}
 RUN mise settings ruby.compile=false
 RUN mise use -g \
   gh \
