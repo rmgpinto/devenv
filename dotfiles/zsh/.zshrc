@@ -40,12 +40,6 @@ eval "$(mise activate zsh)"
 
 # zellij
 FPATH="${XDG_CONFIG_HOME}/zellij/zsh:${FPATH}"
-if [[ -n "${ZELLIJ}" ]]; then
-  _zellij_osc7() { printf '\e]7;file://%s%s\e\\' "${HOST}" "${PWD}" }
-  autoload -Uz add-zsh-hook
-  add-zsh-hook chpwd _zellij_osc7
-  _zellij_osc7
-fi
 
 # starship
 export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/starship.toml"
