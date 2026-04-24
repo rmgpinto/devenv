@@ -10,7 +10,7 @@ layout {
             name "nvim"
             size "65%"
             command "zsh"
-            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && mise activate --shims && ~/.local/share/mise/shims/nvim"
+            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && BRANCH=$(git branch --show-current 2>/dev/null); zellij action rename-tab \"${BRANCH:-code}\"; mise activate --shims && ~/.local/share/mise/shims/nvim"
             focus true
         }
         pane split_direction="horizontal" {
@@ -34,9 +34,6 @@ layout {
                 width "70%"
             }
         }
-    }
-    tab name="git" {
-        pane command="~/.local/share/mise/shims/lazygit" borderless=true
     }
 }
 

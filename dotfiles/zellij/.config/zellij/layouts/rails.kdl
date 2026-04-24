@@ -9,7 +9,8 @@ layout {
         pane {
           name "nvim"
           size "70%"
-          command "~/.local/share/mise/shims/nvim"
+          command "zsh"
+          args "-c" "BRANCH=$(git branch --show-current 2>/dev/null); zellij action rename-tab \"${BRANCH:-code}\"; ~/.local/share/mise/shims/nvim"
           focus true
         }
         pane split_direction="vertical" name="shell" size="30%" {
@@ -29,8 +30,5 @@ layout {
                 args "-c" "mise run rails-dev"
             }
         }
-    }
-    tab name="git" {
-        pane command="~/.local/share/mise/shims/lazygit" borderless=true
     }
 }

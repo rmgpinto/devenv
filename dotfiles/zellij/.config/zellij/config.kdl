@@ -6,7 +6,7 @@ keybinds clear-defaults=true {
     }
     locked {
         unbind "Ctrl g"
-        bind "Super g" { SwitchToMode "Normal"; }
+        bind "Super G" { SwitchToMode "Normal"; }
     }
     resize {
         unbind "Ctrl n"
@@ -135,7 +135,13 @@ keybinds clear-defaults=true {
     }
     shared_except "locked" {
         unbind "Ctrl g"
-        bind "Super g" { SwitchToMode "Locked"; }
+        bind "Super G" { SwitchToMode "Locked"; }
+        bind "Super g" {
+            Run "lazygit" {
+                close_on_exit true
+            };
+            ToggleFocusFullscreen;
+        }
         // bind "Ctrl q" { Quit; }
         bind "Alt n" { NewPane; }
         bind "Alt i" { MoveTab "Left"; }
