@@ -66,8 +66,8 @@ function setup_ssh() {
 
 function setup_zellij() {
   log info "Setting up zellij..."
-  mkdir -p ${XDG_CONFIG_HOME}/zellij/zsh
-  ~/.local/share/mise/shims/zellij setup --generate-completion zsh > ${XDG_CONFIG_HOME}/zellij/zsh/_zellij
+  mkdir -p zellij/.config/zellij/zsh
+  ~/.local/share/mise/shims/zellij setup --generate-completion zsh > zellij/.config/zellij/zsh/_zellij
   /opt/homebrew/bin/stow zellij -t ${HOME}
   log info "Done."
 }
