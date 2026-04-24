@@ -1,8 +1,8 @@
 #!/bin/zsh -eo pipefail
 
 function main() {
-  local mac_model=$(/usr/sbin/system_profiler SPHardwareDataType | awk -F': ' '/Model Name/ { print $2 }')
-  local mac_chip=$(/usr/sbin/system_profiler SPHardwareDataType | awk -F ': ' '/Chip/ { print $2 }' | awk '{ print $2 }')
+  local mac_model=$(/usr/sbin/system_profiler SPHardwareDataType 2>/dev/null | awk -F': ' '/Model Name/ { print $2 }')
+  local mac_chip=$(/usr/sbin/system_profiler SPHardwareDataType 2>/dev/null | awk -F ': ' '/Chip/ { print $2 }' | awk '{ print $2 }')
   local hostname=$(echo "${mac_model}" | tr -d ' ' | awk '{print tolower($1) $2}')
   local computername="${mac_model} ${mac_chip}"
 
