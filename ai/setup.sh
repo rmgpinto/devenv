@@ -119,10 +119,10 @@ function setup_workspace() {
   sudo rm -f "${SHARED_WORKSPACE}/.mise.toml" "${SHARED_WORKSPACE}/CLAUDE.md"
   /opt/homebrew/bin/stow --no-folding -d "${DEVENV_AI_DIR}" sb -t "${SHARED_WORKSPACE}"
 
-  if [[ -n "${CC_GITHUB_TOKEN:-}" ]]; then
+  if [[ -n "${AI_GITHUB_TOKEN:-}" ]]; then
     local tmp
     tmp=$(mktemp)
-    printf '[env]\nCC_GITHUB_TOKEN = "%s"\n' "${CC_GITHUB_TOKEN}" > "${tmp}"
+    printf '[env]\nAI_GITHUB_TOKEN = "%s"\n' "${AI_GITHUB_TOKEN}" > "${tmp}"
     sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 "${tmp}" "${SHARED_WORKSPACE}/.mise.local.toml"
     rm -f "${tmp}"
   fi
@@ -140,8 +140,8 @@ function setup_claude() {
 }
 
 function setup_mise() {
-  if [[ -z "${CC_GITHUB_TOKEN:-}" ]]; then
-    log error "CC_GITHUB_TOKEN not set; ai-sandbox will not have GitHub access."
+  if [[ -z "${AI_GITHUB_TOKEN:-}" ]]; then
+    log error "AI_GITHUB_TOKEN not set; ai-sandbox will not have GitHub access."
   fi
   log info "Installing mise tools in sandbox..."
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise trust
