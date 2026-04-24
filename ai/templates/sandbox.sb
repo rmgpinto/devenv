@@ -1,0 +1,34 @@
+;; sandbox-exec profile for {{SANDBOX_USER}}
+;; Rendered by ai/setup.sh; installed to /var/ai-sandbox/ (root-owned, 0444).
+
+(version 1)
+(allow default)
+
+;; Deny all writes by default.
+(deny file-write*
+  (subpath "/"))
+
+;; Deny access to external/removable volumes; re-allow the main disk only.
+(deny file-read*
+  (subpath "/Volumes"))
+(allow file-read*
+  (subpath "/Volumes/Macintosh HD"))
+
+;; Allow writes to the shared workspace, sandbox home, tmp dirs, and devices.
+(allow file-write*
+  (subpath "{{SHARED_WORKSPACE}}")
+  (subpath "/Users/{{SANDBOX_USER}}")
+  (subpath "/tmp")
+  (subpath "/private/tmp")
+  (subpath "/var/folders")
+  (subpath "/private/var/folders")
+  (subpath "/dev"))
+
+(allow process-info*)
+(allow sysctl-read)
+(allow process*)
+
+;; /bin/ps is setuid and can't run under a nested sandbox.
+(allow process-exec
+  (literal "/bin/ps")
+  (with no-sandbox))

@@ -1,0 +1,164 @@
+#!/bin/zsh -eo pipefail
+
+source "../utils/log.sh"
+
+# ai-sandbox: a restricted macOS user for AI agents.
+#
+# - Cannot access your home directory
+# - Runs with standard user privileges (no sudo)
+# - Cannot modify system files
+# - Has no access to mounted drives
+#
+# - writable:  /Users/Shared/dev              -- shared workspace for host user & ai-sandbox
+# - writable:  /Users/ai-sandbox              -- ai-sandbox's home directory
+# - readable:  /usr, /bin, /etc, /opt         -- system directories
+# - no access: /Users/*                       -- other user directories
+# - writable:  /Volumes/Macintosh HD          -- accessible as per file permissions
+# - no access: /Volumes/*                     -- cannot access mounted/remote/network drives
+
+SANDBOX_USER="ai-sandbox"
+SANDBOX_GROUP="ai-sandbox"
+SANDBOX_HOME="/Users/${SANDBOX_USER}"
+SHARED_WORKSPACE="/Users/Shared/dev"
+SANDBOX_PROFILE_DIR="/var/ai-sandbox"
+SANDBOX_PROFILE="${SANDBOX_PROFILE_DIR}/sandbox.sb"
+SUDOERS_FILE="/etc/sudoers.d/50-ai-sandbox-${USER}"
+SB_BIN="/usr/local/bin/sb"
+DEVENV_AI_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+function setup_group() {
+  log info "Creating ${SANDBOX_GROUP} group..."
+  if ! dscl . -read "/Groups/${SANDBOX_GROUP}" &>/dev/null; then
+    sudo dseditgroup -o create "${SANDBOX_GROUP}"
+  fi
+  log info "Done."
+}
+
+function setup_user() {
+  log info "Creating ${SANDBOX_USER} user..."
+  if ! dscl . -read "/Users/${SANDBOX_USER}" &>/dev/null; then
+    sudo sysadminctl -addUser "${SANDBOX_USER}" \
+      -fullName "${SANDBOX_USER}" \
+      -home "${SANDBOX_HOME}" \
+      -shell /bin/zsh \
+      -password "Aa1!$(openssl rand -base64 32)"
+    sudo dscl . -create "/Users/${SANDBOX_USER}" IsHidden 1
+  fi
+
+  # Remove from staff so the user can't read other users' staff-owned files.
+  sudo dseditgroup -o edit -d "${SANDBOX_USER}" -t user staff 2>/dev/null || true
+
+  # Both the sandbox user and the host user belong to the sandbox group.
+  if ! dseditgroup -o checkmember -m "${SANDBOX_USER}" "${SANDBOX_GROUP}" &>/dev/null; then
+    sudo dseditgroup -o edit -a "${SANDBOX_USER}" -t user "${SANDBOX_GROUP}"
+  fi
+  if ! dseditgroup -o checkmember -m "${USER}" "${SANDBOX_GROUP}" &>/dev/null; then
+    sudo dseditgroup -o edit -a "${USER}" -t user "${SANDBOX_GROUP}"
+  fi
+
+  sudo mkdir -p "${SANDBOX_HOME}"
+  sudo chown "${SANDBOX_USER}:${SANDBOX_GROUP}" "${SANDBOX_HOME}"
+  sudo chmod 0700 "${SANDBOX_HOME}"
+  log info "Done."
+}
+
+function setup_shared() {
+  log info "Setting up ${SHARED_WORKSPACE}..."
+  sudo mkdir -p "${SHARED_WORKSPACE}"
+  sudo chown "${SANDBOX_USER}:${SANDBOX_GROUP}" "${SHARED_WORKSPACE}"
+  sudo chmod 0700 "${SHARED_WORKSPACE}"
+
+  # Full RW for host and sandbox, applied recursively so pre-existing subdirs
+  # (which don't inherit retroactively from a top-level ACL) also get access.
+  # Additive only — macOS dedupes identical ACEs, so re-runs don't accumulate.
+  # Filtered to dirs + regular files to skip broken symlinks, sockets, etc.
+  local acl_host="user:${USER} allow read,write,execute,delete,add_file,add_subdirectory,list,search,file_inherit,directory_inherit"
+  local acl_sbox="user:${SANDBOX_USER} allow read,write,execute,delete,add_file,add_subdirectory,list,search,file_inherit,directory_inherit"
+  sudo find "${SHARED_WORKSPACE}" \( -type d -o -type f \) -exec chmod +a "${acl_host}" {} +
+  sudo find "${SHARED_WORKSPACE}" \( -type d -o -type f \) -exec chmod +a "${acl_sbox}" {} +
+  log info "Done."
+}
+
+function setup_sandbox_profile() {
+  log info "Installing sandbox profile..."
+  sudo mkdir -p "${SANDBOX_PROFILE_DIR}"
+  sudo chmod 0755 "${SANDBOX_PROFILE_DIR}"
+  sed \
+    -e "s|{{SHARED_WORKSPACE}}|${SHARED_WORKSPACE}|g" \
+    -e "s|{{SANDBOX_USER}}|${SANDBOX_USER}|g" \
+    templates/sandbox.sb \
+    | sudo tee "${SANDBOX_PROFILE}" > /dev/null
+  sudo chmod 0444 "${SANDBOX_PROFILE}"
+  log info "Done."
+}
+
+function setup_sudoers() {
+  log info "Installing sudoers entry..."
+  local tmp
+  tmp=$(sudo mktemp "$(dirname "${SUDOERS_FILE}")/.sudoers.XXXXXX")
+  echo "${USER} ALL=(${SANDBOX_USER}) NOPASSWD: ALL" | sudo tee "${tmp}" > /dev/null
+  sudo chmod 0440 "${tmp}"
+  if sudo visudo -c -f "${tmp}" >/dev/null; then
+    sudo mv -f "${tmp}" "${SUDOERS_FILE}"
+  else
+    sudo rm -f "${tmp}"
+    log error "sudoers file failed validation"
+    exit 1
+  fi
+  log info "Done."
+}
+
+function setup_sb_cli() {
+  log info "Installing sb wrapper to ${SB_BIN}..."
+  sudo install -m 0755 bin/sb "${SB_BIN}"
+  log info "Done."
+}
+
+function setup_workspace() {
+  log info "Stowing workspace files..."
+  sudo rm -f "${SHARED_WORKSPACE}/.mise.toml" "${SHARED_WORKSPACE}/CLAUDE.md"
+  /opt/homebrew/bin/stow --no-folding -d "${DEVENV_AI_DIR}" sb -t "${SHARED_WORKSPACE}"
+
+  if [[ -n "${CC_GITHUB_TOKEN:-}" ]]; then
+    local tmp
+    tmp=$(mktemp)
+    printf '[env]\nCC_GITHUB_TOKEN = "%s"\n' "${CC_GITHUB_TOKEN}" > "${tmp}"
+    sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 "${tmp}" "${SHARED_WORKSPACE}/.mise.local.toml"
+    rm -f "${tmp}"
+  fi
+  log info "Done."
+}
+
+function setup_claude() {
+  log info "Stowing Claude Code settings..."
+  sudo mkdir -p "${SANDBOX_HOME}/.claude"
+  sudo chown "${SANDBOX_USER}:${SANDBOX_GROUP}" "${SANDBOX_HOME}/.claude"
+  sudo rm -f "${SANDBOX_HOME}/.claude/settings.json"
+  sudo -u "${SANDBOX_USER}" /opt/homebrew/bin/stow --no-folding \
+    -d "${DEVENV_AI_DIR}/../dotfiles" claude -t "${SANDBOX_HOME}"
+  log info "Done."
+}
+
+function setup_mise() {
+  if [[ -z "${CC_GITHUB_TOKEN:-}" ]]; then
+    log error "CC_GITHUB_TOKEN not set; ai-sandbox will not have GitHub access."
+  fi
+  log info "Installing mise tools in sandbox..."
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise trust
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise install
+  log info "Done."
+}
+
+function main() {
+  setup_group
+  setup_user
+  setup_shared
+  setup_sandbox_profile
+  setup_sudoers
+  setup_sb_cli
+  setup_workspace
+  setup_claude
+  setup_mise
+}
+
+main

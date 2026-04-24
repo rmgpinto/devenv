@@ -1,0 +1,12 @@
+[tools]
+node = "latest"
+pnpm = "latest"
+yarn = "latest"
+k6 = "latest"
+ruby = "latest"
+python = "latest"
+sqlite = "latest"
+jq = "latest"
+yq = "latest"
+ripgrep = "latest"
+claude-code = "latest"

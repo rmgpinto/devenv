@@ -1,0 +1,36 @@
+#!/bin/zsh
+# sb: run a command as ai-sandbox, inside sandbox-exec.
+# Usage: sb [CWD] [--] [COMMAND [ARGS...]]
+#   CWD defaults to /Users/Shared/dev.
+#   With no COMMAND, opens an interactive login shell.
+
+set -eo pipefail
+
+SANDBOX_USER="ai-sandbox"
+SANDBOX_PROFILE="/var/ai-sandbox/sandbox.sb"
+DEFAULT_CWD="/Users/Shared/dev"
+
+if [[ "${USER}" == "${SANDBOX_USER}" ]]; then
+  echo "sb: already inside sandbox" >&2
+  exit 1
+fi
+
+CWD="${DEFAULT_CWD}"
+if [[ $# -gt 0 && -d "$1" ]]; then
+  CWD="$1"
+  shift
+fi
+[[ "${1:-}" == "--" ]] && shift
+[[ $# -eq 0 ]] && set -- /bin/zsh -l
+
+cd "${CWD}"
+exec sudo -H -u "${SANDBOX_USER}" -- \
+  /usr/bin/sandbox-exec -f "${SANDBOX_PROFILE}" \
+  /usr/bin/env \
+    HOME="/Users/${SANDBOX_USER}" \
+    USER="${SANDBOX_USER}" \
+    LOGNAME="${SANDBOX_USER}" \
+    SHELL="/bin/zsh" \
+    TERM="${TERM:-xterm-256color}" \
+    PATH="/Users/${SANDBOX_USER}/.local/share/mise/shims:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin" \
+    "$@"

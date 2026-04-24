@@ -45,10 +45,12 @@ function mise() {
   fi
 }
 
-function docker_images() {
-  log info "Building docker images..."
-  docker build -f docker/claude-code/Dockerfile --no-cache --build-arg CC_GITHUB_TOKEN="$CC_GITHUB_TOKEN" -t claude-code docker/claude-code/
-  log info "Done."
+function ai() {
+  if [[ -f "ai/setup.sh" ]]; then
+    log info "Setting up ai..."
+    (cd ai && ./setup.sh)
+    log info Done.
+  fi
 }
 
 function main() {
@@ -58,7 +60,7 @@ function main() {
   brew
   mise
   dotfiles
-  docker_images
+  ai
   log info "Done."
 }
 

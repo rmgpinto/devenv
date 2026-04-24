@@ -93,7 +93,7 @@ function tfde() {
 
 # Work
 alias gha_watch='test -d .git && last_run_id=""; while true; do latest_run_id=$(~/.local/share/mise/installs/github-cli/latest/bin/gh run list --user rmgpinto --limit 1 --json databaseId --jq ".[0].databaseId"); if [[ "$latest_run_id" != "$last_run_id" ]]; then last_run_id="$latest_run_id"; ~/.local/share/mise/installs/github-cli/latest/bin/gh run watch "$latest_run_id"; else sleep 5; fi; done'
-alias cc='docker run -it --rm -v "$HOME/dev/work:/workspace" -v "$PWD:/workspace/${PWD##*/}" -w "/workspace/${PWD##*/}" -v "$HOME/.claude:/home/claude/.claude" -v "$PWD/.claude:/workspace/${PWD##*/}/.claude" -v "$HOME/.claude.json:/home/claude/.claude.json" -v "$HOME/Desktop/Screenshots:/Users/rmgpinto/Desktop/Screenshots:ro" -v "$HOME/.orbstack/run/docker.sock:/var/run/docker.sock" --group-add 0 claude-code'
+alias cc='sb claude --dangerously-skip-permissions'
 alias dkill='docker kill $(docker ps -q) 2>/dev/null; docker rm $(docker ps -aq) 2>/dev/null'
 alias halstg='NODE_ENV=staging hal'
 alias k='kubectl'

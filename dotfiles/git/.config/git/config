@@ -62,3 +62,6 @@
 [merge]
   conflictstyle = "zdiff3"
 
+[safe]
+	directory = /Users/Shared/dev/*
+
