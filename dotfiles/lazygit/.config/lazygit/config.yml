@@ -1,5 +1,8 @@
 git:
   overrideGpg: true
+  pagers:
+    - colorArg: always
+      pager: delta --paging=never --side-by-side
 customCommands:
   - key: "W"
     description: "Create worktree from main"
@@ -11,22 +14,21 @@ customCommands:
         key: "WorktreeName"
 theme:
   activeBorderColor:
-  - '#89b4fa'
-  - bold
+    - '#89b4fa'
+    - bold
   cherryPickedCommitBgColor:
-  - '#45475a'
+    - '#45475a'
   cherryPickedCommitFgColor:
-  - '#89b4fa'
+    - '#89b4fa'
   defaultFgColor:
-  - '#cdd6f4'
+    - '#cdd6f4'
   inactiveBorderColor:
-  - '#a6adc8'
+    - '#a6adc8'
   optionsTextColor:
-  - '#89b4fa'
+    - '#89b4fa'
   searchingActiveBorderColor:
-  - '#f9e2af'
+    - '#f9e2af'
   selectedLineBgColor:
-  - '#313244'
+    - '#313244'
   unstagedChangesColor:
-  - '#f38ba8'
-
+    - '#f38ba8'

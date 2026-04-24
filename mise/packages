@@ -2,6 +2,7 @@
 starship
 github-cli
 lazygit
+git-delta
 1password-cli
 zellij
 zjstatus # zellij plugin
