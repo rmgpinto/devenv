@@ -64,9 +64,11 @@ function setup_user() {
 
 function setup_shared() {
   log info "Setting up ${SHARED_WORKSPACE}..."
-  sudo mkdir -p "${SHARED_WORKSPACE}"
-  sudo chown "${SANDBOX_USER}:${SANDBOX_GROUP}" "${SHARED_WORKSPACE}"
-  sudo chmod 0700 "${SHARED_WORKSPACE}"
+  if [[ ! -d "${SHARED_WORKSPACE}" ]]; then
+    sudo mkdir -p "${SHARED_WORKSPACE}"
+    sudo chown "${SANDBOX_USER}:${SANDBOX_GROUP}" "${SHARED_WORKSPACE}"
+    sudo chmod 0700 "${SHARED_WORKSPACE}"
+  fi
 
   # Full RW for host and sandbox, applied recursively so pre-existing subdirs
   # (which don't inherit retroactively from a top-level ACL) also get access.
@@ -145,6 +147,7 @@ function setup_mise() {
   fi
   log info "Installing mise tools in sandbox..."
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise trust
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise plugins update
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise install
   log info "Done."
 }
