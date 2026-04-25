@@ -3,7 +3,6 @@ return {
   dependencies = { "echasnovski/mini.icons" },
   opts = {
     options = {
-      theme = "catppuccin",
       padding = 2,
       globalstatus = true,
       disabled_filetypes = { "alpha" },
