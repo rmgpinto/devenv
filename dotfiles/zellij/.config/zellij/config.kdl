@@ -289,7 +289,30 @@ plugins {
 }
 
 mouse_mode true
-theme "catppuccin-mocha"
+theme "catppuccin-mocha-blue"
+themes {
+    catppuccin-mocha-blue {
+        bg "#585b70"
+        fg "#cdd6f4"
+        black "#181825"
+        white "#cdd6f4"
+        red "#f38ba8"
+        green "#a6e3a1"
+        yellow "#f9e2af"
+        blue "#89b4fa"
+        magenta "#f5c2e7"
+        cyan "#94e2d5"
+        orange "#fab387"
+        frame_selected {
+            base "#89b4fa"
+            background "#1e1e2e"
+            emphasis_0 "#f5c2e7"
+            emphasis_1 "#fab387"
+            emphasis_2 "#94e2d5"
+            emphasis_3 "#a6e3a1"
+        }
+    }
+}
 layout_dir "/Users/rmgpinto/.config/zellij/layouts"
 default_layout "empty"
 pane_frames true
