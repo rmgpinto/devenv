@@ -6,7 +6,6 @@ return {
   config = function()
     require("catppuccin").setup({
       integrations = {
-        copilot_vim = true,
         dap = true,
         dap_ui = true,
         gitsigns = true,
