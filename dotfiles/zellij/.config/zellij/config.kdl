@@ -293,4 +293,8 @@ theme "catppuccin-mocha"
 layout_dir "/Users/rmgpinto/.config/zellij/layouts"
 default_layout "empty"
 pane_frames true
+show_startup_tips false
+show_release_notes false
+window_title_rename "disable"
+mouse_hover_effects false
 
