@@ -10,7 +10,7 @@ layout {
             name "nvim"
             size "65%"
             command "zsh"
-            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && BRANCH=$(git branch --show-current 2>/dev/null); zellij action rename-tab \"${BRANCH:-code}\"; mise activate --shims && ~/.local/share/mise/shims/nvim"
+            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && CWD=$(basename \"$PWD\"); BRANCH=$(/usr/bin/git -C \"$PWD\" rev-parse --abbrev-ref HEAD 2>/dev/null); [ \"$BRANCH\" = HEAD ] && BRANCH=; zellij action rename-tab \"${BRANCH:-code}\"; zellij action rename-session \"${CWD}${BRANCH:+-${BRANCH}}\"; mise activate --shims && ~/.local/share/mise/shims/nvim"
             focus true
         }
         pane split_direction="horizontal" {
