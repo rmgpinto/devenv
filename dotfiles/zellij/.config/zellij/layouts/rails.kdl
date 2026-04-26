@@ -10,7 +10,7 @@ layout {
           name "nvim"
           size "70%"
           command "zsh"
-          args "-c" "CWD=$(basename \"$PWD\"); BRANCH=$(/usr/bin/git -C \"$PWD\" rev-parse --abbrev-ref HEAD 2>/dev/null); [ \"$BRANCH\" = HEAD ] && BRANCH=; zellij action rename-tab \"${BRANCH:-code}\"; zellij action rename-session \"${CWD}${BRANCH:+-${BRANCH}}\"; ~/.local/share/mise/shims/nvim"
+          args "-c" "CWD=$(basename \"$PWD\"); BRANCH=$(/usr/bin/git -C \"$PWD\" rev-parse --abbrev-ref HEAD 2>/dev/null); [ \"$BRANCH\" = HEAD ] && BRANCH=; SESSION=\"${CWD}${BRANCH:+-${BRANCH}}\"; zellij action rename-tab \"${BRANCH:-code}\"; zellij action rename-session \"$SESSION\"; SOCK=/tmp/nvim-${SESSION}.sock; rm -f \"$SOCK\"; ~/.local/share/mise/shims/nvim --listen \"$SOCK\""
           focus true
         }
         pane split_direction="vertical" name="shell" size="30%" {
