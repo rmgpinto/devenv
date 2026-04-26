@@ -120,6 +120,7 @@ function setup_workspace() {
   log info "Stowing workspace files..."
   sudo rm -f "${SHARED_WORKSPACE}/.mise.toml" "${SHARED_WORKSPACE}/CLAUDE.md"
   /opt/homebrew/bin/stow --no-folding -d "${DEVENV_AI_DIR}" sb -t "${SHARED_WORKSPACE}"
+  ln -s personal/devenv/CLAUDE.md "${SHARED_WORKSPACE}/CLAUDE.md"
 
   if [[ -n "${AI_GITHUB_TOKEN:-}" ]]; then
     local tmp
