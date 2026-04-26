@@ -6,8 +6,8 @@ Instructions are below.
 ## Clone this repo and run setup
 
 ```bash
-mkdir -p dev/work
-mkdir -p dev/personal && cd $_
+mkdir -p /Users/Shared/dev/work
+mkdir -p /Users/Shared/dev/personal && cd $_
 git clone https://github.com/rmgpinto/devenv.git
 cd devenv
 ./devenv.sh setup
