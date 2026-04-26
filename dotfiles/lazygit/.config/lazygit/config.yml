@@ -3,6 +3,8 @@ git:
   pagers:
     - colorArg: always
       pager: delta --paging=never --side-by-side
+os:
+  open: '([ -S /tmp/nvim-${ZELLIJ_SESSION_NAME}.sock ] && nvim --server /tmp/nvim-${ZELLIJ_SESSION_NAME}.sock --remote-silent "{{filename}}" && pkill -TERM -x lazygit) &'
 customCommands:
   - key: "W"
     description: "Create worktree from main"
