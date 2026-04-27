@@ -157,7 +157,21 @@ function setup_claude() {
   sudo chown "${SANDBOX_USER}:${SANDBOX_GROUP}" "${SANDBOX_HOME}/.claude"
   sudo rm -f "${SANDBOX_HOME}/.claude/settings.json"
   sudo -u "${SANDBOX_USER}" /opt/homebrew/bin/stow --no-folding \
-    -d "${DEVENV_AI_DIR}/../dotfiles" claude -t "${SANDBOX_HOME}"
+    -d "${DEVENV_AI_DIR}/dotfiles" claude -t "${SANDBOX_HOME}"
+  log info "Done."
+}
+
+function setup_git() {
+  # Workspace files are owned by the host user, so git refuses to operate on
+  # them as ai-sandbox without an explicit safe.directory allowlist.
+  log info "Stowing git config..."
+  sudo -u "${SANDBOX_USER}" mkdir -p "${SANDBOX_HOME}/.config/git"
+  sudo -u "${SANDBOX_USER}" /opt/homebrew/bin/stow --no-folding \
+    -d "${DEVENV_AI_DIR}/dotfiles" git -t "${SANDBOX_HOME}"
+  if ! sudo -u "${SANDBOX_USER}" test -L "${SANDBOX_HOME}/.gitconfig"; then
+    sudo -u "${SANDBOX_USER}" rm -f "${SANDBOX_HOME}/.gitconfig"
+    sudo -u "${SANDBOX_USER}" ln -s "${SANDBOX_HOME}/.config/git/config" "${SANDBOX_HOME}/.gitconfig"
+  fi
   log info "Done."
 }
 
@@ -201,6 +215,7 @@ function main() {
   setup_sb_cli
   setup_workspace
   setup_claude
+  setup_git
   setup_keychain
   setup_mise
 }

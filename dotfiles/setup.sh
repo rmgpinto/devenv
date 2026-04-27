@@ -86,12 +86,6 @@ function setup_bat() {
   log info "Done."
 }
 
-function setup_claude() {
-  log info "Setting up claude..."
-  /opt/homebrew/bin/stow claude -t ${HOME}
-  log info "Done."
-}
-
 function setup_bundle() {
   log info "Setting up bundle..."
   /opt/homebrew/bin/stow bundle -t ${HOME}
@@ -139,7 +133,6 @@ function main() {
   setup_neovim
   setup_bat
   setup_bundle
-  setup_claude
   setup_docker
   setup_ghost
 }
