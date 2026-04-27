@@ -135,7 +135,11 @@ function setup_workspace() {
   /opt/homebrew/bin/stow --no-folding -d "${DEVENV_AI_DIR}" sb -t "${SHARED_WORKSPACE}"
   ln -s personal/devenv/CLAUDE.md "${SHARED_WORKSPACE}/CLAUDE.md"
   sudo -u "${SANDBOX_USER}" mkdir -p "${SANDBOX_HOME}/.config/mise"
-  sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 "../.mise.local.toml" "${SANDBOX_HOME}/.config/mise/config.toml"
+  local tmp
+  tmp=$(mktemp)
+  sed 's/^REMOVE_//' "../.mise.local.toml" > "${tmp}"
+  sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 "${tmp}" "${SANDBOX_HOME}/.config/mise/config.toml"
+  rm -f "${tmp}"
   log info "Done."
 }
 
