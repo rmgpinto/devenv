@@ -135,12 +135,17 @@ function setup_workspace() {
   /opt/homebrew/bin/stow --no-folding -d "${DEVENV_AI_DIR}" sb -t "${SHARED_WORKSPACE}"
   ln -s personal/devenv/CLAUDE.md "${SHARED_WORKSPACE}/CLAUDE.md"
 
+  # Stale location from earlier setups: the env lived in the shared workspace,
+  # which leaked GITHUB_TOKEN into the host shell via mise's directory walk.
+  sudo rm -f "${SHARED_WORKSPACE}/.mise.local.toml"
+
   if [[ -n "${AI_GITHUB_TOKEN:-}" ]]; then
-    local tmp
+    local tmp dst="${SANDBOX_HOME}/.config/mise/config.toml"
     tmp=$(mktemp)
     printf '[env]\nAI_GITHUB_TOKEN = "%s"\nGH_TOKEN = "%s"\nGITHUB_TOKEN = "%s"\n' \
       "${AI_GITHUB_TOKEN}" "${AI_GITHUB_TOKEN}" "${AI_GITHUB_TOKEN}" > "${tmp}"
-    sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 "${tmp}" "${SHARED_WORKSPACE}/.mise.local.toml"
+    sudo -u "${SANDBOX_USER}" mkdir -p "$(dirname "${dst}")"
+    sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 "${tmp}" "${dst}"
     rm -f "${tmp}"
   fi
   log info "Done."
