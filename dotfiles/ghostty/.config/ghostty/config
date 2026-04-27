@@ -8,6 +8,7 @@ window-height = 1000
 macos-titlebar-proxy-icon = "hidden"
 working-directory = "/Users/Shared/dev"
 window-inherit-working-directory = false
+tab-inherit-working-directory = false
 shell-integration = "zsh"
 keybind = cmd+a=unbind
 keybind = cmd+up=unbind
