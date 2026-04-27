@@ -138,7 +138,8 @@ function setup_workspace() {
   if [[ -n "${AI_GITHUB_TOKEN:-}" ]]; then
     local tmp
     tmp=$(mktemp)
-    printf '[env]\nAI_GITHUB_TOKEN = "%s"\n' "${AI_GITHUB_TOKEN}" > "${tmp}"
+    printf '[env]\nAI_GITHUB_TOKEN = "%s"\nGH_TOKEN = "%s"\nGITHUB_TOKEN = "%s"\n' \
+      "${AI_GITHUB_TOKEN}" "${AI_GITHUB_TOKEN}" "${AI_GITHUB_TOKEN}" > "${tmp}"
     sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 "${tmp}" "${SHARED_WORKSPACE}/.mise.local.toml"
     rm -f "${tmp}"
   fi

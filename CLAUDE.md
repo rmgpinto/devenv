@@ -31,4 +31,5 @@ The source-of-truth is `personal/devenv/CLAUDE.md`. `/Users/Shared/dev/CLAUDE.md
 - jq, yq
 - ripgrep
 - k6
+- gh (authenticated via `GH_TOKEN` set from `AI_GITHUB_TOKEN`)
 - claude-code
