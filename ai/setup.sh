@@ -76,6 +76,19 @@ function setup_shared() {
   # Filtered to dirs + regular files to skip broken symlinks, sockets, etc.
   local acl_host="user:${USER} allow read,write,execute,delete,add_file,add_subdirectory,list,search,file_inherit,directory_inherit"
   local acl_sbox="user:${SANDBOX_USER} allow read,write,execute,delete,add_file,add_subdirectory,list,search,file_inherit,directory_inherit"
+
+  # Fast path: if the workspace root already carries both ACEs, prior runs
+  # have walked the tree, and inherit flags propagate the ACEs to anything
+  # newly created since. Skip the (slow) recursive pass.
+  local root_acls
+  root_acls=$(/bin/ls -lde "${SHARED_WORKSPACE}" 2>/dev/null)
+  if [[ "${root_acls}" == *"user:${USER} allow"* \
+     && "${root_acls}" == *"user:${SANDBOX_USER} allow"* ]]; then
+    log info "ACLs already present at root; skipping recursive pass."
+    log info "Done."
+    return
+  fi
+
   sudo find "${SHARED_WORKSPACE}" \( -type d -o -type f \) -exec chmod +a "${acl_host}" {} +
   sudo find "${SHARED_WORKSPACE}" \( -type d -o -type f \) -exec chmod +a "${acl_sbox}" {} +
   log info "Done."
@@ -142,14 +155,34 @@ function setup_claude() {
   log info "Done."
 }
 
+function setup_keychain() {
+  log info "Ensuring login keychain exists for ${SANDBOX_USER}..."
+  local kc="${SANDBOX_HOME}/Library/Keychains/login.keychain-db"
+  if sudo -u "${SANDBOX_USER}" test -f "${kc}"; then
+    log info "Already present, skipping."
+    return
+  fi
+  # Empty password: the sandbox account never logs in via GUI. The keychain
+  # only exists so apps using Security framework don't trigger a "reset login
+  # keychain?" dialog (Claude Code's credential layer is a known offender).
+  sudo -H -u "${SANDBOX_USER}" security create-keychain    -p "" "${kc}"
+  sudo -H -u "${SANDBOX_USER}" security set-keychain-settings    "${kc}"
+  sudo -H -u "${SANDBOX_USER}" security unlock-keychain    -p "" "${kc}"
+  sudo -H -u "${SANDBOX_USER}" security default-keychain   -s    "${kc}"
+  log info "Done."
+}
+
 function setup_mise() {
   if [[ -z "${AI_GITHUB_TOKEN:-}" ]]; then
     log error "AI_GITHUB_TOKEN not set; ai-sandbox will not have GitHub access."
   fi
   log info "Installing mise tools in sandbox..."
-  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise trust
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise settings set experimental true
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise settings set trusted_config_paths '["/Users/Shared/dev"]'
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise plugins update
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise install
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise upgrade
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise prune -y
   log info "Done."
 }
 
@@ -162,6 +195,7 @@ function main() {
   setup_sb_cli
   setup_workspace
   setup_claude
+  setup_keychain
   setup_mise
 }
 

@@ -1,5 +1,6 @@
 .DS_Store
 .mise.local.toml
+.worktrees/
 vendor/bundle
 Dockerfile.local
 docker-compose.local.yml

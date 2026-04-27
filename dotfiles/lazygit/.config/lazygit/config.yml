@@ -8,7 +8,7 @@ os:
 customCommands:
   - key: "W"
     description: "Create worktree from main"
-    command: "git worktree add '../{{.Form.WorktreeName}}' -b '{{.Form.WorktreeName}}' main"
+    command: "git worktree add '.worktrees/{{.Form.WorktreeName}}' -b '{{.Form.WorktreeName}}' main"
     context: "localBranches"
     prompts:
       - type: "input"

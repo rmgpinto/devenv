@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# Interactive worktree creator for TryGhost repos.
+# Picks a repo (filterable, sorted by your recent activity), then either
+# creates a new worktree or one based on an existing PR. Clones the repo
+# if missing, copies mise configs, and runs mise install.
+
+set -euo pipefail
+
+WORK_DIR="/Users/Shared/dev/work"
+ORG="TryGhost"
+
+mkdir -p "$WORK_DIR"
+
+# --- 1. Pick repo --------------------------------------------------------
+# Combine: repos you've recently committed to (first, by recency)
+#   + the rest of the org's repos (by last push). Dedup, preserve order.
+_fetch_repos() {
+  local u a
+  u=$(gh search commits --author=@me --owner "$ORG" \
+    --sort committer-date --limit 100 --json repository \
+    -q '.[].repository.name' 2>/dev/null || true)
+  a=$(gh repo list "$ORG" --limit 200 --json name,pushedAt \
+    -q 'sort_by(.pushedAt) | reverse | .[].name')
+  { echo "$u"; echo "$a"; } | awk 'NF && !seen[$0]++'
+}
+export -f _fetch_repos
+export ORG
+
+REPO_LIST=$(gum spin --show-output --title "Loading repos" -- bash -c _fetch_repos)
+REPO=$(echo "$REPO_LIST" | gum filter --header "Pick a repo" --placeholder "type to filter")
+[ -z "$REPO" ] && { echo "no repo picked"; exit 1; }
+
+# --- 2. Mode -------------------------------------------------------------
+MODE=$(gum choose --header "Worktree source" "New branch" "From PR")
+[ -z "$MODE" ] && exit 1
+
+PR_BRANCH=""
+if [ "$MODE" = "From PR" ]; then
+  _fetch_prs() {
+    gh pr list -R "$ORG/$REPO" --limit 100 \
+      --json number,title,headRefName,author \
+      -q '.[] | "#\(.number)\t\(.title)\t→ \(.headRefName)\t@\(.author.login)"'
+  }
+  export -f _fetch_prs
+  export REPO
+
+  PR_LIST=$(gum spin --show-output --title "Loading PRs for $ORG/$REPO" -- bash -c _fetch_prs)
+  PR_LINE=$(echo "$PR_LIST" | gum filter --header "Pick a PR")
+  [ -z "$PR_LINE" ] && exit 1
+  # headRefName is the 3rd tab field, with "→ " prefix
+  PR_BRANCH=$(echo "$PR_LINE" | awk -F'\t' '{print $3}' | sed 's/^→ //')
+fi
+
+# --- 3. Clone if missing -------------------------------------------------
+cd "$WORK_DIR"
+if [ ! -d "$REPO" ]; then
+  gum spin --title "Cloning $ORG/$REPO" -- gh repo clone "$ORG/$REPO"
+fi
+
+cd "$REPO"
+mkdir -p .worktrees
+
+# --- 4. Determine branch name --------------------------------------------
+if [ -n "$PR_BRANCH" ]; then
+  BRANCH="$PR_BRANCH"
+else
+  BRANCH=$(gum input --header "New branch name" --placeholder "feat/whatever")
+  [ -z "$BRANCH" ] && exit 1
+fi
+
+WT_DIR=".worktrees/${BRANCH//\//-}"
+
+# --- 5. Create the worktree ---------------------------------------------
+git worktree prune
+if [ -n "$PR_BRANCH" ]; then
+  git fetch origin "$PR_BRANCH:$PR_BRANCH" 2>/dev/null \
+    || git fetch origin "$PR_BRANCH"
+  git worktree add "$WT_DIR" "$PR_BRANCH"
+elif git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+  EXISTING_WT=$(git worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '
+    /^worktree / {wt=$2}
+    /^branch / && $2==b {print wt; exit}
+  ')
+  if [ -n "$EXISTING_WT" ]; then
+    echo "Branch '$BRANCH' is already checked out at: $EXISTING_WT" >&2
+    exit 1
+  fi
+  git worktree add "$WT_DIR" "$BRANCH"
+else
+  git worktree add "$WT_DIR" -b "$BRANCH"
+fi
+
+# --- 6. Copy git-ignored mise configs from the main repo dir ------------
+# Skip tracked files (e.g. .mise.toml) — they're already at HEAD in the
+# worktree and copying would create spurious unstaged changes.
+for f in .mise.local.toml .mise.*.local.toml; do
+  [ -f "$f" ] || continue
+  git check-ignore -q "$f" 2>/dev/null || continue
+  cp "$f" "$WT_DIR/"
+done
+
+# --- 7. mise install in the worktree ------------------------------------
+cd "$WT_DIR"
+mise install
+
+# If invoked via the zsh `wt` wrapper, leave the final dir for it to cd into.
+[ -n "${WT_CD_FILE:-}" ] && pwd > "$WT_CD_FILE"
+

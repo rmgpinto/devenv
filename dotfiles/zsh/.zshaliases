@@ -91,6 +91,23 @@ function tfde() {
   unset TF_WORKSPACE TF_VAR_FILE TF_EXTRA_ARGS
 }
 
+function wt() {
+  local cd_file
+  cd_file=$(mktemp -t wt-cd) || return
+  WT_CD_FILE="$cd_file" command wt "$@"
+  local rc=$?
+  if [ -s "$cd_file" ]; then
+    local dir
+    dir=$(<"$cd_file")
+    if [ -d "$dir" ]; then
+      cd "$dir"
+      [ ! -f .mise.local.toml ] && zcode
+    fi
+  fi
+  rm -f "$cd_file"
+  return $rc
+}
+
 # Work
 alias gha_watch='test -d .git && last_run_id=""; while true; do latest_run_id=$(~/.local/share/mise/installs/github-cli/latest/bin/gh run list --user rmgpinto --limit 1 --json databaseId --jq ".[0].databaseId"); if [[ "$latest_run_id" != "$last_run_id" ]]; then last_run_id="$latest_run_id"; ~/.local/share/mise/installs/github-cli/latest/bin/gh run watch "$latest_run_id"; else sleep 5; fi; done'
 alias cc='sb claude --dangerously-skip-permissions'

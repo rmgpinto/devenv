@@ -76,6 +76,19 @@ eval "$(~/.local/share/mise/shims/zoxide init zsh)"
 # yarn
 PATH="${PATH}:${HOME}/.yarn/bin"
 
+# devenv scripts
+PATH="/Users/Shared/dev/personal/devenv/bin:${PATH}"
+
+# gum (Catppuccin Mocha)
+export GUM_CHOOSE_CURSOR_FOREGROUND="#cba6f7"   # Mauve
+export GUM_CHOOSE_HEADER_FOREGROUND="#89b4fa"   # Blue
+export GUM_CHOOSE_SELECTED_FOREGROUND="#cba6f7" # Mauve
+export GUM_FILTER_INDICATOR_FOREGROUND="#a6e3a1" # Green
+export GUM_FILTER_MATCH_FOREGROUND="#f38ba8"     # Red
+export GUM_INPUT_CURSOR_FOREGROUND="#cba6f7"    # Mauve
+export GUM_INPUT_PROMPT_FOREGROUND="#89b4fa"    # Blue
+export GUM_SPIN_SPINNER_FOREGROUND="#fab387"    # Peach
+
 # aliases
 if [ -f ~/.zshaliases ]; then
   source ~/.zshaliases
