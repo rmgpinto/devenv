@@ -15,3 +15,5 @@ keybind = cmd+down=unbind
 keybind = cmd+left=unbind
 keybind = cmd+right=unbind
 keybind = shift+enter=text:\x1b\r
+keybind = cmd+opt+left=previous_tab
+keybind = cmd+opt+right=next_tab
