@@ -17,6 +17,8 @@ function zcode() {
   branch=$(/usr/bin/git -C "$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null)
   [ "$branch" = HEAD ] && branch=
   session="${cwd}${branch:+-${branch}}"
+  # zellij caps session names at 36 chars (hardcoded in its protobuf).
+  (( ${#session} > 36 )) && session="${session:0:36}"
   zellij --layout code attach --create "$session"
 }
 alias ls='eza --icons -lah'
