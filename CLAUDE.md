@@ -17,6 +17,14 @@ Host-app configs (Ghostty, zsh, git, nvim, k9s, lazygit, starship, ssh, gh, clau
 
 Each subdirectory is its own repo with its own conventions. When working in one, treat that subdirectory as the project root and look for its own `CLAUDE.md`, `README`, and config.
 
+# Worktrees
+
+Repos in this workspace may use git worktrees under `<repo>/.worktrees/<branch>/` for active branch work; the top-level checkout typically stays on `main`. Before editing any file in a repo:
+
+1. Run `git worktree list` from the repo root to see active worktrees.
+2. If a worktree exists that matches the task at hand, `cd` into it and edit there. Do not edit the top-level checkout unless the user has explicitly said to.
+3. If multiple worktrees could apply, or none clearly does, ask before writing.
+
 # This file
 
 The source-of-truth is `personal/devenv/CLAUDE.md`. `/Users/Shared/dev/CLAUDE.md` is a symlink to it (set up by `personal/devenv/ai/setup.sh`), so any Claude instance launched anywhere under `/Users/Shared/dev` discovers these instructions via the parent-directory walk. `/Users/Shared/dev/.mise.toml` is separately stowed from `personal/devenv/ai/sb/.mise.toml`.
