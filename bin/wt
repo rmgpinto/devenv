@@ -55,6 +55,8 @@ fi
 cd "$WORK_DIR"
 if [ ! -d "$REPO" ]; then
   gum spin --title "Cloning $ORG/$REPO" -- gh repo clone "$ORG/$REPO"
+else
+  gum spin --title "Pulling $ORG/$REPO" -- git -C "$REPO" pull --ff-only
 fi
 
 cd "$REPO"
