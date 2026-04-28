@@ -5,6 +5,7 @@ palette = "catppuccin_mocha"
 [directory]
 truncation_length = 4
 style = "bold lavender"
+read_only = ""
 
 [fill]
 symbol = " "
