@@ -24,6 +24,14 @@ fi
 [[ $# -eq 0 ]] && set -- /bin/zsh -l
 
 cd "${CWD}"
+
+# Unlock the sandbox user's login keychain so apps using Security framework
+# (e.g. Claude Code's credential layer) don't trigger a GUI password prompt.
+# securityd may have exited between sb invocations and started fresh with the
+# keychain locked. Empty password matches setup_keychain in ../setup.sh.
+sudo -H -u "${SANDBOX_USER}" security unlock-keychain -p "" \
+  "/Users/${SANDBOX_USER}/Library/Keychains/login.keychain-db" 2>/dev/null || true
+
 exec sudo -H -u "${SANDBOX_USER}" -- \
   /usr/bin/sandbox-exec -f "${SANDBOX_PROFILE}" \
   /usr/bin/env \
