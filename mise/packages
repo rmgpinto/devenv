@@ -8,7 +8,7 @@ zellij
 zjstatus # zellij plugin
 ripgrep
 nodejs
-neovim
+aqua:neovim/neovim # registry default is vfox; pick aqua for prebuilt binary
 cmake # telescope-fzf-native
 watchexec
 jq
@@ -17,7 +17,7 @@ bat
 fzf
 gum
 eza
-aqua:ajeetdsouza/zoxide
+zoxide
 
 # Work
 gitleaks
