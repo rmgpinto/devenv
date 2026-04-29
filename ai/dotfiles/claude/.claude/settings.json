@@ -6,5 +6,6 @@
   "env": {
     "DISABLE_TELEMETRY": "1"
   },
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "custom:catppuccin-mocha"
 }
