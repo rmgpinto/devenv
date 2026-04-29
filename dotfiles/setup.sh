@@ -117,6 +117,21 @@ function setup_ghost() {
   log info "Setting up Ghost k9s..."
   stow k9s -t ${HOME}
   log info "Done."
+  log info "Setting up Ghost HAL..."
+  ORIGINAL_DIR=$(pwd)
+  HAL_DIR=/Users/Shared/dev/work/HAL
+  if [[ -d ${HAL_DIR} ]]; then
+    cd ${HAL_DIR}
+    /opt/homebrew/bin/mise trust
+    /opt/homebrew/bin/mise install
+    /opt/homebrew/bin/mise exec -- yarn
+    /opt/homebrew/bin/mise exec -- yarn unlink 2>/dev/null || true
+    /opt/homebrew/bin/mise exec -- yarn link
+  else
+    log error "HAL not found in /Users/Shared/dev/work."
+  fi
+  cd ${ORIGINAL_DIR}
+  log info "Done."
 }
 
 function main() {
