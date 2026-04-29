@@ -6,6 +6,8 @@ bindkey "^[[H" beginning-of-line
 bindkey "^[[F" end-of-line
 bindkey -a -r '\e'  # Disable vi mode on shell prompt
 bindkey -v -r '\e'  # Disable vi mode on shell prompt
+bindkey -M emacs "^[[3~" delete-char
+bindkey -M viins "^[[3~" delete-char
 
 # History
 export HISTFILE=~/.zsh_history
