@@ -185,9 +185,6 @@ function setup_keychain() {
 }
 
 function setup_mise() {
-  if [[ -z "${AI_GITHUB_TOKEN:-}" ]]; then
-    log error "AI_GITHUB_TOKEN not set; ai-sandbox will not have GitHub access."
-  fi
   log info "Installing mise tools in sandbox..."
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise settings set experimental true
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise settings set trusted_config_paths '["/Users/Shared/dev"]'
