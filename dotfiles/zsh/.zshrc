@@ -39,6 +39,10 @@ eval "$(mise activate zsh)"
 
 # zellij
 FPATH="${XDG_CONFIG_HOME}/zellij/zsh:${FPATH}"
+# Keep zellij's socket path short — macOS sun_path is 104 bytes and the default
+# ${TMPDIR}/zellij-<uid>/contract_version_1/ already eats ~79 chars. Keep the
+# uid suffix so per-user isolation matches zellij's default behavior.
+export ZELLIJ_SOCKET_DIR=/tmp/zellij-$(id -u)
 
 # starship
 export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/starship.toml"

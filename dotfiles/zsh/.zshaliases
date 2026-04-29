@@ -17,8 +17,9 @@ function zcode() {
   branch=$(/usr/bin/git -C "$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null)
   [ "$branch" = HEAD ] && branch=
   session="${cwd}${branch:+-${branch}}"
-  # zellij caps session names at 35 chars (hardcoded in its protobuf).
-  (( ${#session} > 35 )) && session="${session:0:35}"
+  # ZELLIJ_SOCKET_DIR=/tmp/zellij (set in .zshrc) keeps the IPC socket path
+  # short. 60 leaves ~12 chars of headroom under the 103-byte sun_path cap.
+  (( ${#session} > 60 )) && session="${session:0:60}"
   zellij --layout code attach --create "$session"
 }
 alias ls='eza --icons -lah'
