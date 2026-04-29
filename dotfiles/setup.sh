@@ -47,7 +47,7 @@ function setup_git() {
 
 function setup_gh() {
   log info "Setting up gh..."
-  sudo gh completion -s zsh | sudo tee /usr/local/share/zsh/site-functions/_gh > /dev/null
+  gh completion -s zsh | sudo tee /usr/local/share/zsh/site-functions/_gh > /dev/null
   /opt/homebrew/bin/stow gh -t ${HOME}
   log info "Done."
 }
