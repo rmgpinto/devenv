@@ -18,7 +18,7 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
   if gum confirm --default=false "Delete worktree at $WT_PATH?"; then
     MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')
     cd "$MAIN_REPO"
-    git worktree remove "$WT_PATH"
+    git worktree remove --force "$WT_PATH"
     [ -n "${WT_CD_FILE:-}" ] && echo "/Users/Shared/dev" > "$WT_CD_FILE"
   fi
   exit 0
