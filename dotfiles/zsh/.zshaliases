@@ -118,7 +118,9 @@ function wt() {
     dir=$(<"$cd_file")
     if [ -d "$dir" ]; then
       cd "$dir"
-      [ ! -f .mise.local.toml ] && zcode
+      if git rev-parse --is-inside-work-tree >/dev/null 2>&1 && [ ! -f .mise.local.toml ]; then
+        zcode
+      fi
     fi
   fi
   rm -f "$cd_file"

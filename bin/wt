@@ -11,6 +11,19 @@ ORG="TryGhost"
 
 mkdir -p "$WORK_DIR"
 
+# --- 0. If we're inside a worktree, offer to delete it ------------------
+git_dir=$(git rev-parse --git-dir 2>/dev/null || true)
+if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
+  WT_PATH=$(git rev-parse --show-toplevel)
+  if gum confirm --default=false "Delete worktree at $WT_PATH?"; then
+    MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')
+    cd "$MAIN_REPO"
+    git worktree remove "$WT_PATH"
+    [ -n "${WT_CD_FILE:-}" ] && echo "/Users/Shared/dev" > "$WT_CD_FILE"
+  fi
+  exit 0
+fi
+
 # --- 1. Pick repo --------------------------------------------------------
 # Combine: repos you've recently committed to (first, by recency)
 #   + the rest of the org's repos (by last push). Dedup, preserve order.
