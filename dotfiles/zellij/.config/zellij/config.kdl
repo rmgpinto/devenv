@@ -138,7 +138,9 @@ keybinds clear-defaults=true {
         bind "Super L" { SwitchToMode "Locked"; }
         bind "Super g" {
             Run "sh" "-c" "
-                current_tab=$(zellij action dump-layout | awk '/focus=true/ && /^[[:space:]]*tab/ {match($0, /name=\"[^\"]+\"/); print substr($0, RSTART+6, RLENGTH-7); exit}')
+                ZJ=$HOME/.local/share/mise/shims/zellij
+                LG=$HOME/.local/share/mise/shims/lazygit
+                current_tab=$($ZJ action dump-layout | awk '/focus=true/ && /^[[:space:]]*tab/ {match($0, /name=\"[^\"]+\"/); print substr($0, RSTART+6, RLENGTH-7); exit}')
                 key=\"${ZELLIJ_SESSION_NAME:-default}:$current_tab\"
                 if pgrep -x lazygit > /dev/null; then
                     stored=$(cat /tmp/lazygit-tab 2>/dev/null)
@@ -149,7 +151,7 @@ keybinds clear-defaults=true {
                     fi
                     pkill -TERM -x lazygit
                 fi
-                zellij run --floating --width 100% --height 100% --name 'lazygit' --close-on-exit -- lazygit
+                $ZJ run --floating --width 100% --height 100% --name 'lazygit' --close-on-exit -- $LG
                 echo \"$key\" > /tmp/lazygit-tab
             " {
                 floating true
