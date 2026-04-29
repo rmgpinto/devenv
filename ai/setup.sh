@@ -186,12 +186,13 @@ function setup_keychain() {
 
 function setup_mise() {
   log info "Installing mise tools in sandbox..."
-  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise settings set experimental true
-  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise settings set trusted_config_paths '["/Users/Shared/dev"]'
-  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise plugins update
-  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise install
-  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise upgrade
-  "${SB_BIN}" "${SHARED_WORKSPACE}" -- /opt/homebrew/bin/mise prune -y
+  local mise=(env MISE_LOG_LEVEL=warn /opt/homebrew/bin/mise)
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" settings set experimental true
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" settings set trusted_config_paths '["/Users/Shared/dev"]'
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" plugins update
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" install
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" upgrade
+  "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" prune -y
   log info "Done."
 }
 
