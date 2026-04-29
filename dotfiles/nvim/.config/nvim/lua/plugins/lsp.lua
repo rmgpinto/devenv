@@ -39,26 +39,26 @@ return {
     lazy = false,
     config = function()
       vim.lsp.config("bashls", {
-        filetypes = { "sh", "bash", "zsh" }
+        filetypes = { "sh", "bash", "zsh" },
       })
       vim.lsp.config("rubocop", {
-        cmd = { "/Users/rmgpinto/.local/share/mise/installs/gem-rubocop/latest/bin/rubocop", "--lsp" },
-        filetypes = { "ruby" }
+        cmd = { "/Users/rmgpinto/.local/share/mise/shims/rubocop", "--lsp" },
+        filetypes = { "ruby" },
       })
       vim.lsp.config("yamlls", {
         settings = {
           yaml = {
             format = {
-              enable = true
+              enable = true,
             },
             schemaStore = {
-              enable = true
-            }
-          }
-        }
+              enable = true,
+            },
+          },
+        },
       })
       vim.lsp.config("herb_ls", {
-        filetypes = { "eruby", "html" }
+        filetypes = { "eruby", "html" },
       })
       -- Enable LSP servers
       vim.lsp.enable(servers)
@@ -89,13 +89,55 @@ return {
       })
     end,
     keys = {
-      { "K",          function() vim.lsp.buf.hover() end,                           desc = "LSP Hover",           {} },
-      { "<leader>gd", function() vim.lsp.buf.definition() end,                      desc = "LSP Goto Definition", {} },
-      { "<leader>gr", function() require("telescope.builtin").lsp_references() end, desc = "LSP References",      {} },
-      { "<leader>gD", function() require("telescope.builtin").diagnostics() end,    desc = "LSP Diagnostics",     {} },
-      { "<leader>ca", function() vim.lsp.buf.code_action() end,                     desc = "LSP Code Actions",    {} },
-      { "<leader>gf", function() vim.lsp.buf.format() end,                          desc = "LSP Format",          {} },
-      { "<leader>lr", "<cmd>LspRestart<cr>",                                        desc = "LSP Restart",         {} },
-    }
-  }
+      {
+        "K",
+        function()
+          vim.lsp.buf.hover()
+        end,
+        desc = "LSP Hover",
+        {},
+      },
+      {
+        "<leader>gd",
+        function()
+          vim.lsp.buf.definition()
+        end,
+        desc = "LSP Goto Definition",
+        {},
+      },
+      {
+        "<leader>gr",
+        function()
+          require("telescope.builtin").lsp_references()
+        end,
+        desc = "LSP References",
+        {},
+      },
+      {
+        "<leader>gD",
+        function()
+          require("telescope.builtin").diagnostics()
+        end,
+        desc = "LSP Diagnostics",
+        {},
+      },
+      {
+        "<leader>ca",
+        function()
+          vim.lsp.buf.code_action()
+        end,
+        desc = "LSP Code Actions",
+        {},
+      },
+      {
+        "<leader>gf",
+        function()
+          vim.lsp.buf.format()
+        end,
+        desc = "LSP Format",
+        {},
+      },
+      { "<leader>lr", "<cmd>LspRestart<cr>", desc = "LSP Restart", {} },
+    },
+  },
 }

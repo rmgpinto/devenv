@@ -37,11 +37,11 @@
 
 [credential "https://gist.github.com"]
   helper = 
-  helper = !/Users/rmgpinto/.local/share/mise/installs/github-cli/latest/bin/gh auth git-credential
+  helper = !/Users/rmgpinto/.local/share/mise/shims/gh auth git-credential
 
 [credential "https://github.com"]
   helper = 
-  helper = !/Users/rmgpinto/.local/share/mise/installs/github-cli/latest/bin/gh auth git-credential
+  helper = !/Users/rmgpinto/.local/share/mise/shims/gh auth git-credential
 
 [advice]
   addIgnoredFile = false
