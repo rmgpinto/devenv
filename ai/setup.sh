@@ -132,12 +132,15 @@ function setup_sb_cli() {
 function setup_workspace() {
   log info "Stowing workspace files..."
   sudo rm -f "${SHARED_WORKSPACE}/.mise.toml" "${SHARED_WORKSPACE}/CLAUDE.md"
-  /opt/homebrew/bin/stow --no-folding -d "${DEVENV_AI_DIR}" sb -t "${SHARED_WORKSPACE}"
   ln -s personal/devenv/CLAUDE.md "${SHARED_WORKSPACE}/CLAUDE.md"
   sudo -u "${SANDBOX_USER}" mkdir -p "${SANDBOX_HOME}/.config/mise"
   local tmp
   tmp=$(mktemp)
-  sed 's/^REMOVE_//' "../.mise.local.toml" > "${tmp}"
+  {
+    sed 's/^REMOVE_//' "../.mise.local.toml"
+    echo
+    cat "sb/.mise.toml"
+  } > "${tmp}"
   sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 "${tmp}" "${SANDBOX_HOME}/.config/mise/config.toml"
   rm -f "${tmp}"
   log info "Done."
