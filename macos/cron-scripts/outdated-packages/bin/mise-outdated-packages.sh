@@ -9,6 +9,7 @@ function create_log_file() {
 function main() {
   create_log_file
   /opt/homebrew/bin/mise plugins update
+  /opt/homebrew/bin/mise upgrade
 }
 
 main
