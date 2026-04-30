@@ -23,7 +23,7 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     SESSION=${SESSION:0:60}
     cd "$MAIN_REPO"
     git worktree remove --force "$WT_PATH"
-    zellij delete-session "$SESSION" --yes 2>/dev/null || true
+    zellij delete-session --force "$SESSION" 2>/dev/null || true
     [ -n "${WT_CD_FILE:-}" ] && echo "/Users/Shared/dev" > "$WT_CD_FILE"
   fi
   exit 0
