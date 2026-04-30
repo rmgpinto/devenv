@@ -17,8 +17,13 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
   WT_PATH=$(git rev-parse --show-toplevel)
   if gum confirm --default=false "Delete worktree at $WT_PATH?"; then
     MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')
+    BRANCH=$(git -C "$WT_PATH" rev-parse --abbrev-ref HEAD 2>/dev/null)
+    [ "$BRANCH" = HEAD ] && BRANCH=
+    SESSION="$(basename "$MAIN_REPO")${BRANCH:+-${BRANCH}}"
+    SESSION=${SESSION:0:60}
     cd "$MAIN_REPO"
     git worktree remove --force "$WT_PATH"
+    zellij delete-session "$SESSION" --yes 2>/dev/null || true
     [ -n "${WT_CD_FILE:-}" ] && echo "/Users/Shared/dev" > "$WT_CD_FILE"
   fi
   exit 0
