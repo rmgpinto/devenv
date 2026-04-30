@@ -14,7 +14,10 @@ layout {
             focus true
         }
         pane split_direction="horizontal" size="40%" {
-            pane name="claude" size="50%"
+            pane name="claude" size="50%" {
+                command "zsh"
+                args "-ic" "cc"
+            }
             pane name="shell" size="50%"
         }
     }

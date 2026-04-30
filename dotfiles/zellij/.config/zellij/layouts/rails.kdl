@@ -14,7 +14,10 @@ layout {
               args "-c" "CWD=$(basename \"$PWD\"); BRANCH=$(/usr/bin/git -C \"$PWD\" rev-parse --abbrev-ref HEAD 2>/dev/null); [ \"$BRANCH\" = HEAD ] && BRANCH=; SESSION=\"${CWD}${BRANCH:+-${BRANCH}}\"; (( ${#SESSION} > 60 )) && SESSION=\"${SESSION:0:60}\"; zellij action rename-session \"$SESSION\"; SOCK=/tmp/nvim-${SESSION}.sock; rm -f \"$SOCK\"; ~/.local/share/mise/shims/nvim --listen \"$SOCK\""
               focus true
             }
-            pane name="claude" size="40%"
+            pane name="claude" size="40%" {
+                command "zsh"
+                args "-ic" "cc"
+            }
         }
         pane split_direction="vertical" name="shell" size="30%" {
             pane {
