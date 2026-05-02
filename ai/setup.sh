@@ -191,7 +191,6 @@ function setup_mise() {
   log info "Installing mise tools in sandbox..."
   local mise=(env MISE_LOG_LEVEL=warn /opt/homebrew/bin/mise)
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" settings set experimental true
-  "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" settings set trusted_config_paths '["/Users/Shared/dev"]'
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" plugins update
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" install
   "${SB_BIN}" "${SHARED_WORKSPACE}" -- "${mise[@]}" upgrade

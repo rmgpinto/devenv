@@ -41,4 +41,5 @@ exec sudo -H -u "${SANDBOX_USER}" -- \
     SHELL="/bin/zsh" \
     TERM="${TERM:-xterm-256color}" \
     PATH="/Users/${SANDBOX_USER}/.local/share/mise/shims:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin" \
+    MISE_TRUSTED_CONFIG_PATHS="/Users/Shared/dev" \
     "$@"

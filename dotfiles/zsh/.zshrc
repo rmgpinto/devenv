@@ -37,6 +37,7 @@ export HAL_1P_PRODUCTION="op://Employee/Ghost - production"
 
 # mise
 export MISE_LOG_LEVEL=warn
+export MISE_TRUSTED_CONFIG_PATHS=/Users/Shared/dev
 eval "$(mise activate zsh)"
 
 # zellij
