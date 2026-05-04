@@ -79,21 +79,34 @@ source <(~/.local/share/mise/shims/fzf --zsh)
 # zoxide
 eval "$(~/.local/share/mise/shims/zoxide init zsh)"
 
+# gum
+export GUM_CHOOSE_CURSOR_FOREGROUND="#cba6f7"
+export GUM_CHOOSE_HEADER_FOREGROUND="#89b4fa"
+export GUM_CHOOSE_SELECTED_FOREGROUND="#cba6f7"
+export GUM_CHOOSE_ITEM_FOREGROUND="#cdd6f4"
+export GUM_FILTER_INDICATOR_FOREGROUND="#a6e3a1"
+export GUM_FILTER_MATCH_FOREGROUND="#f38ba8"
+export GUM_FILTER_HEADER_FOREGROUND="#89b4fa"
+export GUM_FILTER_PROMPT_FOREGROUND="#cba6f7"
+export GUM_FILTER_TEXT_FOREGROUND="#cdd6f4"
+export GUM_FILTER_CURSOR_TEXT_FOREGROUND="#f5e0dc"
+export GUM_FILTER_PLACEHOLDER_FOREGROUND="#6c7086"
+export GUM_INPUT_CURSOR_FOREGROUND="#cba6f7"
+export GUM_INPUT_PROMPT_FOREGROUND="#89b4fa"
+export GUM_INPUT_PLACEHOLDER_FOREGROUND="#6c7086"
+export GUM_CONFIRM_PROMPT_FOREGROUND="#89b4fa"
+export GUM_CONFIRM_SELECTED_FOREGROUND="#1e1e2e"
+export GUM_CONFIRM_SELECTED_BACKGROUND="#cba6f7"
+export GUM_CONFIRM_UNSELECTED_FOREGROUND="#cdd6f4"
+export GUM_CONFIRM_UNSELECTED_BACKGROUND="#313244"
+export GUM_SPIN_SPINNER_FOREGROUND="#fab387"
+export GUM_SPIN_TITLE_FOREGROUND="#cdd6f4"
+
 # yarn
 PATH="${PATH}:${HOME}/.yarn/bin"
 
 # devenv scripts
 PATH="/Users/Shared/dev/personal/devenv/bin:${PATH}"
-
-# gum (Catppuccin Mocha)
-export GUM_CHOOSE_CURSOR_FOREGROUND="#cba6f7"   # Mauve
-export GUM_CHOOSE_HEADER_FOREGROUND="#89b4fa"   # Blue
-export GUM_CHOOSE_SELECTED_FOREGROUND="#cba6f7" # Mauve
-export GUM_FILTER_INDICATOR_FOREGROUND="#a6e3a1" # Green
-export GUM_FILTER_MATCH_FOREGROUND="#f38ba8"     # Red
-export GUM_INPUT_CURSOR_FOREGROUND="#cba6f7"    # Mauve
-export GUM_INPUT_PROMPT_FOREGROUND="#89b4fa"    # Blue
-export GUM_SPIN_SPINNER_FOREGROUND="#fab387"    # Peach
 
 # aliases
 if [ -f ~/.zshaliases ]; then
