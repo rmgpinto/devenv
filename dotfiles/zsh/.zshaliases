@@ -33,6 +33,7 @@ alias myip='curl -s -4 https://ifconfig.co'
 alias flushdns='sudo dscacheutil -flushcache sudo killall -HUP mDNSResponder'
 alias setdns='networksetup -setdnsservers Wi-Fi 1.1.1.1 1.0.0.1'
 alias unsetdns='networksetup -setdnsservers Wi-Fi 192.168.0.1'
+alias cc='sb "$PWD" claude --dangerously-skip-permissions'
 alias tf='terraform'
 alias r='rails'
 alias credentials-edit='rails credentials:edit'
@@ -127,7 +128,15 @@ function wt() {
   rm -f "$cd_file"
   return $rc
 }
-alias wtl='command ls -1d /Users/Shared/dev/work/*/.worktrees/*/'
+
+function wtl() {
+  if [ -t 1 ]; then
+    command ls -1d /Users/Shared/dev/work/*/.worktrees/*/ | sed $'s/.*/\e[1;34m&\e[0m/'
+  else
+    command ls -1d /Users/Shared/dev/work/*/.worktrees/*/
+  fi
+}
+
 function wtg() {
   local paths display sel idx
   paths=$(wtl)
@@ -141,7 +150,6 @@ function wtg() {
 
 # Work
 alias gha_watch='test -d .git && last_run_id=""; while true; do latest_run_id=$(~/.local/share/mise/shims/gh run list --user rmgpinto --limit 1 --json databaseId --jq ".[0].databaseId"); if [[ "$latest_run_id" != "$last_run_id" ]]; then last_run_id="$latest_run_id"; ~/.local/share/mise/shims/gh run watch "$latest_run_id"; else sleep 5; fi; done'
-alias cc='sb "$PWD" claude --dangerously-skip-permissions'
 alias dkill='docker kill $(docker ps -q) 2>/dev/null; docker rm $(docker ps -aq) 2>/dev/null'
 alias halstg='NODE_ENV=staging hal'
 alias k='kubectl'
