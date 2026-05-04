@@ -127,7 +127,17 @@ function wt() {
   rm -f "$cd_file"
   return $rc
 }
-alias wtl='ls -d /Users/Shared/dev/work/*/.worktrees/*/'
+alias wtl='command ls -1d /Users/Shared/dev/work/*/.worktrees/*/'
+function wtg() {
+  local paths display sel idx
+  paths=$(wtl)
+  display=$(echo "$paths" | sed -e 's|^/Users/Shared/dev/work/||' -e 's|/\.worktrees/|-|' -e 's|/$||')
+  sel=$(echo "$display" | gum filter --header "Pick a worktree" --placeholder "type to filter")
+  [ -z "$sel" ] && return 1
+  idx=$(echo "$display" | grep -nFx -- "$sel" | head -1 | cut -d: -f1)
+  [ -z "$idx" ] && return 1
+  cd "$(echo "$paths" | sed -n "${idx}p")"
+}
 
 # Work
 alias gha_watch='test -d .git && last_run_id=""; while true; do latest_run_id=$(~/.local/share/mise/shims/gh run list --user rmgpinto --limit 1 --json databaseId --jq ".[0].databaseId"); if [[ "$latest_run_id" != "$last_run_id" ]]; then last_run_id="$latest_run_id"; ~/.local/share/mise/shims/gh run watch "$latest_run_id"; else sleep 5; fi; done'
