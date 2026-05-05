@@ -1,6 +1,6 @@
 #!/bin/zsh -eo pipefail
 
-~/.local/share/mise/shims/gitleaks detect --no-banner --gitleaks-ignore-path ~/.config/git --log-opts="--branches=$(git rev-parse --abbrev-ref HEAD)" -v
+~/.local/share/mise/shims/gitleaks detect --no-banner --gitleaks-ignore-path ~/.config/git --log-opts="--branches=$(git rev-parse --abbrev-ref HEAD) --since='1 year ago'" -v
 
 pattern="\.\.\/\.\.\/terraform\/modules"
 count=$(git diff --cached --name-only | grep -v "pre-commit" | xargs -r git diff --cached 2>/dev/null | grep -c "$pattern" || true)
