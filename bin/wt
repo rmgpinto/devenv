@@ -75,7 +75,18 @@ cd "$WORK_DIR"
 if [ ! -d "$REPO" ]; then
   gum spin --title "Cloning $ORG/$REPO" -- gh repo clone "$ORG/$REPO"
 else
-  gum spin --title "Pulling $ORG/$REPO" -- git -C "$REPO" pull --ff-only
+  DEFAULT_BRANCH=$(git -C "$REPO" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')
+  DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+  PULL_ERR=$(mktemp -t wt-pull.XXXXXX)
+  if ! REPO="$REPO" DEFAULT_BRANCH="$DEFAULT_BRANCH" PULL_ERR="$PULL_ERR" \
+       gum spin --title "Pulling $ORG/$REPO ($DEFAULT_BRANCH)" -- bash -c '
+         git -C "$REPO" checkout "$DEFAULT_BRANCH" >"$PULL_ERR" 2>&1 \
+           && git -C "$REPO" pull --ff-only >>"$PULL_ERR" 2>&1
+       '; then
+    echo "wt: pull failed for $REPO (continuing):" >&2
+    sed 's/^/  /' "$PULL_ERR" >&2
+  fi
+  rm -f "$PULL_ERR"
 fi
 
 cd "$REPO"
