@@ -40,7 +40,7 @@ if [ -n "${LINEAR_API_KEY:-}" ]; then
   mkdir -p "$LINEAR_CACHE_DIR"
 
   _fetch_linear_issues() {
-    local q='query { viewer { assignedIssues(filter: {state: {type: {in: ["unstarted", "started"]}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description state { name } } } } }'
+    local q='query { viewer { assignedIssues(filter: {state: {name: {in: ["Todo", "In Progress"]}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description state { name } } } } }'
     jq -nc --arg q "$q" '{query: $q}' \
       | curl -fsS -X POST https://api.linear.app/graphql \
           -H "Content-Type: application/json" \
@@ -69,7 +69,7 @@ if [ -n "${LINEAR_API_KEY:-}" ]; then
   LINEAR_REFRESH_LABEL="Refresh Linear issues"
   while :; do
     LINEAR_RESP=$(_load_linear)
-    ISSUE_DISPLAY=$(echo "$LINEAR_RESP" | jq -r '.data.viewer.assignedIssues.nodes // [] | .[] | "[\(.identifier)] \(.title) — \(.state.name)"' 2>/dev/null || true)
+    ISSUE_DISPLAY=$(echo "$LINEAR_RESP" | jq -r '.data.viewer.assignedIssues.nodes // [] | sort_by(.identifier | split("-") | [.[0], (.[1] | tonumber)]) | .[] | "[\(.identifier)] \(.title) — \(.state.name)"' 2>/dev/null || true)
     rc=0
     SEL=$(printf '%s\n%s\n' "$LINEAR_REFRESH_LABEL" "$ISSUE_DISPLAY" \
       | gum filter --header "Pick a Linear issue (esc to skip)" --placeholder "type to filter") || rc=$?
