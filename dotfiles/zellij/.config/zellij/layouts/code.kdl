@@ -16,7 +16,7 @@ layout {
         pane split_direction="horizontal" size="40%" {
             pane name="claude" size="50%" {
                 command "zsh"
-                args "-ic" "cc"
+                args "-ic" "f=.wt-claude-prompt; if [ -s \"$f\" ]; then p=$(cat \"$f\"); rm -f \"$f\"; cc \"$p\"; else cc; fi"
             }
             pane name="shell" size="50%"
         }

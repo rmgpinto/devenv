@@ -111,21 +111,24 @@ function tfde() {
 }
 
 function wt() {
-  local cd_file
+  local cd_file prompt_file
   cd_file=$(mktemp -t wt-cd) || return
-  WT_CD_FILE="$cd_file" command wt "$@"
+  prompt_file=$(mktemp -t wt-prompt) || return
+  WT_CD_FILE="$cd_file" WT_PROMPT_FILE="$prompt_file" command wt "$@"
   local rc=$?
   if [ -s "$cd_file" ]; then
     local dir
     dir=$(<"$cd_file")
     if [ -d "$dir" ]; then
       cd "$dir"
+      # Hand the prompt to the claude pane via a file the layout reads.
+      [ -s "$prompt_file" ] && cp "$prompt_file" "$dir/.wt-claude-prompt"
       if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         zcode
       fi
     fi
   fi
-  rm -f "$cd_file"
+  rm -f "$cd_file" "$prompt_file"
   return $rc
 }
 

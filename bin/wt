@@ -30,26 +30,110 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
   exit 0
 fi
 
-# --- 1. Pick repo --------------------------------------------------------
+# --- 1. Pick Linear issue (optional, requires LINEAR_API_KEY) -----------
+# Cached on first fetch; only the "Refresh issues" picker entry re-fetches.
+ISSUE_DESC=""
+
+if [ -n "${LINEAR_API_KEY:-}" ]; then
+  LINEAR_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/wt"
+  LINEAR_CACHE="$LINEAR_CACHE_DIR/linear.json"
+  mkdir -p "$LINEAR_CACHE_DIR"
+
+  _fetch_linear_issues() {
+    local q='query { viewer { assignedIssues(filter: {state: {type: {nin: ["completed", "canceled"]}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description state { name } } } } }'
+    jq -nc --arg q "$q" '{query: $q}' \
+      | curl -fsS -X POST https://api.linear.app/graphql \
+          -H "Content-Type: application/json" \
+          -H "Authorization: $LINEAR_API_KEY" \
+          --data-binary @-
+  }
+  export -f _fetch_linear_issues
+  export LINEAR_API_KEY
+
+  _load_linear() {
+    if [ -s "$LINEAR_CACHE" ]; then
+      cat "$LINEAR_CACHE"
+      return
+    fi
+    local tmp
+    tmp=$(mktemp -t wt-linear.XXXXXX)
+    if gum spin --show-output --title "Loading Linear issues" -- bash -c _fetch_linear_issues > "$tmp" 2>/dev/null \
+         && [ -s "$tmp" ]; then
+      mv "$tmp" "$LINEAR_CACHE"
+      cat "$LINEAR_CACHE"
+    else
+      rm -f "$tmp"
+    fi
+  }
+
+  LINEAR_REFRESH_LABEL="Refresh issues"
+  while :; do
+    LINEAR_RESP=$(_load_linear)
+    ISSUE_DISPLAY=$(echo "$LINEAR_RESP" | jq -r '.data.viewer.assignedIssues.nodes // [] | .[] | "[\(.identifier)] \(.title) — \(.state.name)"' 2>/dev/null || true)
+    SEL=$(printf '%s\n%s\n' "$LINEAR_REFRESH_LABEL" "$ISSUE_DISPLAY" \
+      | gum filter --header "Pick a Linear issue (esc to skip)" --placeholder "type to filter" || true)
+    if [ "$SEL" = "$LINEAR_REFRESH_LABEL" ]; then
+      rm -f "$LINEAR_CACHE"
+      continue
+    fi
+    if [ -n "$SEL" ]; then
+      ISSUE_ID=$(echo "$SEL" | sed 's/^\[\([^]]*\)\].*/\1/')
+      ISSUE_DESC=$(echo "$LINEAR_RESP" | jq -r --arg id "$ISSUE_ID" '.data.viewer.assignedIssues.nodes[] | select(.identifier==$id) | .description // ""')
+    fi
+    break
+  done
+fi
+
+# --- 2. Pick repo --------------------------------------------------------
 # Combine: repos you've recently committed to (first, by recency)
 #   + the rest of the org's repos (by last push). Dedup, preserve order.
+# Cached on first fetch; only the "Refresh repos" picker entry re-fetches.
+REPO_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/wt"
+REPO_CACHE="$REPO_CACHE_DIR/repos.txt"
+mkdir -p "$REPO_CACHE_DIR"
+
 _fetch_repos() {
   local u a
   u=$(gh search commits --author=@me --owner "$ORG" \
     --sort committer-date --limit 100 --json repository \
     -q '.[].repository.name' 2>/dev/null || true)
-  a=$(gh repo list "$ORG" --limit 200 --json name,pushedAt \
+  a=$(gh repo list "$ORG" --limit 100 --json name,pushedAt \
     -q 'sort_by(.pushedAt) | reverse | .[].name')
   { echo "$u"; echo "$a"; } | awk 'NF && !seen[$0]++'
 }
 export -f _fetch_repos
 export ORG
 
-REPO_LIST=$(gum spin --show-output --title "Loading repos" -- bash -c _fetch_repos)
-REPO=$(echo "$REPO_LIST" | gum filter --header "Pick a repo" --placeholder "type to filter")
-[ -z "$REPO" ] && { echo "no repo picked"; exit 1; }
+_load_repos() {
+  if [ -s "$REPO_CACHE" ]; then
+    cat "$REPO_CACHE"
+    return
+  fi
+  local tmp
+  tmp=$(mktemp -t wt-repos.XXXXXX)
+  if gum spin --show-output --title "Loading repos" -- bash -c _fetch_repos > "$tmp" \
+       && [ -s "$tmp" ]; then
+    mv "$tmp" "$REPO_CACHE"
+    cat "$REPO_CACHE"
+  else
+    rm -f "$tmp"
+  fi
+}
 
-# --- 2. Mode -------------------------------------------------------------
+REFRESH_LABEL="Refresh repos"
+while :; do
+  REPO_LIST=$(_load_repos)
+  REPO=$(printf '%s\n%s\n' "$REFRESH_LABEL" "$REPO_LIST" \
+    | gum filter --header "Pick a repo" --placeholder "type to filter")
+  [ -z "$REPO" ] && { echo "no repo picked"; exit 1; }
+  if [ "$REPO" = "$REFRESH_LABEL" ]; then
+    rm -f "$REPO_CACHE"
+    continue
+  fi
+  break
+done
+
+# --- 3. Mode -------------------------------------------------------------
 MODE=$(gum choose --header "Worktree source" "New branch" "From PR")
 [ -z "$MODE" ] && exit 1
 
@@ -70,7 +154,7 @@ if [ "$MODE" = "From PR" ]; then
   PR_BRANCH=$(echo "$PR_LINE" | awk -F'\t' '{print $3}' | sed 's/^→ //')
 fi
 
-# --- 3. Clone if missing -------------------------------------------------
+# --- 4. Clone if missing -------------------------------------------------
 cd "$WORK_DIR"
 if [ ! -d "$REPO" ]; then
   gum spin --title "Cloning $ORG/$REPO" -- gh repo clone "$ORG/$REPO"
@@ -92,7 +176,7 @@ fi
 cd "$REPO"
 mkdir -p .worktrees
 
-# --- 4. Determine branch name --------------------------------------------
+# --- 5. Determine branch name --------------------------------------------
 if [ -n "$PR_BRANCH" ]; then
   BRANCH="$PR_BRANCH"
 else
@@ -102,7 +186,13 @@ fi
 
 WT_DIR=".worktrees/${BRANCH//\//-}"
 
-# --- 5. Create the worktree ---------------------------------------------
+# --- 6. Compose initial prompt for the claude pane ----------------------
+PROMPT=$(gum write \
+  --header "Initial prompt for claude (ctrl-d submit, esc skip)" \
+  --width 100 --height 20 \
+  --value "$ISSUE_DESC" || true)
+
+# --- 7. Create the worktree ---------------------------------------------
 git worktree prune
 if [ -n "$PR_BRANCH" ]; then
   git fetch origin "$PR_BRANCH:$PR_BRANCH" 2>/dev/null \
@@ -122,7 +212,7 @@ else
   git worktree add "$WT_DIR" -b "$BRANCH"
 fi
 
-# --- 6. Copy git-ignored mise configs from the main repo dir ------------
+# --- 8. Copy git-ignored mise configs from the main repo dir ------------
 # Skip tracked files (e.g. .mise.toml) — they're already at HEAD in the
 # worktree and copying would create spurious unstaged changes.
 for f in .mise.local.toml .mise.*.local.toml; do
@@ -131,10 +221,15 @@ for f in .mise.local.toml .mise.*.local.toml; do
   cp "$f" "$WT_DIR/"
 done
 
-# --- 7. mise install in the worktree ------------------------------------
+# --- 9. mise install in the worktree ------------------------------------
 cd "$WT_DIR"
 mise install
 
-# If invoked via the zsh `wt` wrapper, leave the final dir for it to cd into.
-[ -n "${WT_CD_FILE:-}" ] && pwd > "$WT_CD_FILE"
+# If invoked via the zsh `wt` wrapper, leave the final dir + prompt for it.
+if [ -n "${WT_CD_FILE:-}" ]; then
+  pwd > "$WT_CD_FILE"
+fi
+if [ -n "${WT_PROMPT_FILE:-}" ] && [ -n "$PROMPT" ]; then
+  printf '%s' "$PROMPT" > "$WT_PROMPT_FILE"
+fi
 
