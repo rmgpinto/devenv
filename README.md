@@ -28,12 +28,12 @@ Due to 1Password CLI being slow (`op read`), I've used the following:
 
 ```
 # add secret to keychain
-security add-generic-password -a “${USER}” -s name-of-my-secret -w
+security add-generic-password -a "${USER}" -s name-of-my-secret -w <secret>
 
 # read secret from keychain
-security find-generic-password -a “${USER}” -s name-of-my-secret -w
+security find-generic-password -a "${USER}" -s name-of-my-secret -w
 
 # delete secret from keychain
-security delete-generic-password -a “${USER}” -s name-of-my-secret
+security delete-generic-password -a "${USER}" -s name-of-my-secret
 ```
 
