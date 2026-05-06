@@ -47,6 +47,8 @@ _zellij() {
 _arguments "${_arguments_options[@]}" \
 '*--simplified-ui=[Allow plugins to use a more simplified layout that is compatible with more fonts (true or false)]:SIMPLIFIED_UI:(true false)' \
 '*--theme=[Set the default theme]:THEME: ' \
+'*--theme-dark=[Theme name to apply when the host terminal reports a dark color palette (CSI 2031 / DSR 997). Requires `theme_light` to also be set; if either is missing the static `theme` remains authoritative]:THEME_DARK: ' \
+'*--theme-light=[Theme name to apply when the host terminal reports a light color palette (CSI 2031 / DSR 997). Requires `theme_dark` to also be set; if either is missing the static `theme` remains authoritative]:THEME_LIGHT: ' \
 '*--default-mode=[Set the default mode]:DEFAULT_MODE:((normal\:"In `Normal` mode, input is always written to the terminal, except for the shortcuts leading to other modes"
 locked\:"In `Locked` mode, input is always written to the terminal and all shortcuts are disabled except the one leading back to normal mode"
 resize\:"`Resize` mode allows resizing the different existing panes"
@@ -848,6 +850,24 @@ _arguments "${_arguments_options[@]}" \
 '--help[Print help information]' \
 && ret=0
 ;;
+(set-dark-theme)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+&& ret=0
+;;
+(set-light-theme)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+&& ret=0
+;;
+(toggle-theme)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+&& ret=0
+;;
 (switch-session)
 _arguments "${_arguments_options[@]}" \
 '--tab-position=[Optional tab position to focus]:TAB_POSITION: ' \
@@ -934,6 +954,8 @@ _arguments "${_arguments_options[@]}" \
 _arguments "${_arguments_options[@]}" \
 '*--simplified-ui=[Allow plugins to use a more simplified layout that is compatible with more fonts (true or false)]:SIMPLIFIED_UI:(true false)' \
 '*--theme=[Set the default theme]:THEME: ' \
+'*--theme-dark=[Theme name to apply when the host terminal reports a dark color palette (CSI 2031 / DSR 997). Requires `theme_light` to also be set; if either is missing the static `theme` remains authoritative]:THEME_DARK: ' \
+'*--theme-light=[Theme name to apply when the host terminal reports a light color palette (CSI 2031 / DSR 997). Requires `theme_dark` to also be set; if either is missing the static `theme` remains authoritative]:THEME_LIGHT: ' \
 '*--default-mode=[Set the default mode]:DEFAULT_MODE:((normal\:"In `Normal` mode, input is always written to the terminal, except for the shortcuts leading to other modes"
 locked\:"In `Locked` mode, input is always written to the terminal and all shortcuts are disabled except the one leading back to normal mode"
 resize\:"`Resize` mode allows resizing the different existing panes"
@@ -1306,6 +1328,9 @@ _zellij__action_commands() {
 'toggle-pane-borderless:' \
 'set-pane-borderless:' \
 'detach:Detach from the current session' \
+'set-dark-theme:Switch the theme to dark (uses configured `theme_dark`)' \
+'set-light-theme:Switch the theme to light (uses configured `theme_light`)' \
+'toggle-theme:Toggle between dark and light themes (used configured `theme_dark` and `theme_light`)' \
 'switch-session:Switch to a different session' \
 'set-pane-color:Set the default foreground/background color of a pane' \
 'help:Print this message or the help of the given subcommand(s)' \
@@ -1680,6 +1705,16 @@ _zellij__action__send-keys_commands() {
     local commands; commands=()
     _describe -t commands 'zellij action send-keys commands' commands "$@"
 }
+(( $+functions[_zellij__action__set-dark-theme_commands] )) ||
+_zellij__action__set-dark-theme_commands() {
+    local commands; commands=()
+    _describe -t commands 'zellij action set-dark-theme commands' commands "$@"
+}
+(( $+functions[_zellij__action__set-light-theme_commands] )) ||
+_zellij__action__set-light-theme_commands() {
+    local commands; commands=()
+    _describe -t commands 'zellij action set-light-theme commands' commands "$@"
+}
 (( $+functions[_zellij__action__set-pane-borderless_commands] )) ||
 _zellij__action__set-pane-borderless_commands() {
     local commands; commands=()
@@ -1759,6 +1794,11 @@ _zellij__action__toggle-pane-frames_commands() {
 _zellij__action__toggle-pane-pinned_commands() {
     local commands; commands=()
     _describe -t commands 'zellij action toggle-pane-pinned commands' commands "$@"
+}
+(( $+functions[_zellij__action__toggle-theme_commands] )) ||
+_zellij__action__toggle-theme_commands() {
+    local commands; commands=()
+    _describe -t commands 'zellij action toggle-theme commands' commands "$@"
 }
 (( $+functions[_zellij__action__undo-rename-pane_commands] )) ||
 _zellij__action__undo-rename-pane_commands() {
