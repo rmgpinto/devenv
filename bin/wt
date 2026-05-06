@@ -40,7 +40,7 @@ if [ -n "${LINEAR_API_KEY:-}" ]; then
   mkdir -p "$LINEAR_CACHE_DIR"
 
   _fetch_linear_issues() {
-    local q='query { viewer { assignedIssues(filter: {state: {type: {nin: ["completed", "canceled"]}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description state { name } } } } }'
+    local q='query { viewer { assignedIssues(filter: {state: {type: {in: ["unstarted", "started"]}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description state { name } } } } }'
     jq -nc --arg q "$q" '{query: $q}' \
       | curl -fsS -X POST https://api.linear.app/graphql \
           -H "Content-Type: application/json" \
@@ -57,7 +57,7 @@ if [ -n "${LINEAR_API_KEY:-}" ]; then
     fi
     local tmp
     tmp=$(mktemp -t wt-linear.XXXXXX)
-    if gum spin --show-output --title "Loading Linear issues" -- bash -c _fetch_linear_issues > "$tmp" 2>/dev/null \
+    if gum spin --show-output --title "Loading Linear issues" -- bash -c _fetch_linear_issues > "$tmp" \
          && [ -s "$tmp" ]; then
       mv "$tmp" "$LINEAR_CACHE"
       cat "$LINEAR_CACHE"
@@ -66,12 +66,14 @@ if [ -n "${LINEAR_API_KEY:-}" ]; then
     fi
   }
 
-  LINEAR_REFRESH_LABEL="Refresh issues"
+  LINEAR_REFRESH_LABEL="Refresh Linear issues"
   while :; do
     LINEAR_RESP=$(_load_linear)
     ISSUE_DISPLAY=$(echo "$LINEAR_RESP" | jq -r '.data.viewer.assignedIssues.nodes // [] | .[] | "[\(.identifier)] \(.title) — \(.state.name)"' 2>/dev/null || true)
+    rc=0
     SEL=$(printf '%s\n%s\n' "$LINEAR_REFRESH_LABEL" "$ISSUE_DISPLAY" \
-      | gum filter --header "Pick a Linear issue (esc to skip)" --placeholder "type to filter" || true)
+      | gum filter --header "Pick a Linear issue (esc to skip)" --placeholder "type to filter") || rc=$?
+    [ "$rc" -ge 130 ] && exit "$rc"
     if [ "$SEL" = "$LINEAR_REFRESH_LABEL" ]; then
       rm -f "$LINEAR_CACHE"
       continue
@@ -111,7 +113,7 @@ _load_repos() {
   fi
   local tmp
   tmp=$(mktemp -t wt-repos.XXXXXX)
-  if gum spin --show-output --title "Loading repos" -- bash -c _fetch_repos > "$tmp" \
+  if gum spin --show-output --title "Refreshing Github repos" -- bash -c _fetch_repos > "$tmp" \
        && [ -s "$tmp" ]; then
     mv "$tmp" "$REPO_CACHE"
     cat "$REPO_CACHE"
@@ -120,12 +122,12 @@ _load_repos() {
   fi
 }
 
-REFRESH_LABEL="Refresh repos"
+REFRESH_LABEL="Refresh Github repos"
 while :; do
   REPO_LIST=$(_load_repos)
   REPO=$(printf '%s\n%s\n' "$REFRESH_LABEL" "$REPO_LIST" \
-    | gum filter --header "Pick a repo" --placeholder "type to filter")
-  [ -z "$REPO" ] && { echo "no repo picked"; exit 1; }
+    | gum filter --header "Pick a Github repo" --placeholder "type to filter")
+  [ -z "$REPO" ] && { echo "no Github repo picked"; exit 1; }
   if [ "$REPO" = "$REFRESH_LABEL" ]; then
     rm -f "$REPO_CACHE"
     continue
