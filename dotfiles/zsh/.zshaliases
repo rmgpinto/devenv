@@ -4,23 +4,30 @@ alias upgrade_packages='brew update && brew outdated --cask --greedy && brew upg
 alias vi='nvim'
 alias v='nvim'
 function zcode() {
-  # Mirror the session-name logic in dotfiles/zellij/.config/zellij/layouts/code.kdl
-  # so re-attaching from the same dir hits the layout-renamed session instead of
-  # spawning a new one.
   local root cwd branch session
   root=$(/usr/bin/git -C "$PWD" worktree list --porcelain 2>/dev/null | awk '/^worktree / {print $2; exit}')
   root=${root:-$PWD}
-  # When the repo lives at <project>/.worktrees/<branch> (independent clone, not a
-  # linked worktree), use <project> as the name instead of <branch>.
   [ "$(basename "$(dirname "$root")")" = ".worktrees" ] && root=$(dirname "$(dirname "$root")")
   cwd=$(basename "$root")
   branch=$(/usr/bin/git -C "$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null)
   [ "$branch" = HEAD ] && branch=
   session="${cwd}${branch:+-${branch}}"
-  # ZELLIJ_SOCKET_DIR=/tmp/zellij (set in .zshrc) keeps the IPC socket path
-  # short. 60 leaves ~12 chars of headroom under the 103-byte sun_path cap.
   (( ${#session} > 60 )) && session="${session:0:60}"
-  zellij --layout code attach --create "$session"
+  # If wt seeded a prompt, force a fresh session so the layout re-runs and the
+  # claude pane reads .wt-claude-prompt. Attaching/switching to an existing
+  # session would skip the layout, leaving the prompt unread. Never delete the
+  # session we're currently sitting in.
+  if [ -s "$PWD/.wt-claude-prompt" ] && [ "${ZELLIJ_SESSION_NAME:-}" != "$session" ]; then
+    zellij delete-session --force "$session" 2>/dev/null
+  fi
+  if [ -n "${ZELLIJ:-}" ]; then
+    # Already inside a zellij session: switch the current client to the target
+    # session instead of attaching, which would stack a nested client and
+    # require multiple detaches to escape.
+    zellij action switch-session --layout code --cwd "$PWD" "$session"
+  else
+    zellij --layout code attach --create "$session"
+  fi
 }
 alias ls='eza --icons -lah'
 alias l='eza --icons -lah'
@@ -120,9 +127,14 @@ function wt() {
     local dir
     dir=$(<"$cd_file")
     if [ -d "$dir" ]; then
-      cd "$dir"
-      # Hand the prompt to the claude pane via a file the layout reads.
+      # Drop the prompt before cd so the mise `enter` hook (which spawns
+      # zellij from the worktree's .mise.local.toml) sees .wt-claude-prompt
+      # when the code layout runs. Copying after cd would race the layout
+      # and the claude pane would start without the prompt.
       [ -s "$prompt_file" ] && cp "$prompt_file" "$dir/.wt-claude-prompt"
+      cd "$dir"
+      # bin/wt strips [hooks] from the worktree's .mise.local.toml (mise hooks
+      # have no TTY and can't host zellij). Attach explicitly here.
       if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         zcode
       fi

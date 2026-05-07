@@ -156,7 +156,23 @@ if [ "$MODE" = "From PR" ]; then
   PR_BRANCH=$(echo "$PR_LINE" | awk -F'\t' '{print $3}' | sed 's/^→ //')
 fi
 
-# --- 4. Clone if missing -------------------------------------------------
+# --- 4. Determine branch name --------------------------------------------
+if [ -n "$PR_BRANCH" ]; then
+  BRANCH="$PR_BRANCH"
+else
+  BRANCH=$(gum input --header "New branch name" --placeholder "feat/whatever")
+  [ -z "$BRANCH" ] && exit 1
+fi
+
+WT_DIR=".worktrees/${BRANCH//\//-}"
+
+# --- 5. Compose initial prompt for the claude pane ----------------------
+PROMPT=$(gum write \
+  --header "Initial prompt for claude (ctrl-d submit, esc skip)" \
+  --width 100 --height 20 \
+  --value "$ISSUE_DESC" || true)
+
+# --- 6. Clone if missing / pull main (after all prompts) ----------------
 cd "$WORK_DIR"
 if [ ! -d "$REPO" ]; then
   gum spin --title "Cloning $ORG/$REPO" -- gh repo clone "$ORG/$REPO"
@@ -177,22 +193,6 @@ fi
 
 cd "$REPO"
 mkdir -p .worktrees
-
-# --- 5. Determine branch name --------------------------------------------
-if [ -n "$PR_BRANCH" ]; then
-  BRANCH="$PR_BRANCH"
-else
-  BRANCH=$(gum input --header "New branch name" --placeholder "feat/whatever")
-  [ -z "$BRANCH" ] && exit 1
-fi
-
-WT_DIR=".worktrees/${BRANCH//\//-}"
-
-# --- 6. Compose initial prompt for the claude pane ----------------------
-PROMPT=$(gum write \
-  --header "Initial prompt for claude (ctrl-d submit, esc skip)" \
-  --width 100 --height 20 \
-  --value "$ISSUE_DESC" || true)
 
 # --- 7. Create the worktree ---------------------------------------------
 git worktree prune
@@ -216,16 +216,25 @@ fi
 
 # --- 8. Copy git-ignored mise configs from the main repo dir ------------
 # Skip tracked files (e.g. .mise.toml) — they're already at HEAD in the
-# worktree and copying would create spurious unstaged changes.
+# worktree and copying would create spurious unstaged changes. Strip the
+# [hooks] section while copying: mise's hook subprocess has no controlling
+# TTY, so an enter hook that spawns zellij directly hangs (and going via
+# `mise run zellij` from wt's cd path produces a double-spawn). The wt
+# wrapper attaches via zcode instead, which runs in the user's interactive
+# zsh and has a proper TTY.
 for f in .mise.local.toml .mise.*.local.toml; do
   [ -f "$f" ] || continue
   git check-ignore -q "$f" 2>/dev/null || continue
-  cp "$f" "$WT_DIR/"
+  awk '
+    BEGIN { in_hooks = 0 }
+    /^\[hooks\][[:space:]]*$/ { in_hooks = 1; next }
+    /^\[/ && !/^\[hooks\][[:space:]]*$/ { in_hooks = 0 }
+    !in_hooks { print }
+  ' "$f" > "$WT_DIR/$f"
 done
 
-# --- 9. mise install in the worktree ------------------------------------
+# --- 9. cd into the worktree ------------------------------------
 cd "$WT_DIR"
-mise install
 
 # If invoked via the zsh `wt` wrapper, leave the final dir + prompt for it.
 if [ -n "${WT_CD_FILE:-}" ]; then
