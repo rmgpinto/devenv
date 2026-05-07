@@ -7,5 +7,6 @@
     "DISABLE_TELEMETRY": "1"
   },
   "skipDangerousModePermissionPrompt": true,
+  "spinnerTipsEnabled": false,
   "theme": "custom:catppuccin-mocha"
 }
