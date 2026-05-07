@@ -12,6 +12,7 @@ window-inherit-working-directory = false
 tab-inherit-working-directory = false
 shell-integration = "zsh"
 keybind = cmd+a=unbind
+keybind = cmd+z=unbind
 keybind = cmd+up=unbind
 keybind = cmd+down=unbind
 keybind = cmd+left=unbind
