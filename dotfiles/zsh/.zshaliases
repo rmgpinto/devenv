@@ -11,6 +11,8 @@ function zcode() {
   cwd=$(basename "$root")
   branch=$(/usr/bin/git -C "$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null)
   [ "$branch" = HEAD ] && branch=
+  # zellij rejects '/' in session names — slugify like bin/wt's WT_DIR.
+  branch=${branch//\//-}
   session="${cwd}${branch:+-${branch}}"
   (( ${#session} > 60 )) && session="${session:0:60}"
   # If wt seeded a prompt, force a fresh session so the layout re-runs and the

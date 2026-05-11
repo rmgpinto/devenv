@@ -19,10 +19,26 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')
     BRANCH=$(git -C "$WT_PATH" rev-parse --abbrev-ref HEAD 2>/dev/null)
     [ "$BRANCH" = HEAD ] && BRANCH=
-    SESSION="$(basename "$MAIN_REPO")${BRANCH:+-${BRANCH}}"
+    # zellij rejects '/' in session names — slugify like WT_DIR below.
+    SESSION="$(basename "$MAIN_REPO")${BRANCH:+-${BRANCH//\//-}}"
     SESSION=${SESSION:0:60}
     cd "$MAIN_REPO"
-    git worktree remove --force "$WT_PATH"
+    # Clear read-only bits on anything we own so `git worktree remove` (rm -rf)
+    # doesn't trip over our own leftovers. Files owned by the other sandbox user
+    # are skipped (chmod EPERM) — those only block removal when they were copied
+    # in via Finder/mv/cp -a and so never inherited the shared ACL on /Users/Shared/dev.
+    chmod -R u+rwX "$WT_PATH" 2>/dev/null || true
+    if ! git worktree remove --force "$WT_PATH"; then
+      me=$(id -un)
+      echo "wt: couldn't remove $WT_PATH." >&2
+      echo "    Some files there aren't owned by '$me' and lack the shared ACL" >&2
+      echo "    (typical when copied in via Finder, mv, cp -a, ditto, or rsync -a)." >&2
+      echo "    Blocking paths:" >&2
+      find "$WT_PATH" \! -user "$me" 2>/dev/null | head -20 | sed 's/^/      /' >&2 || true
+      echo "    Fix — run this as the owner shown by \`ls -le\`, then rerun wt:" >&2
+      echo "      chmod -R +a \"user:$me allow read,write,execute,delete,delete_child,file_inherit,directory_inherit\" \"$WT_PATH\"" >&2
+      exit 1
+    fi
     [ -n "$BRANCH" ] && git branch -D "$BRANCH" 2>/dev/null || true
     zellij delete-session --force "$SESSION" 2>/dev/null || true
     [ -n "${WT_CD_FILE:-}" ] && echo "/Users/Shared/dev" > "$WT_CD_FILE"
