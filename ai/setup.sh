@@ -74,16 +74,21 @@ function setup_shared() {
   # (which don't inherit retroactively from a top-level ACL) also get access.
   # Additive only — macOS dedupes identical ACEs, so re-runs don't accumulate.
   # Filtered to dirs + regular files to skip broken symlinks, sockets, etc.
-  local acl_host="user:${USER} allow read,write,execute,delete,add_file,add_subdirectory,list,search,file_inherit,directory_inherit"
-  local acl_sbox="user:${SANDBOX_USER} allow read,write,execute,delete,add_file,add_subdirectory,list,search,file_inherit,directory_inherit"
+  # `delete_child` is the one that matters for cleanup: a dir's `delete` only
+  # lets you remove the dir itself, so without delete_child neither user can
+  # `rm`/`git worktree remove` a tree the *other* user populated (e.g. a
+  # node_modules Claude installed as the sandbox user) — you'd get EACCES.
+  local acl_host="user:${USER} allow read,write,execute,delete,delete_child,add_file,add_subdirectory,list,search,file_inherit,directory_inherit"
+  local acl_sbox="user:${SANDBOX_USER} allow read,write,execute,delete,delete_child,add_file,add_subdirectory,list,search,file_inherit,directory_inherit"
 
-  # Fast path: if the workspace root already carries both ACEs, prior runs
-  # have walked the tree, and inherit flags propagate the ACEs to anything
-  # newly created since. Skip the (slow) recursive pass.
+  # Fast path: if the workspace root already carries both ACEs *with*
+  # delete_child, prior runs have walked the tree and inherit flags propagate
+  # the ACEs to anything newly created since. Skip the (slow) recursive pass.
   local root_acls
   root_acls=$(/bin/ls -lde "${SHARED_WORKSPACE}" 2>/dev/null)
   if [[ "${root_acls}" == *"user:${USER} allow"* \
-     && "${root_acls}" == *"user:${SANDBOX_USER} allow"* ]]; then
+     && "${root_acls}" == *"user:${SANDBOX_USER} allow"* \
+     && "${root_acls}" == *delete_child* ]]; then
     log info "ACLs already present at root; skipping recursive pass."
     log info "Done."
     return
