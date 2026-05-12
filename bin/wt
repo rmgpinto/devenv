@@ -225,9 +225,10 @@ mkdir -p .worktrees
 # --- 7. Create the worktree ---------------------------------------------
 git worktree prune
 if [ -n "$PR_BRANCH" ]; then
-  git fetch origin "$PR_BRANCH:$PR_BRANCH" 2>/dev/null \
-    || git fetch origin "$PR_BRANCH"
-  git worktree add "$WT_DIR" "$PR_BRANCH"
+  # Always base the worktree on origin's tip of the PR branch — `-B` resets a
+  # stale local branch of the same name instead of silently checking it out.
+  git fetch origin "$PR_BRANCH"
+  git worktree add -B "$PR_BRANCH" "$WT_DIR" "origin/$PR_BRANCH"
 elif git show-ref --verify --quiet "refs/heads/$BRANCH"; then
   EXISTING_WT=$(git worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '
     /^worktree / {wt=$2}
