@@ -26,8 +26,8 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     # Tear down the worktree's zellij session first. Its panes (e.g. nvim
     # listening with cwd inside the worktree) hold the dir open, and if the
     # `git worktree remove` below aborts they'd be left orphaned on a
-    # half-deleted path. Never kill the session we're sitting in — that takes
-    # this shell (and wt) down mid-run.
+    # half-deleted path. If it's the session we're running inside we can't kill
+    # it here (that would take wt down before the removal) — deferred to the end.
     if [ -n "$SESSION" ] && [ "${ZELLIJ_SESSION_NAME:-}" != "$SESSION" ]; then
       zellij delete-session --force "$SESSION" 2>/dev/null || true
     fi
@@ -54,6 +54,14 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     fi
     [ -n "$BRANCH" ] && git branch -D "$BRANCH" 2>/dev/null || true
     [ -n "${WT_CD_FILE:-}" ] && echo "/Users/Shared/dev" > "$WT_CD_FILE"
+    # If we were inside the worktree's own zellij session, kill it now — last,
+    # and from a detached child so wt and the zsh `wt` wrapper finish first
+    # (the kill closes this pane; you drop back to the shell that launched
+    # zellij, whose cwd is the now-deleted worktree, so cd out).
+    if [ -n "$SESSION" ] && [ "${ZELLIJ_SESSION_NAME:-}" = "$SESSION" ]; then
+      ( sleep 1; zellij delete-session --force "$SESSION" >/dev/null 2>&1 ) >/dev/null 2>&1 </dev/null &
+      disown 2>/dev/null || true
+    fi
   fi
   exit 0
 fi
