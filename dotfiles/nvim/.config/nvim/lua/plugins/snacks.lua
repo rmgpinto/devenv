@@ -44,7 +44,7 @@ return {
               icon = " ",
               title = "Git Status",
               cmd =
-              "git log main -10 --pretty=format:'%h %<(10,trunc)%al %<(35,trunc)%s' | head -n 10 && git fetch origin main --quiet",
+              [[branch=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@'); branch=${branch:-HEAD}; git log "$branch" -10 --pretty=format:'%h %<(10,trunc)%al %<(35,trunc)%s' | head -n 10 && git fetch origin "$branch" --quiet 2>/dev/null]],
               height = 10,
             },
             {
