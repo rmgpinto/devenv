@@ -1,12 +1,12 @@
 {
+  "env": {
+    "DISABLE_TELEMETRY": "1"
+  },
   "attribution": {
     "commit": "",
     "pr": ""
   },
-  "env": {
-    "DISABLE_TELEMETRY": "1"
-  },
-  "skipDangerousModePermissionPrompt": true,
   "spinnerTipsEnabled": false,
+  "skipDangerousModePermissionPrompt": true,
   "theme": "custom:catppuccin-mocha"
 }
