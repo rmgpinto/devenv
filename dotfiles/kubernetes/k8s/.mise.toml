@@ -1,6 +1,6 @@
 [tools]
 doctl = "latest"
-kubectl = "1.30.2"
+kubectl = "latest"
 kubectx = "latest"
 k9s = "latest"
 
