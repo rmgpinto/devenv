@@ -28,18 +28,8 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     # `git worktree remove` below aborts they'd be left orphaned on a
     # half-deleted path. If it's the session we're running inside we can't kill
     # it here (that would take wt down before the removal) — deferred to the end.
-    {
-      echo "--- $(date '+%F %T') wt-delete ---"
-      echo "WT_PATH=$WT_PATH"
-      echo "MAIN_REPO=$MAIN_REPO"
-      echo "BRANCH=$BRANCH"
-      echo "SESSION=$SESSION"
-      echo "ZELLIJ_SESSION_NAME=${ZELLIJ_SESSION_NAME:-<unset>}"
-      echo "zellij path: $(command -v zellij || echo '<not on PATH>')"
-    } >>/tmp/wt-kill.log 2>&1
     if [ -n "$SESSION" ] && [ "${ZELLIJ_SESSION_NAME:-}" != "$SESSION" ]; then
-      echo "sync kill: zellij kill-session $SESSION" >>/tmp/wt-kill.log
-      zellij kill-session "$SESSION" >>/tmp/wt-kill.log 2>&1 || echo "  -> rc=$?" >>/tmp/wt-kill.log
+      zellij delete-session --force "$SESSION" || true
     fi
     # Clear read-only bits on anything we own so `git worktree remove` (rm -rf)
     # doesn't trip over our own leftovers. Files owned by the *other* sandbox
@@ -69,11 +59,8 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     # (the kill closes this pane; you drop back to the shell that launched
     # zellij, whose cwd is the now-deleted worktree, so cd out).
     if [ -n "$SESSION" ] && [ "${ZELLIJ_SESSION_NAME:-}" = "$SESSION" ]; then
-      echo "deferred kill scheduled for: $SESSION" >>/tmp/wt-kill.log
       ( sleep 1
-        echo "  fired at $(date '+%T'): zellij kill-session $SESSION" >>/tmp/wt-kill.log
-        zellij kill-session "$SESSION" >>/tmp/wt-kill.log 2>&1
-        echo "  rc=$?" >>/tmp/wt-kill.log
+        zellij delete-session --force "$SESSION"
       ) </dev/null &
       disown 2>/dev/null || true
     fi
