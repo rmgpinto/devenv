@@ -170,5 +170,7 @@ alias gha_watch='test -d .git && last_run_id=""; while true; do latest_run_id=$(
 alias dkill='docker kill $(docker ps -q) 2>/dev/null; docker rm $(docker ps -aq) 2>/dev/null'
 alias halstg='NODE_ENV=staging hal'
 alias k='kubectl'
+alias kstg='kubectl --context do-ams3-stg-k8s-01'
+alias kprd='kubectl --context do-ams3-prd-k8s-01'
 alias k8s='cd ~/dev/work/k8s'
 
