@@ -112,7 +112,6 @@ function setup_ghost() {
   log info "Done."
   log info "Setting up Ghost kubectl..."
   mkdir -p ~/.kube
-  stow kubernetes -t /Users/Shared/dev/work
   log info "Done."
   log info "Setting up Ghost k9s..."
   stow k9s -t ${HOME}
