@@ -7,8 +7,8 @@
     "pr": ""
   },
   "spinnerTipsEnabled": false,
+  "effortLevel": "medium",
   "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
-  "theme": "custom:catppuccin-mocha",
-  "effortLevel": "medium"
+  "theme": "custom:catppuccin-mocha"
 }
