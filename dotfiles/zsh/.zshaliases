@@ -31,6 +31,27 @@ function zcode() {
     zellij --layout code attach --create "$session"
   fi
 }
+# Delete the zellij session for the current directory (same name scheme as
+# zcode/cc: <repo-basename>-<worktree|branch>).
+function zd() {
+  local root cwd branch session
+  root=$(/usr/bin/git -C "$PWD" worktree list --porcelain 2>/dev/null | awk '/^worktree / {print $2; exit}')
+  root=${root:-$PWD}
+  [ "$(basename "$(dirname "$root")")" = ".worktrees" ] && root=$(dirname "$(dirname "$root")")
+  cwd=$(basename "$root")
+  branch=$(/usr/bin/git -C "$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null)
+  [ "$branch" = HEAD ] && branch=
+  branch=${branch//\//-}
+  session="${cwd}${branch:+-${branch}}"
+  (( ${#session} > 60 )) && session="${session:0:60}"
+  if [ "${ZELLIJ_SESSION_NAME:-}" = "$session" ]; then
+    # Can't delete the session we're sitting in from within it — defer the kill
+    # to a detached child so this shell finishes first (this closes the pane).
+    ( sleep 1; zellij delete-session --force "$session" ) </dev/null &!
+  else
+    zellij delete-session --force "$session"
+  fi
+}
 alias ls='eza --icons -lah'
 alias l='eza --icons -lah'
 alias lt='eza --icons --tree --level=2 --long'
@@ -42,7 +63,18 @@ alias myip='curl -s -4 https://ifconfig.co'
 alias flushdns='sudo dscacheutil -flushcache sudo killall -HUP mDNSResponder'
 alias setdns='networksetup -setdnsservers Wi-Fi 1.1.1.1 1.0.0.1'
 alias unsetdns='networksetup -setdnsservers Wi-Fi 192.168.0.1'
-alias cc='sb "$PWD" claude --dangerously-skip-permissions'
+function cc() {
+  local root cwd branch name
+  root=$(/usr/bin/git -C "$PWD" worktree list --porcelain 2>/dev/null | awk '/^worktree / {print $2; exit}')
+  root=${root:-$PWD}
+  [ "$(basename "$(dirname "$root")")" = ".worktrees" ] && root=$(dirname "$(dirname "$root")")
+  cwd=$(basename "$root")
+  branch=$(/usr/bin/git -C "$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null)
+  [ "$branch" = HEAD ] && branch=
+  branch=${branch//\//-}
+  name="${cwd}${branch:+-${branch}}"
+  sb "$PWD" claude --dangerously-skip-permissions --name "$name" "$@"
+}
 alias tf='terraform'
 alias r='rails'
 alias credentials-edit='rails credentials:edit'
@@ -144,6 +176,16 @@ function wt() {
   fi
   rm -f "$cd_file" "$prompt_file"
   return $rc
+}
+
+# Host-side half of wt-spawn: open the zellij session for a worktree an agent
+# prepared (the agent runs as ai-sandbox and can't reach our zellij socket).
+# Must be a function, not a bin script — it cds the calling shell. zcode reads
+# any .wt-claude-prompt the agent seeded and force-recreates the session.
+function wt-here() {
+  local dir="${1:?usage: wt-here <worktree-path>}"
+  [ -d "$dir" ] || { echo "wt-here: no such dir: $dir" >&2; return 1; }
+  cd "$dir" && zcode
 }
 
 function wtl() {
