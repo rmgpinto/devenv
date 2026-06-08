@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# Non-interactive worktree spawner — the agent-side half of cross-repo handoff.
+#
+# `bin/wt` is interactive (gum pickers + gum write). This is its gum-free guts:
+# it prepares a worktree on a TryGhost repo and seeds the claude prompt, so a
+# Claude session can delegate work to a fresh agent on *another* repo.
+#
+# It does NOT spawn the zellij session. The zellij server is owned by the host
+# user (rmgpinto, socket mode 700); an agent runs as ai-sandbox via `sb` and
+# can't reach that socket. So this prints a one-command handoff — `wt-here
+# <path>` — for the host user to run, which materialises the session via zcode.
+# zcode's claude pane then reads .wt-claude-prompt and starts `cc "$prompt"`.
+#
+# Usage:
+#   wt-spawn <repo> <branch> [--from-pr] [--prompt TEXT | --prompt-file FILE]
+#
+#   --from-pr      <branch> is an existing PR/remote branch; base the worktree
+#                  on origin's tip of it (mirrors bin/wt "From PR" mode).
+#   --prompt       seed .wt-claude-prompt with TEXT (the sub-agent's task).
+#   --prompt-file  seed it from FILE instead (use "-" for stdin).
+#
+# stdout: the absolute worktree path (machine-readable, for the caller).
+# stderr: progress + the human handoff line.
+
+set -euo pipefail
+
+WORK_DIR="${WT_WORK_DIR:-/Users/Shared/dev/work}"
+ORG="${WT_ORG:-TryGhost}"
+
+FROM_PR=0
+PROMPT=""
+PROMPT_FILE=""
+positional=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --from-pr)      FROM_PR=1; shift ;;
+    --prompt)       PROMPT="${2-}"; shift 2 ;;
+    --prompt-file)  PROMPT_FILE="${2-}"; shift 2 ;;
+    -h|--help)      sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -*)             echo "wt-spawn: unknown flag: $1" >&2; exit 2 ;;
+    *)              positional+=("$1"); shift ;;
+  esac
+done
+
+REPO="${positional[0]-}"
+BRANCH="${positional[1]-}"
+if [ -z "$REPO" ] || [ -z "$BRANCH" ]; then
+  echo "usage: wt-spawn <repo> <branch> [--from-pr] [--prompt TEXT|--prompt-file FILE]" >&2
+  exit 2
+fi
+
+if [ -n "$PROMPT_FILE" ]; then
+  if [ "$PROMPT_FILE" = "-" ]; then
+    PROMPT="$(cat)"
+  else
+    PROMPT="$(cat "$PROMPT_FILE")"
+  fi
+fi
+
+# --- clone if missing / pull default branch -----------------------------
+mkdir -p "$WORK_DIR"
+cd "$WORK_DIR"
+if [ ! -d "$REPO" ]; then
+  echo "wt-spawn: cloning $ORG/$REPO" >&2
+  gh repo clone "$ORG/$REPO" >&2
+else
+  DEFAULT_BRANCH=$(git -C "$REPO" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')
+  DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+  if ! { git -C "$REPO" checkout "$DEFAULT_BRANCH" >&2 && git -C "$REPO" pull --ff-only >&2; }; then
+    echo "wt-spawn: pull failed for $REPO (continuing)" >&2
+  fi
+fi
+
+cd "$REPO"
+mkdir -p .worktrees
+git worktree prune
+
+# --- create the worktree (mirrors bin/wt step 7) ------------------------
+WT_DIR=".worktrees/${BRANCH//\//-}"
+if [ "$FROM_PR" -eq 1 ]; then
+  # Always base on origin's tip; -B resets a stale local branch of the same name.
+  git fetch origin "$BRANCH" >&2
+  git worktree add -B "$BRANCH" "$WT_DIR" "origin/$BRANCH" >&2
+elif git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+  EXISTING_WT=$(git worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '
+    /^worktree / {wt=$2}
+    /^branch / && $2==b {print wt; exit}
+  ')
+  if [ -n "$EXISTING_WT" ]; then
+    echo "wt-spawn: branch '$BRANCH' is already checked out at: $EXISTING_WT" >&2
+    exit 1
+  fi
+  git worktree add "$WT_DIR" "$BRANCH" >&2
+else
+  git worktree add "$WT_DIR" -b "$BRANCH" >&2
+fi
+
+# --- copy git-ignored mise configs, stripping [hooks] (bin/wt step 8) ---
+for f in .mise.local.toml .mise.*.local.toml; do
+  [ -f "$f" ] || continue
+  git check-ignore -q "$f" 2>/dev/null || continue
+  awk '
+    BEGIN { in_hooks = 0 }
+    /^\[hooks\][[:space:]]*$/ { in_hooks = 1; next }
+    /^\[/ && !/^\[hooks\][[:space:]]*$/ { in_hooks = 0 }
+    !in_hooks { print }
+  ' "$f" > "$WT_DIR/$f"
+done
+
+ABS="$WORK_DIR/$REPO/$WT_DIR"
+
+# --- seed the claude prompt (read by zcode's code-layout claude pane) ---
+if [ -n "$PROMPT" ]; then
+  printf '%s' "$PROMPT" > "$ABS/.wt-claude-prompt"
+fi
+
+# --- handoff ------------------------------------------------------------
+echo "$ABS"
+{
+  echo
+  echo "wt-spawn: worktree ready at $ABS"
+  echo "To open the zellij session (run as the host user, not the agent):"
+  echo "    wt-here $ABS"
+} >&2
