@@ -25,6 +25,22 @@ Repos in this workspace may use git worktrees under `<repo>/.worktrees/<branch>/
 2. If a worktree exists that matches the task at hand, `cd` into it and edit there. Do not edit the top-level checkout unless the user has explicitly said to.
 3. If multiple worktrees could apply, or none clearly does, ask before writing.
 
+## Delegating work to another repo
+
+To hand a task to a fresh agent on a *different* repo, prepare a worktree there and seed its prompt with `bin/wt-spawn` (the non-interactive guts of `bin/wt`):
+
+```
+/Users/Shared/dev/personal/devenv/bin/wt-spawn <repo> <branch> --prompt "<task for the sub-agent>"
+```
+
+It clones/pulls the repo under `work/`, creates the worktree, and seeds `.wt-claude-prompt`, printing the worktree's absolute path on stdout. It does **not** open the zellij session: that server is owned by the host user and the agent (running as `ai-sandbox`) can't reach its socket. So `wt-spawn` ends by printing a handoff line — surface it to the user verbatim:
+
+```
+wt-here <path>
+```
+
+When the user runs `wt-here` in their own shell, `zcode` spawns the session and its claude pane reads the seeded prompt, starting the sub-agent on the task. Use `--from-pr` to base the worktree on an existing PR branch.
+
 # This file
 
 The source-of-truth is `personal/devenv/CLAUDE.md`. `/Users/Shared/dev/CLAUDE.md` is a symlink to it (set up by `personal/devenv/ai/setup.sh`), so any Claude instance launched anywhere under `/Users/Shared/dev` discovers these instructions via the parent-directory walk. `/Users/Shared/dev/.mise.toml` is separately stowed from `personal/devenv/ai/sb/.mise.toml`.
