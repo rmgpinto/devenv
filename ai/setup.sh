@@ -139,15 +139,8 @@ function setup_workspace() {
   sudo rm -f "${SHARED_WORKSPACE}/.mise.toml" "${SHARED_WORKSPACE}/CLAUDE.md"
   ln -s personal/devenv/CLAUDE.md "${SHARED_WORKSPACE}/CLAUDE.md"
   sudo -u "${SANDBOX_USER}" mkdir -p "${SANDBOX_HOME}/.config/mise"
-  local tmp
-  tmp=$(mktemp)
-  {
-    sed 's/^REMOVE_//' "../.mise.local.toml"
-    echo
-    cat "sb/.mise.toml"
-  } > "${tmp}"
-  sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 "${tmp}" "${SANDBOX_HOME}/.config/mise/config.toml"
-  rm -f "${tmp}"
+  sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 \
+    "${DEVENV_AI_DIR}/../env/ai-sandbox.mise.toml" "${SANDBOX_HOME}/.config/mise/config.toml"
   log info "Done."
 }
 

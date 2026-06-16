@@ -1,0 +1,12 @@
+# Installed to: ~/.config/mise/conf.d/devenv.toml
+
+[tools]
+doctl = "latest"
+kubectl = "latest"
+
+[env]
+SAMMY_SSH_USER = "ricardo"
+HAL_1P_ACCOUNT_ID = "GHXJDH3PVNHG3PLWLS5RT4HOHI"
+HAL_1P_STAGING = "op://Employee/Ghost - staging"
+HAL_1P_PRODUCTION = "op://Employee/Ghost - production"
+LINEAR_API_KEY = "{{ exec(command='security find-generic-password -s linear-api-key -w 2>/dev/null || true') }}"

@@ -23,8 +23,18 @@ op account add --address my.1password.com --signin
 4. Follow 1Password SSH agent [instructions](https://developer.1password.com/docs/ssh/get-started#step-3-turn-on-the-1password-ssh-agent)
 5. Download [AppCleaner](https://freemacsoft.net/appcleaner/)
 
-## Notes
-Due to 1Password CLI being slow (`op read`), I've used the following:
+## Secrets & env vars
+
+Secrets are defined in 1Password and synced to env vars via `env/`:
+
+1. Define each secret as a 1Password item.
+2. List it in `env/secrets`: `<keychain-service>  <op://reference>  <host|sandbox|both>  <1password-account>`.
+3. Reference it (or any non-secret var) in the relevant scope template — `env/ai-sandbox.mise.toml`, `env/work.mise.toml`, `env/personal.mise.toml`, or `env/main-user.mise.toml` (main-user-global, loaded in every main-user shell regardless of cwd).
+4. Run `env/setup.sh` (also run by `./devenv.sh`).
+
+`env/setup.sh` pulls each secret from its 1Password account (`op read --account`), caches it in the macOS keychain (host and/or the `ai-sandbox` user's keychain), and copies the scope templates to their destinations (`~ai-sandbox/.config/mise/config.toml`, `/Users/Shared/dev/work/.mise.toml`, `/Users/Shared/dev/personal/.mise.toml`, `~/.config/mise/conf.d/devenv.toml`). The `.mise.toml` files resolve secrets from the keychain at mise load time via `{{ exec(command='security find-generic-password …') }}` — no plaintext secret is written to disk.
+
+Caching in the keychain avoids `op read`'s latency on every shell/mise load:
 
 ```
 # add secret to keychain

@@ -25,15 +25,8 @@ source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # Environment variables
-# Common
 export XDG_CONFIG_HOME=${HOME}/.config
-# Personal
 export EDITOR="nvim"
-# Work
-export SAMMY_SSH_USER="ricardo"
-export HAL_1P_ACCOUNT_ID="GHXJDH3PVNHG3PLWLS5RT4HOHI"
-export HAL_1P_STAGING="op://Employee/Ghost - staging"
-export HAL_1P_PRODUCTION="op://Employee/Ghost - production"
 
 # mise
 export MISE_LOG_LEVEL=warn

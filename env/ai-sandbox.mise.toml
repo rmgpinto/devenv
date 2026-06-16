@@ -1,0 +1,23 @@
+# Installed to: /Users/ai-sandbox/.config/mise/config.toml
+
+[tools]
+node = "latest"
+"npm:pnpm" = "latest"
+yarn = "latest"
+k6 = "latest"
+ruby = "latest"
+python = "latest"
+sqlite = "latest"
+jq = "latest"
+yq = "latest"
+ripgrep = "latest"
+gh = "latest"
+claude-code = "latest"
+
+[env]
+GH_TOKEN = "{{ exec(command='security find-generic-password -s gh-token -w 2>/dev/null || true') }}"
+GITHUB_TOKEN = "{{ exec(command='security find-generic-password -s gh-token -w 2>/dev/null || true') }}"
+ES_STAGING_URL = "https://elastic.ghostfoundation.org"
+ES_PRODUCTION_URL = "https://elastic.ghost.org"
+ES_STAGING_API_KEY = "{{ exec(command='security find-generic-password -s es-staging-api-key -w 2>/dev/null || true') }}"
+ES_PRODUCTION_API_KEY = "{{ exec(command='security find-generic-password -s es-production-api-key -w 2>/dev/null || true') }}"

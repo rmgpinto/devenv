@@ -53,6 +53,14 @@ function ai() {
   fi
 }
 
+function env() {
+  if [[ -f "env/setup.sh" ]]; then
+    log info "Setting up env..."
+    (cd env && ./setup.sh)
+    log info "Done."
+  fi
+}
+
 function main() {
   log info "Setting up devenv..."
   rosetta
@@ -61,6 +69,7 @@ function main() {
   mise
   dotfiles
   ai
+  env
   log info "Done."
 }
 
