@@ -9,6 +9,7 @@ zjstatus # zellij plugin
 ripgrep
 nodejs
 aqua:neovim/neovim # registry default is vfox; pick aqua for prebuilt binary
+tree-sitter # used by tree-sitter-manager.nvim to build parsers
 cmake # telescope-fzf-native
 watchexec
 jq
