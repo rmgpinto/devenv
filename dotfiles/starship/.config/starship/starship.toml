@@ -1,5 +1,5 @@
 command_timeout = 1000
-format = "$directory${custom.git_worktree}${custom.mise}$kubernetes$fill$time$cmd_duration$line_break$character"
+format = "$directory$git_branch$git_status${custom.mise}$kubernetes$fill$time$cmd_duration$line_break$character"
 palette = "catppuccin_mocha"
 
 [directory]
@@ -22,15 +22,25 @@ symbol = "λ"
 format = "[$symbol]($style) "
 style = "bold mauve"
 
-[custom.git_worktree]
-when = "test -n \"$(git rev-parse --show-superproject-working-tree 2>/dev/null)\" || git rev-parse --git-dir 2>/dev/null | grep -q '/worktrees/'"
-command = """
-toplevel=$(git rev-parse --show-toplevel 2>/dev/null); \
-echo "$(basename $(dirname "$toplevel"))/$(basename "$toplevel")"
-"""
-symbol = ""
-format = "on [$symbol $output]($style) "
+[git_branch]
+symbol = " "
+format = "on [$symbol$branch]($style) "
 style = "bold blue"
+
+[git_status]
+format = '([$all_status$ahead_behind]($style) )'
+style = "bold red"
+conflicted = "="
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+up_to_date = ""
+untracked = ""
+stashed = "\\$${count}"
+modified = ""
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
 
 [kubernetes]
 disabled = false
