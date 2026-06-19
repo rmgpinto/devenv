@@ -4,6 +4,9 @@
 doctl = "latest"
 kubectl = "latest"
 
+[settings]
+ruby.compile = false
+
 [env]
 SAMMY_SSH_USER = "ricardo"
 HAL_1P_ACCOUNT_ID = "GHXJDH3PVNHG3PLWLS5RT4HOHI"
