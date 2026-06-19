@@ -13,6 +13,7 @@ yq = "latest"
 ripgrep = "latest"
 gh = "latest"
 claude-code = "latest"
+"npm:@openai/codex" = "latest"
 
 [env]
 GH_TOKEN = "{{ exec(command='security find-generic-password -s gh-token -w 2>/dev/null || true') }}"

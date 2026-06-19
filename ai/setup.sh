@@ -136,8 +136,11 @@ function setup_sb_cli() {
 
 function setup_workspace() {
   log info "Stowing workspace files..."
-  sudo rm -f "${SHARED_WORKSPACE}/.mise.toml" "${SHARED_WORKSPACE}/CLAUDE.md"
+  sudo rm -f "${SHARED_WORKSPACE}/.mise.toml" "${SHARED_WORKSPACE}/CLAUDE.md" "${SHARED_WORKSPACE}/AGENTS.md"
   ln -s personal/devenv/CLAUDE.md "${SHARED_WORKSPACE}/CLAUDE.md"
+  # Codex (and other agents) read AGENTS.md; point it at CLAUDE.md so they share
+  # one source of truth. Relative target chains through the CLAUDE.md symlink.
+  ln -s CLAUDE.md "${SHARED_WORKSPACE}/AGENTS.md"
   sudo -u "${SANDBOX_USER}" mkdir -p "${SANDBOX_HOME}/.config/mise"
   sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 \
     "${DEVENV_AI_DIR}/../env/ai-sandbox.mise.toml" "${SANDBOX_HOME}/.config/mise/config.toml"
@@ -151,6 +154,15 @@ function setup_claude() {
   sudo rm -f "${SANDBOX_HOME}/.claude/settings.json"
   sudo -u "${SANDBOX_USER}" /opt/homebrew/bin/stow --no-folding \
     -d "${DEVENV_AI_DIR}/dotfiles" claude -t "${SANDBOX_HOME}"
+  log info "Done."
+}
+
+function setup_codex() {
+  log info "Stowing Codex CLI config..."
+  sudo -u "${SANDBOX_USER}" mkdir -p "${SANDBOX_HOME}/.codex"
+  sudo -u "${SANDBOX_USER}" rm -f "${SANDBOX_HOME}/.codex/config.toml"
+  sudo -u "${SANDBOX_USER}" /opt/homebrew/bin/stow --no-folding \
+    -d "${DEVENV_AI_DIR}/dotfiles" codex -t "${SANDBOX_HOME}"
   log info "Done."
 }
 
@@ -205,6 +217,7 @@ function main() {
   setup_sb_cli
   setup_workspace
   setup_claude
+  setup_codex
   setup_git
   setup_keychain
   setup_mise
