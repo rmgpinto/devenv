@@ -76,7 +76,7 @@ function cc() {
   sb "$PWD" claude --dangerously-skip-permissions --name "$name" "$@"
 }
 function cx() {
-  CODEX_HOME="/Users/ai-sandbox/.codex" sb "$PWD" sh -c 'mkdir -p "$CODEX_HOME"; exec codex "$@"' codex "$@"
+  sb "$PWD" sh -c 'export CODEX_HOME="/Users/ai-sandbox/.codex"; mkdir -p "$CODEX_HOME"; exec codex "$@"' codex "$@"
 }
 alias tf='terraform'
 alias r='rails'
