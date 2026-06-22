@@ -45,14 +45,6 @@ function mise() {
   fi
 }
 
-function ai() {
-  if [[ -f "ai/setup.sh" ]]; then
-    log info "Setting up ai..."
-    (cd ai && ./setup.sh)
-    log info Done.
-  fi
-}
-
 function env() {
   if [[ -f "env/setup.sh" ]]; then
     log info "Setting up env..."
@@ -68,7 +60,6 @@ function main() {
   brew
   mise
   dotfiles
-  ai
   env
   log info "Done."
 }

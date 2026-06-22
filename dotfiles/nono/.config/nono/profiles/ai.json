@@ -1,0 +1,74 @@
+{
+  "extends": "default",
+  "meta": {
+    "name": "ai",
+    "version": "1.0.0",
+    "description": "DevEnv AI sandbox profile"
+  },
+  "workdir": {
+    "access": "readwrite"
+  },
+  "filesystem": {
+    "allow": [
+      "$WORKDIR",
+      "$HOME/.agents",
+      "$HOME/.config/claude",
+      "$HOME/.config/claude.lock",
+      "$HOME/.config/codex",
+      "$HOME/.config/mise",
+      "$HOME/.config/nono",
+      "$HOME/.local/share/mise",
+      "$HOME/.cache/mise",
+      "$HOME/dev",
+      "/tmp",
+      "/private/tmp"
+    ],
+    "allow_file": [
+      "$HOME/.claude.json"
+    ],
+    "read_file": [
+      "/Users/Shared/dev/CLAUDE.md",
+      "/Users/Shared/dev/AGENTS.md",
+      "$HOME/.CFUserTextEncoding"
+    ],
+    "read": [
+      "/bin",
+      "/etc",
+      "/opt",
+      "/usr"
+    ]
+  },
+  "network": {
+    "block": false,
+    "listen_port": [1455]
+  },
+  "environment": {
+    "allow_vars": [
+      "PATH",
+      "HOME",
+      "USER",
+      "LOGNAME",
+      "SHELL",
+      "TERM",
+      "LANG",
+      "LC_*",
+      "TMPDIR",
+      "MISE_*",
+      "XDG_*"
+    ],
+    "set_vars": {
+      "CODEX_HOME": "$HOME/.config/codex",
+      "ES_STAGING_URL": "https://elastic.ghostfoundation.org",
+      "ES_PRODUCTION_URL": "https://elastic.ghost.org",
+      "PROMETHEUS_STAGING_URL": "https://prometheus.ghostfoundation.org",
+      "PROMETHEUS_PRODUCTION_URL": "https://prometheus.ghost.org"
+    }
+  },
+  "env_credentials": {
+    "nono-gh-token-read-only": "GH_TOKEN",
+    "nono-github-token-read-only": "GITHUB_TOKEN",
+    "nono-es-user": "ES_USER",
+    "nono-es-staging-password": "ES_STAGING_PASSWORD",
+    "nono-es-production-password": "ES_PRODUCTION_PASSWORD"
+  }
+}

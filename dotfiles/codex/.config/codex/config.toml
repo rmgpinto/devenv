@@ -1,0 +1,17 @@
+# Codex CLI config for the `cx` alias, loaded from ~/.config/codex.
+# nono already confines Codex to the sandbox (the shared workspace + sandbox
+# home), so let Codex operate freely within it rather than nesting its own
+# Seatbelt sandbox, and don't gate on per-command approval — mirrors how `cc`
+# runs Claude with --dangerously-skip-permissions. Dial these back if you want
+# Codex to ask before acting.
+sandbox_mode = "danger-full-access"
+approval_policy = "never"
+
+[projects."/Users/Shared/dev/personal/fcf-sheets"]
+trust_level = "trusted"
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+
+[features]
+hooks = true

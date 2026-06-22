@@ -2,6 +2,16 @@
 
 source "../utils/log.sh"
 
+SHARED_WORKSPACE="/Users/Shared/dev"
+
+function setup_workspace() {
+  log info "Setting up workspace agent files..."
+  rm -f "${SHARED_WORKSPACE}/CLAUDE.md" "${SHARED_WORKSPACE}/AGENTS.md"
+  ln -s personal/devenv/CLAUDE.md "${SHARED_WORKSPACE}/CLAUDE.md"
+  ln -s CLAUDE.md "${SHARED_WORKSPACE}/AGENTS.md"
+  log info "Done."
+}
+
 function setup_ghostty() {
   log info "Setting up ghostty..."
   /opt/homebrew/bin/stow --adopt ghostty -t ${HOME}
@@ -98,10 +108,31 @@ function setup_docker() {
   log info "Done."
 }
 
+function setup_nono() {
+  log info "Setting up nono profile..."
+  mkdir -p "${HOME}/.config/nono/profiles"
+  /opt/homebrew/bin/stow --adopt --no-folding nono -t "${HOME}"
+  log info "Done."
+}
+
+function setup_claude() {
+  log info "Setting up Claude Code settings..."
+  mkdir -p "${HOME}/.config/claude/themes"
+  /opt/homebrew/bin/stow --adopt --no-folding claude -t "${HOME}"
+  log info "Done."
+}
+
+function setup_codex() {
+  log info "Setting up Codex CLI config..."
+  mkdir -p "${HOME}/.config/codex"
+  /opt/homebrew/bin/stow --adopt --no-folding codex -t "${HOME}"
+  log info "Done."
+}
+
 function setup_herdr() {
   log info "Setting up Herdr..."
-  mkdir -p "${HOME}/.config/claude"
-  mkdir -p "${HOME}/.config/codex"
+  mkdir -p "${HOME}/.config/herdr"
+  /opt/homebrew/bin/stow --adopt --no-folding herdr -t "${HOME}"
   CLAUDE_CONFIG_DIR="${HOME}/.config/claude" /opt/homebrew/bin/mise x herdr -- herdr integration install claude
   CODEX_HOME="${HOME}/.config/codex" /opt/homebrew/bin/mise x herdr -- herdr integration install codex
   log info "Done."
@@ -143,6 +174,7 @@ function setup_ghost() {
 }
 
 function main() {
+  setup_workspace
   setup_ghostty
   setup_zsh
   setup_mise
@@ -157,6 +189,9 @@ function main() {
   setup_bat
   setup_bundle
   setup_docker
+  setup_nono
+  setup_claude
+  setup_codex
   setup_herdr
   setup_ghost
 }
