@@ -53,6 +53,7 @@
       "LANG",
       "LC_*",
       "TMPDIR",
+      "HERDR_*",
       "MISE_*",
       "XDG_*"
     ],
