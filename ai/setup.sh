@@ -30,7 +30,7 @@ function setup_claude() {
   log info "Stowing Claude Code settings..."
   mkdir -p "${HOME}/.claude/themes"
   rm -f "${HOME}/.claude/settings.json" "${HOME}/.claude/themes/catppuccin-mocha.json"
-  /opt/homebrew/bin/stow --no-folding -d "${DEVENV_AI_DIR}/dotfiles" claude -t "${HOME}"
+  /opt/homebrew/bin/stow --adopt --no-folding -d "${DEVENV_AI_DIR}/dotfiles" claude -t "${HOME}"
   log info "Done."
 }
 
@@ -38,7 +38,7 @@ function setup_codex() {
   log info "Stowing Codex CLI config..."
   mkdir -p "${HOME}/.codex"
   rm -f "${HOME}/.codex/config.toml"
-  /opt/homebrew/bin/stow --no-folding -d "${DEVENV_AI_DIR}/dotfiles" codex -t "${HOME}"
+  /opt/homebrew/bin/stow --adopt --no-folding -d "${DEVENV_AI_DIR}/dotfiles" codex -t "${HOME}"
   log info "Done."
 }
 
@@ -50,4 +50,3 @@ function main() {
 }
 
 main
-

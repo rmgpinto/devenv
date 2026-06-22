@@ -3,7 +3,7 @@
 function main() {
   mkdir -p ~/Library/LaunchAgents/bin
   cd cron-scripts
-  /opt/homebrew/bin/stow outdated-packages -t ${HOME}/Library/LaunchAgents
+  /opt/homebrew/bin/stow --adopt outdated-packages -t ${HOME}/Library/LaunchAgents
   cd ..
   launchctl unload ~/Library/LaunchAgents/com.user.brewoutdatedpackages.plist > /dev/null
   launchctl load ~/Library/LaunchAgents/com.user.brewoutdatedpackages.plist
@@ -14,4 +14,3 @@ function main() {
 }
 
 main
-
