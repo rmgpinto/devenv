@@ -39,20 +39,25 @@ function require_op() {
 }
 
 # Cache a secret in the login keychain under service "${service}", account
-# "${account}". Delete any existing item first, then add a fresh one, so stale
-# attributes/ACLs from a prior sync don't linger (-U would update the value in
-# place but keep the old item).
+# "${account}". If the item already exists, update its value in place (-U) rather
+# than recreating it: delete + add mints a brand-new item with a fresh ACL, which
+# wipes any "Always Allow" grant the user gave a reader — so nono/codex would
+# re-prompt for every secret after each sync. Updating in place keeps the item
+# (and its ACL / partition-list grants) intact.
 #
-# -A makes the item readable by any local process without an interactive prompt.
-# We can't pin trust to the readers instead: nono is an ad-hoc/linker-signed,
-# per-version binary (mise installs each release under a new path with a new
-# cdhash), so a "-T <nono>" / "Always Allow" grant never survives an upgrade and
-# macOS re-prompts. The values are handed to the sandboxed agent as env vars
-# anyway, so -A doesn't widen the exposure on this host.
+# A brand-new item is added with -A so any local process can read it without an
+# interactive prompt. We can't pin trust to the readers instead: nono is an
+# ad-hoc/linker-signed, per-version binary (mise installs each release under a
+# new path with a new cdhash), so a "-T <nono>" / "Always Allow" grant never
+# survives an upgrade and macOS re-prompts. The values are handed to the
+# sandboxed agent as env vars anyway, so -A doesn't widen exposure on this host.
 function kc_add() {
   local service="$1" account="$2" value="$3"
-  "${SECURITY}" delete-generic-password -a "${account}" -s "${service}" >/dev/null 2>&1 || true
-  "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -A
+  if "${SECURITY}" find-generic-password -a "${account}" -s "${service}" >/dev/null 2>&1; then
+    "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -U
+  else
+    "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -A
+  fi
 }
 
 function sync_secrets() {
