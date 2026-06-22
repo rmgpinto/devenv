@@ -34,8 +34,9 @@ yq -p toml -o json '.env // {}' "${input}" | jq '
       "allow": [
         "$WORKDIR",
         "$HOME/.agents",
-        "$HOME/.claude",
-        "$HOME/.codex",
+        "$HOME/.config/claude",
+        "$HOME/.config/claude.lock",
+        "$HOME/.config/codex",
         "$HOME/.config/mise",
         "$HOME/.config/nono",
         "$HOME/.local/share/mise",
@@ -49,7 +50,8 @@ yq -p toml -o json '.env // {}' "${input}" | jq '
       ],
       "read_file": [
         "/Users/Shared/dev/CLAUDE.md",
-        "/Users/Shared/dev/AGENTS.md"
+        "/Users/Shared/dev/AGENTS.md",
+        "$HOME/.CFUserTextEncoding"
       ],
       "read": [
         "/bin",

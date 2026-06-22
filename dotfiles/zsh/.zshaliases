@@ -74,11 +74,12 @@ function cc() {
   branch=${branch//\//-}
   name="${cwd}${branch:+-${branch}}"
   NONO_AUTO_MIGRATE=1 nono run --profile ai --allow-cwd --workdir "$PWD" -- \
-    claude --dangerously-skip-permissions --name "$name" "$@"
+    /usr/bin/env CLAUDE_CONFIG_DIR="$HOME/.config/claude" \
+      claude --dangerously-skip-permissions --name "$name" "$@"
 }
 function cx() {
   NONO_AUTO_MIGRATE=1 nono run --profile ai --allow-cwd --workdir "$PWD" -- \
-    /usr/bin/env "${herdr_env[@]}" codex \
+    /usr/bin/env CODEX_HOME="$HOME/.config/codex" codex \
       --dangerously-bypass-approvals-and-sandbox \
       --dangerously-bypass-hook-trust "$@"
 }
@@ -221,4 +222,3 @@ alias halstg='NODE_ENV=staging hal'
 alias k='kubectl'
 alias kstg='kubectl --context do-ams3-stg-k8s-01'
 alias kprd='kubectl --context do-ams3-prd-k8s-01'
-

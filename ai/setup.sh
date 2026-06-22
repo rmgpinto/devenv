@@ -28,16 +28,17 @@ function setup_nono_profile() {
 
 function setup_claude() {
   log info "Stowing Claude Code settings..."
-  mkdir -p "${HOME}/.claude/themes"
-  rm -f "${HOME}/.claude/settings.json" "${HOME}/.claude/themes/catppuccin-mocha.json"
+  mkdir -p "${HOME}/.config/claude/themes"
+  [[ -L "${HOME}/.claude/settings.json" ]] && rm -f "${HOME}/.claude/settings.json"
+  [[ -L "${HOME}/.claude/themes/catppuccin-mocha.json" ]] && rm -f "${HOME}/.claude/themes/catppuccin-mocha.json"
   /opt/homebrew/bin/stow --adopt --no-folding -d "${DEVENV_AI_DIR}/dotfiles" claude -t "${HOME}"
   log info "Done."
 }
 
 function setup_codex() {
   log info "Stowing Codex CLI config..."
-  mkdir -p "${HOME}/.codex"
-  rm -f "${HOME}/.codex/config.toml"
+  mkdir -p "${HOME}/.config/codex"
+  [[ -L "${HOME}/.codex/config.toml" ]] && rm -f "${HOME}/.codex/config.toml"
   /opt/homebrew/bin/stow --adopt --no-folding -d "${DEVENV_AI_DIR}/dotfiles" codex -t "${HOME}"
   log info "Done."
 }

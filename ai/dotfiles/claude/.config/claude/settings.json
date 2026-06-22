@@ -1,14 +1,14 @@
 {
-  "env": {
-    "DISABLE_TELEMETRY": "1"
-  },
   "attribution": {
     "commit": "",
     "pr": ""
   },
-  "spinnerTipsEnabled": false,
   "effortLevel": "medium",
+  "env": {
+    "DISABLE_TELEMETRY": "1"
+  },
   "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
+  "spinnerTipsEnabled": false,
   "theme": "custom:catppuccin-mocha"
 }

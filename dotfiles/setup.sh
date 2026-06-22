@@ -100,8 +100,10 @@ function setup_docker() {
 
 function setup_herdr() {
   log info "Setting up Herdr..."
-  /opt/homebrew/bin/mise exec -- herdr integration install claude
-  /opt/homebrew/bin/mise exec -- herdr integration install codex
+  mkdir -p "${HOME}/.config/claude"
+  mkdir -p "${HOME}/.config/codex"
+  CLAUDE_CONFIG_DIR="${HOME}/.config/claude" /opt/homebrew/bin/mise x herdr -- herdr integration install claude
+  CODEX_HOME="${HOME}/.config/codex" /opt/homebrew/bin/mise x herdr -- herdr integration install codex
   log info "Done."
 }
 

@@ -2,7 +2,7 @@
 
 AI agents run as the host user under the nono `ai` profile. Boundaries:
 
-- **Writable:** `/Users/Shared/dev` (this workspace) and explicit agent state dirs such as `~/.claude`, `~/.codex`, and nono/mise caches.
+- **Writable:** `/Users/Shared/dev` (this workspace) and explicit agent state dirs such as `~/.config/claude`, `~/.config/codex`, and nono/mise caches.
 - **No access:** the rest of the host home or any other user directory unless the nono profile grants it.
 - **No sudo, no system modification, no mounted/network drives.**
 
