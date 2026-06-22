@@ -64,18 +64,9 @@ alias flushdns='sudo dscacheutil -flushcache sudo killall -HUP mDNSResponder'
 alias setdns='networksetup -setdnsservers Wi-Fi 1.1.1.1 1.0.0.1'
 alias unsetdns='networksetup -setdnsservers Wi-Fi 192.168.0.1'
 function cc() {
-  local root cwd branch name
-  root=$(/usr/bin/git -C "$PWD" worktree list --porcelain 2>/dev/null | awk '/^worktree / {print $2; exit}')
-  root=${root:-$PWD}
-  [ "$(basename "$(dirname "$root")")" = ".worktrees" ] && root=$(dirname "$(dirname "$root")")
-  cwd=$(basename "$root")
-  branch=$(/usr/bin/git -C "$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null)
-  [ "$branch" = HEAD ] && branch=
-  branch=${branch//\//-}
-  name="${cwd}${branch:+-${branch}}"
   NONO_AUTO_MIGRATE=1 nono run --profile ai --allow-cwd --workdir "$PWD" -- \
     /usr/bin/env CLAUDE_CONFIG_DIR="$HOME/.config/claude" \
-      claude --dangerously-skip-permissions --name "$name" "$@"
+      claude --dangerously-skip-permissions "$@"
 }
 function cx() {
   NONO_AUTO_MIGRATE=1 nono run --profile ai --allow-cwd --workdir "$PWD" -- \
