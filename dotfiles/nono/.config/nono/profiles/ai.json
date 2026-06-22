@@ -58,6 +58,7 @@
     ],
     "set_vars": {
       "CODEX_HOME": "$HOME/.config/codex",
+      "SSL_CERT_FILE": "/etc/ssl/cert.pem",
       "ES_STAGING_URL": "https://elastic.ghostfoundation.org",
       "ES_PRODUCTION_URL": "https://elastic.ghost.org",
       "PROMETHEUS_STAGING_URL": "https://prometheus.ghostfoundation.org",
@@ -70,5 +71,8 @@
     "nono-es-user": "ES_USER",
     "nono-es-staging-password": "ES_STAGING_PASSWORD",
     "nono-es-production-password": "ES_PRODUCTION_PASSWORD"
-  }
+  },
+  "unsafe_macos_seatbelt_rules": [
+    "(allow user-preference-read)"
+  ]
 }
