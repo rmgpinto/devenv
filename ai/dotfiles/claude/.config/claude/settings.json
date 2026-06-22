@@ -8,6 +8,20 @@
     "DISABLE_TELEMETRY": "1"
   },
   "fastMode": true,
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bash '/Users/rmgpinto/.config/claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ]
+  },
   "skipDangerousModePermissionPrompt": true,
   "spinnerTipsEnabled": false,
   "theme": "custom:catppuccin-mocha"
