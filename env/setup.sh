@@ -22,10 +22,11 @@ cd "${SCRIPT_DIR}"
 SHARED_WORKSPACE="/Users/Shared/dev"
 SECURITY="/usr/bin/security"
 SECRETS_FILE="${SCRIPT_DIR}/secrets"
-# nono reads its own keychain items at sandbox startup; -T must point at the
-# binary that actually runs (mise's nono, behind the version-stable `latest`
-# symlink that `command -v nono` resolves to).
-NONO_BIN="$(command -v nono 2>/dev/null || mise which nono 2>/dev/null || true)"
+# nono reads its own keychain items at sandbox startup; -T must point at the real
+# binary that runs. Resolve it via mise's absolute path — this script runs
+# non-interactively (no mise shell activation), so `command -v nono` would miss
+# it or return a shim, and -T on a shim wouldn't match the real reader.
+NONO_BIN="$(/opt/homebrew/bin/mise which nono 2>/dev/null || command -v nono 2>/dev/null || true)"
 
 function require_op() {
   if ! command -v op >/dev/null 2>&1; then
@@ -43,28 +44,37 @@ function require_op() {
 }
 
 # Cache a secret in the login keychain under service "${service}", account
-# "${account}". nono reads these items itself, non-interactively, when it sets up
-# the sandbox. Without a pre-authorized grant macOS pops an "Always Allow" dialog
-# that nono can't answer, so the read fails (the credential is skipped); clicking
-# it by hand doesn't stick either, since the per-app ACL grant is keyed to nono's
-# code signature and gets wiped whenever it changes.
+# "${account}". The reader differs per store, and so must the access grant:
 #
-# -T grants nono's binary read access up front, so it never prompts. Because the
-# grant is re-applied on every sync, recreating the item (delete + add) is fine —
-# there's no hand-granted ACL to preserve. After a `mise upgrade` that changes
-# nono's signature, re-run this script to refresh the grant. If nono can't be
-# located we fall back to -A (any app) so the sync still completes.
+#   - "nono" items are read by the nono binary itself when it sets up the sandbox,
+#     non-interactively. macOS won't let an ad-hoc-signed binary read a keychain
+#     item without an explicit grant — it pops an "Always Allow" dialog nono can't
+#     answer (and clicking it never sticks, since the grant is keyed to nono's
+#     signature). So these are granted to nono via -T. We also list `security`
+#     itself so this script can update the value in place on later syncs without
+#     re-triggering the one-time grant authorization.
+#   - "mise" items are read by the Apple-signed `security` CLI (via mise's
+#     exec()), which is trusted by default; -A keeps them readable with no prompt.
+#     Adding -T here would instead LOCK them to nono and make mise prompt.
+#
+# Authorizing the -T grant prompts once (click "Always Allow"); updating an
+# existing item in place avoids re-prompting on every sync.
 function kc_add() {
   local service="$1" account="$2" value="$3"
   local -a trust
-  if [[ -n "${NONO_BIN}" ]]; then
-    trust=(-T "${NONO_BIN}")
+  if [[ "${service}" == "nono" && -n "${NONO_BIN}" ]]; then
+    trust=(-T "${NONO_BIN}" -T "${SECURITY}")
   else
-    log info "  nono not found on PATH; granting ${account} to any app (-A)"
+    [[ "${service}" == "nono" ]] \
+      && log info "  nono not found; granting ${account} to any app (-A)"
     trust=(-A)
   fi
-  "${SECURITY}" delete-generic-password -a "${account}" -s "${service}" >/dev/null 2>&1 || true
-  "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" "${trust[@]}"
+  if "${SECURITY}" find-generic-password -a "${account}" -s "${service}" >/dev/null 2>&1; then
+    # Item exists: update the value in place, preserving its ACL grants.
+    "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -U
+  else
+    "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" "${trust[@]}"
+  fi
 }
 
 function sync_secrets() {
