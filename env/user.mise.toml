@@ -1,9 +1,5 @@
 # Installed to: ~/.config/mise/conf.d/devenv.toml
 
-[tools]
-doctl = "latest"
-kubectl = "latest"
-
 [settings]
 ruby.compile = false
 

@@ -34,7 +34,7 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     # Clear read-only bits on anything we own so `git worktree remove` (rm -rf)
     # doesn't trip over our own leftovers. Files owned by the *other* sandbox
     # user are skipped (chmod EPERM): e.g. a node_modules that Claude installed
-    # as ai-sandbox can't be chmod'd or deleted by rmgpinto — the shared ACL on
+    # as another user can't be chmod'd or deleted by rmgpinto — the shared ACL on
     # /Users/Shared/dev grants `delete` but not `delete_child`.
     chmod -R u+rwX "$WT_PATH" 2>/dev/null || true
     if ! git worktree remove --force "$WT_PATH"; then
@@ -44,7 +44,7 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
       echo "wt: couldn't remove $WT_PATH." >&2
       echo "    It holds files owned by '${owner:-another user}' that '$me' can't delete" >&2
       echo "    (no delete_child in the shared ACL — typical for a node_modules Claude" >&2
-      echo "     installed as ai-sandbox, or files copied in via Finder/mv/cp -a/ditto/rsync -a)." >&2
+      echo "     installed as another user, or files copied in via Finder/mv/cp -a/ditto/rsync -a)." >&2
       echo "    Blocking paths (first 20):" >&2
       find "$WT_PATH" \! -user "$me" 2>/dev/null | head -20 | sed 's/^/      /' >&2 || true
       echo "    Fix — as '${owner:-that owner}', either rm -rf the dir above, or run:" >&2
@@ -282,4 +282,3 @@ fi
 if [ -n "${WT_PROMPT_FILE:-}" ] && [ -n "$PROMPT" ]; then
   printf '%s' "$PROMPT" > "$WT_PROMPT_FILE"
 fi
-

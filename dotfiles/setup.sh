@@ -98,6 +98,13 @@ function setup_docker() {
   log info "Done."
 }
 
+function setup_herdr() {
+  log info "Setting up Herdr..."
+  /opt/homebrew/bin/mise exec -- herdr integration install claude
+  /opt/homebrew/bin/mise exec -- herdr integration install codex
+  log info "Done."
+}
+
 function setup_ghost() {
   log info "Setting up Ghost Toolbox..."
   ORIGINAL_DIR=$(pwd)
@@ -148,6 +155,7 @@ function main() {
   setup_bat
   setup_bundle
   setup_docker
+  setup_herdr
   setup_ghost
 }
 

@@ -6,7 +6,7 @@
 # Claude session can delegate work to a fresh agent on *another* repo.
 #
 # It does NOT spawn the zellij session. The zellij server is owned by the host
-# user (rmgpinto, socket mode 700); an agent runs as ai-sandbox via `sb` and
+# user (rmgpinto, socket mode 700); an agent may be running under a nono profile and
 # can't reach that socket. So this prints a one-command handoff — `wt-here
 # <path>` — for the host user to run, which materialises the session via zcode.
 # zcode's claude pane then reads .wt-claude-prompt and starts `cc "$prompt"`.

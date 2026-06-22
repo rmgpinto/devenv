@@ -28,11 +28,11 @@ op account add --address my.1password.com --signin
 Secrets are defined in 1Password and synced to env vars via `env/`:
 
 1. Define each secret as a 1Password item.
-2. List it in `env/secrets`: `<keychain-service>  <op://reference>  <host|sandbox|both>  <1password-account>`.
-3. Reference it (or any non-secret var) in the relevant scope template — `env/ai-sandbox.mise.toml`, `env/work.mise.toml`, `env/personal.mise.toml`, or `env/main-user.mise.toml` (main-user-global, loaded in every main-user shell regardless of cwd).
+2. List it in `env/secrets`: `<keychain-service>  <op://reference>  <1password-account>`.
+3. Reference it (or any non-secret var) in the relevant scope template — `env/ai.mise.toml`, `env/work.mise.toml`, `env/personal.mise.toml`, or `env/user.mise.toml` (user-global, loaded in every shell regardless of cwd).
 4. Run `env/setup.sh` (also run by `./devenv.sh`).
 
-`env/setup.sh` pulls each secret from its 1Password account (`op read --account`), caches it in the macOS keychain (host and/or the `ai-sandbox` user's keychain), and copies the scope templates to their destinations (`~ai-sandbox/.config/mise/config.toml`, `/Users/Shared/dev/work/.mise.toml`, `/Users/Shared/dev/personal/.mise.toml`, `~/.config/mise/conf.d/devenv.toml`). The `.mise.toml` files resolve secrets from the keychain at mise load time via `{{ exec(command='security find-generic-password …') }}` — no plaintext secret is written to disk.
+`env/setup.sh` pulls each secret from its 1Password account (`op read --account`), caches it in the macOS keychain, copies the mise scope templates, and renders the nono `ai` profile at `~/.config/nono/profiles/ai.json`. The files resolve secrets from the keychain at load time — no plaintext secret is written to disk.
 
 Caching in the keychain avoids `op read`'s latency on every shell/mise load:
 
@@ -46,4 +46,3 @@ security find-generic-password -a "${USER}" -s name-of-my-secret -w
 # delete secret from keychain
 security delete-generic-password -a "${USER}" -s name-of-my-secret
 ```
-

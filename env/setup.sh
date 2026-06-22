@@ -1,12 +1,12 @@
 #!/bin/zsh -eo pipefail
 
-# Regenerate env: 1Password -> macOS keychain -> per-scope mise files.
+# Regenerate env: 1Password -> macOS keychain -> per-scope mise/nono files.
 #
 # Run as the HOST user (needs `op` with biometric unlock). Reads env/secrets,
-# pulls each value from 1Password, stores it in the host and/or ai-sandbox
-# login keychain, then copies the *.mise.toml templates to their destinations.
-# The mise files reference the keychain at load time, so no plaintext secret is
-# ever written to disk.
+# pulls each value from 1Password, stores it in the host login keychain, then
+# copies the *.mise.toml templates to their destinations and renders the nono
+# AI profile. The mise/nono files reference the keychain at load time, so no
+# plaintext secret is ever written to disk.
 
 # This script handles plaintext secrets in shell variables. Force xtrace/verbose
 # OFF so a `set -x` / `setopt xtrace` inherited from ~/.zshenv (zsh sources it
@@ -18,12 +18,10 @@ source "../utils/log.sh"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "${SCRIPT_DIR}"
 
-SANDBOX_USER="ai-sandbox"
-SANDBOX_GROUP="ai-sandbox"
-SANDBOX_HOME="/Users/${SANDBOX_USER}"
 SHARED_WORKSPACE="/Users/Shared/dev"
 SECURITY="/usr/bin/security"
 SECRETS_FILE="${SCRIPT_DIR}/secrets"
+NONO_PROFILE="${HOME}/.config/nono/profiles/ai.json"
 
 function require_op() {
   if ! command -v op >/dev/null 2>&1; then
@@ -52,74 +50,92 @@ function kc_add_main_user() {
     -w "${value}" -T "${SECURITY}"
 }
 
-function kc_add_ai_sandbox() {
-  local service="$1" value="$2"
-  sudo -H -u "${SANDBOX_USER}" "${SECURITY}" delete-generic-password \
-    -a "${SANDBOX_USER}" -s "${service}" >/dev/null 2>&1 || true
-  sudo -H -u "${SANDBOX_USER}" "${SECURITY}" add-generic-password \
-    -a "${SANDBOX_USER}" -s "${service}" -w "${value}" -T "${SECURITY}"
+function kc_add_nono() {
+  local account="$1" value="$2"
+  "${SECURITY}" delete-generic-password \
+    -a "${account}" -s nono >/dev/null 2>&1 || true
+  "${SECURITY}" add-generic-password \
+    -a "${account}" -s nono -w "${value}" -T "${SECURITY}"
 }
 
 function sync_secrets() {
   log info "Syncing secrets from 1Password to keychain..."
 
   # Declare the loop locals ONCE, here — never inside the loop. Re-running
-  # `local service ref targets account value` each iteration re-declares
+  # `local service ref account value` each iteration re-declares
   # parameters that already exist in this scope, and zsh's typeset/local prints
   # an existing parameter as `name=value` to STDOUT. That leaks the previous
   # iteration's plaintext `value` (the secret) to the terminal on every
   # iteration after the first. (It's on stdout, not a trace — which is why an
   # xtrace guard or a 2>/dev/null redirect can't mute it.)
-  local line service ref targets account value
+  local line service ref account value
 
   # Fixed-position fields at the ends; the op:// reference (which may contain
   # spaces, e.g. "GitHub PAT") is everything in between:
-  #   service = $1, account = $NF, targets = $(NF-1), ref = $2..$(NF-2)
+  #   service = $1, account = $NF, ref = $2..$(NF-1)
   #
   # Read from a process substitution (not `grep | while`) so the loop runs in
   # THIS shell and `exit 1` aborts the whole script, not just a pipe subshell.
   while IFS= read -r line; do
     service=$(awk '{print $1}' <<<"${line}")
     account=$(awk '{print $NF}' <<<"${line}")
-    targets=$(awk '{print $(NF-1)}' <<<"${line}")
-    ref=$(awk '{$1=""; $(NF-1)=""; $NF=""; sub(/^[[:space:]]+/,""); sub(/[[:space:]]+$/,""); print}' <<<"${line}")
+    ref=$(awk '{$1=""; $NF=""; sub(/^[[:space:]]+/,""); sub(/[[:space:]]+$/,""); print}' <<<"${line}")
 
-    log info "  ${service} <- ${ref} [${targets}] (account: ${account})"
+    log info "  ${service} <- ${ref} (account: ${account})"
 
     if ! value=$(op read --account "${account}" "${ref}" 2>/dev/null); then
       log error "  failed to read ${ref} from 1Password account ${account}"
       exit 1
     fi
 
-    case "${targets}" in
-      main-user)  kc_add_main_user "${service}" "${value}" ;;
-      ai-sandbox) kc_add_ai_sandbox "${service}" "${value}" ;;
-      both)       kc_add_main_user "${service}" "${value}"; kc_add_ai_sandbox "${service}" "${value}" ;;
-      *)          log error "  unknown target '${targets}' for ${service}"; exit 1 ;;
-    esac
+    kc_add_main_user "${service}" "${value}"
   done < <(grep -vE '^[[:space:]]*(#|$)' "${SECRETS_FILE}")
+  log info "Done."
+}
+
+function sync_nono_ai_env_credentials() {
+  log info "Syncing AI mise env secrets to host nono keychain entries..."
+
+  local env_name service value
+  while read -r env_name service; do
+    if ! value=$("${SECURITY}" find-generic-password \
+      -a "${USER}" -s "${service}" -w 2>/dev/null); then
+      log error "  missing host keychain service '${service}' for ${env_name}"
+      exit 1
+    fi
+    kc_add_nono "${env_name}" "${value}"
+  done < <(
+    yq -p toml -o json '.env // {}' "${SCRIPT_DIR}/ai.mise.toml" \
+      | jq -r 'to_entries[]
+          | select(.value | type == "string")
+          | (.value | capture("find-generic-password -s (?<service>[^ ]+) -w").service?) as $service
+          | select($service != null)
+          | [.key, $service] | @tsv'
+  )
+
   log info "Done."
 }
 
 function write_mise_files() {
   log info "Writing per-scope mise files..."
 
-  # Main-user-global: mise loads ~/.config/mise/conf.d/*.toml in every main-user
-  # shell regardless of cwd, so these vars are available at the workspace root
-  # too. Main-user-only (ai-sandbox has its own home and never reads this).
+  # User-global: mise loads ~/.config/mise/conf.d/*.toml in every shell
+  # regardless of cwd, so these vars are available at the workspace root too.
   mkdir -p "${HOME}/.config/mise/conf.d"
-  install -m 0644 "${SCRIPT_DIR}/main-user.mise.toml" "${HOME}/.config/mise/conf.d/devenv.toml"
+  install -m 0644 "${SCRIPT_DIR}/user.mise.toml" "${HOME}/.config/mise/conf.d/devenv.toml"
 
-  # Main user, dir-scoped. Owned by the main user, world-readable is fine: the
-  # files contain keychain *lookups*, not secrets (and ai-sandbox can't read the
-  # main user's keychain even if it reads the file).
-  install -m 0644 "${SCRIPT_DIR}/work.mise.toml"     "${SHARED_WORKSPACE}/work/.mise.toml"
-  install -m 0644 "${SCRIPT_DIR}/personal.mise.toml" "${SHARED_WORKSPACE}/personal/.mise.toml"
+  # Dir-scoped. These files contain keychain lookups, not secrets.
+  [[ -f "${SCRIPT_DIR}/work.mise.toml" ]] \
+    && install -m 0644 "${SCRIPT_DIR}/work.mise.toml" "${SHARED_WORKSPACE}/work/.mise.toml"
+  [[ -f "${SCRIPT_DIR}/personal.mise.toml" ]] \
+    && install -m 0644 "${SCRIPT_DIR}/personal.mise.toml" "${SHARED_WORKSPACE}/personal/.mise.toml"
 
-  # ai-sandbox global config, owned by ai-sandbox, private.
-  sudo -u "${SANDBOX_USER}" mkdir -p "${SANDBOX_HOME}/.config/mise"
-  sudo install -o "${SANDBOX_USER}" -g "${SANDBOX_GROUP}" -m 0600 \
-    "${SCRIPT_DIR}/ai-sandbox.mise.toml" "${SANDBOX_HOME}/.config/mise/config.toml"
+  mkdir -p "$(dirname "${NONO_PROFILE}")"
+  local tmp
+  tmp=$(mktemp)
+  "${SCRIPT_DIR}/render-ai-nono-profile.sh" "${SCRIPT_DIR}/ai.mise.toml" "${tmp}"
+  install -m 0600 "${tmp}" "${NONO_PROFILE}"
+  rm -f "${tmp}"
 
   log info "Done."
 }
@@ -128,6 +144,7 @@ function main() {
   log info "Setting up env..."
   require_op
   sync_secrets
+  sync_nono_ai_env_credentials
   write_mise_files
   log info "Done."
 }

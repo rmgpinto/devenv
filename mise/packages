@@ -6,6 +6,10 @@ delta
 1password-cli
 zellij
 zjstatus # zellij plugin
+herdr
+cargo:nono-cli
+claude-code
+npm:@openai/codex
 ripgrep
 nodejs
 aqua:neovim/neovim # registry default is vfox; pick aqua for prebuilt binary
@@ -22,5 +26,7 @@ zoxide
 
 # Work
 gitleaks
+doctl
 gcloud
 sops
+kubectl
