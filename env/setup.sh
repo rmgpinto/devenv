@@ -22,6 +22,10 @@ cd "${SCRIPT_DIR}"
 SHARED_WORKSPACE="/Users/Shared/dev"
 SECURITY="/usr/bin/security"
 SECRETS_FILE="${SCRIPT_DIR}/secrets"
+# nono reads its own keychain items at sandbox startup; -T must point at the
+# binary that actually runs (mise's nono, behind the version-stable `latest`
+# symlink that `command -v nono` resolves to).
+NONO_BIN="$(command -v nono 2>/dev/null || mise which nono 2>/dev/null || true)"
 
 function require_op() {
   if ! command -v op >/dev/null 2>&1; then
@@ -39,25 +43,28 @@ function require_op() {
 }
 
 # Cache a secret in the login keychain under service "${service}", account
-# "${account}". If the item already exists, update its value in place (-U) rather
-# than recreating it: delete + add mints a brand-new item with a fresh ACL, which
-# wipes any "Always Allow" grant the user gave a reader — so nono/codex would
-# re-prompt for every secret after each sync. Updating in place keeps the item
-# (and its ACL / partition-list grants) intact.
+# "${account}". nono reads these items itself, non-interactively, when it sets up
+# the sandbox. Without a pre-authorized grant macOS pops an "Always Allow" dialog
+# that nono can't answer, so the read fails (the credential is skipped); clicking
+# it by hand doesn't stick either, since the per-app ACL grant is keyed to nono's
+# code signature and gets wiped whenever it changes.
 #
-# A brand-new item is added with -A so any local process can read it without an
-# interactive prompt. We can't pin trust to the readers instead: nono is an
-# ad-hoc/linker-signed, per-version binary (mise installs each release under a
-# new path with a new cdhash), so a "-T <nono>" / "Always Allow" grant never
-# survives an upgrade and macOS re-prompts. The values are handed to the
-# sandboxed agent as env vars anyway, so -A doesn't widen exposure on this host.
+# -T grants nono's binary read access up front, so it never prompts. Because the
+# grant is re-applied on every sync, recreating the item (delete + add) is fine —
+# there's no hand-granted ACL to preserve. After a `mise upgrade` that changes
+# nono's signature, re-run this script to refresh the grant. If nono can't be
+# located we fall back to -A (any app) so the sync still completes.
 function kc_add() {
   local service="$1" account="$2" value="$3"
-  if "${SECURITY}" find-generic-password -a "${account}" -s "${service}" >/dev/null 2>&1; then
-    "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -U
+  local -a trust
+  if [[ -n "${NONO_BIN}" ]]; then
+    trust=(-T "${NONO_BIN}")
   else
-    "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -A
+    log info "  nono not found on PATH; granting ${account} to any app (-A)"
+    trust=(-A)
   fi
+  "${SECURITY}" delete-generic-password -a "${account}" -s "${service}" >/dev/null 2>&1 || true
+  "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" "${trust[@]}"
 }
 
 function sync_secrets() {
