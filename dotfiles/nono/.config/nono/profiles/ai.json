@@ -18,7 +18,7 @@
       "$HOME/.config/mise",
       "$HOME/.config/nono",
       "$HOME/.local/share/mise",
-      "$HOME/.cache/mise",
+      "/Users/Shared/dev",
       "$HOME/dev",
       "/tmp",
       "/private/tmp"
