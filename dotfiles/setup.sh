@@ -129,15 +129,6 @@ function setup_codex() {
   log info "Done."
 }
 
-function setup_herdr() {
-  log info "Setting up Herdr..."
-  mkdir -p "${HOME}/.config/herdr"
-  /opt/homebrew/bin/stow --adopt --no-folding herdr -t "${HOME}"
-  CLAUDE_CONFIG_DIR="${HOME}/.config/claude" /opt/homebrew/bin/mise x herdr -- herdr integration install claude
-  CODEX_HOME="${HOME}/.config/codex" /opt/homebrew/bin/mise x herdr -- herdr integration install codex
-  log info "Done."
-}
-
 function setup_ghost() {
   log info "Setting up Ghost Toolbox..."
   ORIGINAL_DIR=$(pwd)
@@ -192,7 +183,6 @@ function main() {
   setup_nono
   setup_claude
   setup_codex
-  setup_herdr
   setup_ghost
 }
 

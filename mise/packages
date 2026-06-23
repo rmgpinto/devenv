@@ -6,7 +6,6 @@ delta
 1password-cli
 zellij
 zjstatus # zellij plugin
-herdr
 cargo:nono-cli
 claude-code
 npm:@openai/codex
