@@ -40,7 +40,9 @@
   },
   "network": {
     "block": false,
-    "listen_port": [1455]
+    "listen_port": [
+      1455
+    ]
   },
   "environment": {
     "allow_vars": [
@@ -53,7 +55,6 @@
       "LANG",
       "LC_*",
       "TMPDIR",
-      "HERDR_*",
       "MISE_*",
       "XDG_*"
     ],
