@@ -2,7 +2,7 @@
 
 AI agents run as the host user under the nono `ai` profile. Boundaries:
 
-- **Writable:** `/Users/Shared/dev` (this workspace) and explicit agent state dirs such as `~/.config/claude`, `~/.config/codex`, and nono/mise caches.
+- **Writable:** `~/dev` (this workspace) and explicit agent state dirs such as `~/.config/claude`, `~/.config/codex`, and nono/mise caches.
 - **No access:** the rest of the host home or any other user directory unless the nono profile grants it.
 - **No sudo, no system modification, no mounted/network drives.**
 
@@ -10,7 +10,7 @@ Host-app configs (Ghostty, zsh, git, nvim, k9s, lazygit, starship, ssh, gh, clau
 
 # Workspace layout
 
-`/Users/Shared/dev` is a container for many independent repos, not a single project:
+`~/dev` is a container for many independent repos, not a single project:
 
 - `personal/` — personal projects
 - `work/` — work projects
@@ -30,7 +30,7 @@ Repos in this workspace may use git worktrees under `<repo>/.worktrees/<branch>/
 To hand a task to a fresh agent on a *different* repo, prepare a worktree there and seed its prompt with `bin/wt-spawn` (the non-interactive guts of `bin/wt`):
 
 ```
-/Users/Shared/dev/personal/devenv/bin/wt-spawn <repo> <branch> --prompt "<task for the sub-agent>"
+~/dev/personal/devenv/bin/wt-spawn <repo> <branch> --prompt "<task for the sub-agent>"
 ```
 
 It clones/pulls the repo under `work/`, creates the worktree, and seeds `.wt-claude-prompt`, printing the worktree's absolute path on stdout. It does **not** open the zellij session. So `wt-spawn` ends by printing a handoff line — surface it to the user verbatim:
@@ -43,7 +43,7 @@ When the user runs `wt-here` in their own shell, `zcode` spawns the session and 
 
 # This file
 
-The source-of-truth is `personal/devenv/CLAUDE.md`. `/Users/Shared/dev/CLAUDE.md` is a symlink to it (set up by `personal/devenv/dotfiles/setup.sh`), so any Claude instance launched anywhere under `/Users/Shared/dev` discovers these instructions via the parent-directory walk.
+The source-of-truth is `personal/devenv/CLAUDE.md`. `~/dev/CLAUDE.md` is a symlink to it (set up by `personal/devenv/dotfiles/setup.sh`), so any Claude instance launched anywhere under `~/dev` discovers these instructions via the parent-directory walk.
 
 # Secrets & env vars
 
@@ -56,7 +56,7 @@ Env vars and secrets are defined once under `personal/devenv/env/` and regenerat
 
 To change a secret: edit its 1Password item (and `env/secrets` if the reference/service changes), then re-run `env/setup.sh`. To add a scoped var: edit the relevant `*.mise.toml` template (or the nono profile for the AI sandbox) and re-run. To expose a new AI secret to the sandbox, add it to `env/secrets` and map its `nono-<name>` account to an env var in the nono profile's `env_credentials`. (`GH_TOKEN` and `GITHUB_TOKEN` come from two `env/secrets` rows pointing at the same 1Password item, since `env_credentials` maps one keychain account to one env var.)
 
-Work vs personal env vars are **directory-scoped** — `work/.mise.toml` loads only under `work/`, `personal/.mise.toml` only under `personal/`. Vars that must be available everywhere regardless of cwd, e.g. at the `/Users/Shared/dev` root, go in `user.mise.toml` instead, which mise loads globally from `~/.config/mise/conf.d/`.
+Work vs personal env vars are **directory-scoped** — `work/.mise.toml` loads only under `work/`, `personal/.mise.toml` only under `personal/`. Vars that must be available everywhere regardless of cwd, e.g. at the `~/dev` root, go in `user.mise.toml` instead, which mise loads globally from `~/.config/mise/conf.d/`.
 
 # Environment
 

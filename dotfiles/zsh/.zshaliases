@@ -195,16 +195,16 @@ function wt-here() {
 
 function wtl() {
   if [ -t 1 ]; then
-    command ls -1d /Users/Shared/dev/work/*/.worktrees/*/ | sed $'s/.*/\e[1;34m&\e[0m/'
+    command ls -1d "$HOME"/dev/work/*/.worktrees/*/ | sed $'s/.*/\e[1;34m&\e[0m/'
   else
-    command ls -1d /Users/Shared/dev/work/*/.worktrees/*/
+    command ls -1d "$HOME"/dev/work/*/.worktrees/*/
   fi
 }
 
 function wtg() {
   local paths display sel idx
   paths=$(wtl)
-  display=$(echo "$paths" | sed -e 's|^/Users/Shared/dev/work/||' -e 's|/\.worktrees/|-|' -e 's|/$||')
+  display=$(echo "$paths" | sed -e "s|^$HOME/dev/work/||" -e 's|/\.worktrees/|-|' -e 's|/$||')
   sel=$(echo "$display" | gum filter --header "Pick a worktree" --placeholder "type to filter")
   [ -z "$sel" ] && return 1
   idx=$(echo "$display" | grep -nFx -- "$sel" | head -1 | cut -d: -f1)

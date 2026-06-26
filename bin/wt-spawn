@@ -24,7 +24,8 @@
 
 set -euo pipefail
 
-WORK_DIR="${WT_WORK_DIR:-/Users/Shared/dev/work}"
+DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
+WORK_DIR="${WT_WORK_DIR:-${DEV_WORKSPACE}/work}"
 ORG="${WT_ORG:-TryGhost}"
 
 FROM_PR=0

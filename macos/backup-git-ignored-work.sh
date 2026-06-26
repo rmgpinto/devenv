@@ -1,5 +1,6 @@
 #!/bin/zsh -eo pipefail
 
+
 function main() {
   mkdir -p ~/Library/LaunchAgents/bin
   cd cron-scripts

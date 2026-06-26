@@ -19,7 +19,7 @@ source "../utils/log.sh"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "${SCRIPT_DIR}"
 
-SHARED_WORKSPACE="/Users/Shared/dev"
+DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
 SECURITY="/usr/bin/security"
 SECRETS_FILE="${SCRIPT_DIR}/secrets"
 # nono reads its own keychain items at sandbox startup; -T must point at the real
@@ -122,10 +122,11 @@ function write_mise_files() {
   install -m 0644 "${SCRIPT_DIR}/user.mise.toml" "${HOME}/.config/mise/conf.d/devenv.toml"
 
   # Dir-scoped. These files contain keychain lookups, not secrets.
+  mkdir -p "${DEV_WORKSPACE}/work" "${DEV_WORKSPACE}/personal"
   [[ -f "${SCRIPT_DIR}/work.mise.toml" ]] \
-    && install -m 0644 "${SCRIPT_DIR}/work.mise.toml" "${SHARED_WORKSPACE}/work/.mise.toml"
+    && install -m 0644 "${SCRIPT_DIR}/work.mise.toml" "${DEV_WORKSPACE}/work/.mise.toml"
   [[ -f "${SCRIPT_DIR}/personal.mise.toml" ]] \
-    && install -m 0644 "${SCRIPT_DIR}/personal.mise.toml" "${SHARED_WORKSPACE}/personal/.mise.toml"
+    && install -m 0644 "${SCRIPT_DIR}/personal.mise.toml" "${DEV_WORKSPACE}/personal/.mise.toml"
 
   log info "Done."
 }

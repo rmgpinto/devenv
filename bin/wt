@@ -6,7 +6,8 @@
 
 set -euo pipefail
 
-WORK_DIR="/Users/Shared/dev/work"
+DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
+WORK_DIR="${WT_WORK_DIR:-${DEV_WORKSPACE}/work}"
 ORG="TryGhost"
 
 mkdir -p "$WORK_DIR"
@@ -35,7 +36,7 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     # doesn't trip over our own leftovers. Files owned by the *other* sandbox
     # user are skipped (chmod EPERM): e.g. a node_modules that Claude installed
     # as another user can't be chmod'd or deleted by rmgpinto — the shared ACL on
-    # /Users/Shared/dev grants `delete` but not `delete_child`.
+    # The workspace ACL grants `delete` but not `delete_child`.
     chmod -R u+rwX "$WT_PATH" 2>/dev/null || true
     if ! git worktree remove --force "$WT_PATH"; then
       me=$(id -un)
@@ -53,7 +54,7 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
       exit 1
     fi
     [ -n "$BRANCH" ] && git branch -D "$BRANCH" 2>/dev/null || true
-    [ -n "${WT_CD_FILE:-}" ] && echo "/Users/Shared/dev" > "$WT_CD_FILE"
+    [ -n "${WT_CD_FILE:-}" ] && echo "$DEV_WORKSPACE" > "$WT_CD_FILE"
     # If we were inside the worktree's own zellij session, kill it now — last,
     # and from a detached child so wt and the zsh `wt` wrapper finish first
     # (the kill closes this pane; you drop back to the shell that launched

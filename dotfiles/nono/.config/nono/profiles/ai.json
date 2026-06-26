@@ -18,7 +18,6 @@
       "$HOME/.config/mise",
       "$HOME/.config/nono",
       "$HOME/.local/share/mise",
-      "/Users/Shared/dev",
       "$HOME/dev",
       "/tmp",
       "/private/tmp"
@@ -27,8 +26,8 @@
       "$HOME/.claude.json"
     ],
     "read_file": [
-      "/Users/Shared/dev/CLAUDE.md",
-      "/Users/Shared/dev/AGENTS.md",
+      "$HOME/dev/CLAUDE.md",
+      "$HOME/dev/AGENTS.md",
       "$HOME/.CFUserTextEncoding"
     ],
     "read": [
@@ -59,7 +58,6 @@
       "XDG_*"
     ],
     "set_vars": {
-      "CODEX_HOME": "$HOME/.config/codex",
       "SSL_CERT_FILE": "/etc/ssl/cert.pem",
       "ES_STAGING_URL": "https://elastic.ghostfoundation.org",
       "ES_PRODUCTION_URL": "https://elastic.ghost.org",

@@ -2,13 +2,14 @@
 
 source "../utils/log.sh"
 
-SHARED_WORKSPACE="/Users/Shared/dev"
+DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
 
 function setup_workspace() {
   log info "Setting up workspace agent files..."
-  rm -f "${SHARED_WORKSPACE}/CLAUDE.md" "${SHARED_WORKSPACE}/AGENTS.md"
-  ln -s personal/devenv/CLAUDE.md "${SHARED_WORKSPACE}/CLAUDE.md"
-  ln -s CLAUDE.md "${SHARED_WORKSPACE}/AGENTS.md"
+  mkdir -p "${DEV_WORKSPACE}"
+  rm -f "${DEV_WORKSPACE}/CLAUDE.md" "${DEV_WORKSPACE}/AGENTS.md"
+  ln -s personal/devenv/CLAUDE.md "${DEV_WORKSPACE}/CLAUDE.md"
+  ln -s CLAUDE.md "${DEV_WORKSPACE}/AGENTS.md"
   log info "Done."
 }
 
@@ -132,12 +133,12 @@ function setup_codex() {
 function setup_ghost() {
   log info "Setting up Ghost Toolbox..."
   ORIGINAL_DIR=$(pwd)
-  TOOLBOX_DIR=/Users/Shared/dev/work/Toolbox
+  TOOLBOX_DIR="${DEV_WORKSPACE}/work/Toolbox"
   if [[ -d ${TOOLBOX_DIR} ]]; then
     cd ${TOOLBOX_DIR}/stow
     ./stow.sh
   else
-    log error "Toolbox not found in /Users/Shared/dev/work."
+    log error "Toolbox not found in ${DEV_WORKSPACE}/work."
   fi
   cd ${ORIGINAL_DIR}
   log info "Done."
@@ -149,7 +150,7 @@ function setup_ghost() {
   log info "Done."
   log info "Setting up Ghost HAL..."
   ORIGINAL_DIR=$(pwd)
-  HAL_DIR=/Users/Shared/dev/work/HAL
+  HAL_DIR="${DEV_WORKSPACE}/work/HAL"
   if [[ -d ${HAL_DIR} ]]; then
     cd ${HAL_DIR}
     /opt/homebrew/bin/mise trust
@@ -158,7 +159,7 @@ function setup_ghost() {
     /opt/homebrew/bin/mise exec -- yarn unlink 2>/dev/null || true
     /opt/homebrew/bin/mise exec -- yarn link
   else
-    log error "HAL not found in /Users/Shared/dev/work."
+    log error "HAL not found in ${DEV_WORKSPACE}/work."
   fi
   cd ${ORIGINAL_DIR}
   log info "Done."
