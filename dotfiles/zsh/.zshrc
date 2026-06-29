@@ -30,7 +30,7 @@ export EDITOR="nvim"
 
 # mise
 export MISE_LOG_LEVEL=warn
-export MISE_TRUSTED_CONFIG_PATHS=/Users/Shared/dev
+export MISE_TRUSTED_CONFIG_PATHS="${HOME}/dev"
 eval "$(mise activate zsh)"
 
 # zellij
@@ -99,7 +99,7 @@ export GUM_SPIN_TITLE_FOREGROUND="#cdd6f4"
 PATH="${PATH}:${HOME}/.yarn/bin"
 
 # devenv scripts
-PATH="/Users/Shared/dev/personal/devenv/bin:${PATH}"
+PATH="${HOME}/dev/personal/devenv/bin:${PATH}"
 
 # aliases
 if [ -f ~/.zshaliases ]; then
