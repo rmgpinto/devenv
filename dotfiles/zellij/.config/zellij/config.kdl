@@ -125,6 +125,18 @@ keybinds clear-defaults=true {
         unbind "Ctrl s"
         bind "Super s" { SwitchToMode "Scroll"; }
         bind "d" { Detach; }
+        bind "p" {
+            Run "zsh" "-lc" "/Users/rmgpinto/dev/personal/devenv/bin/zellij-open-pr" {
+                close_on_exit true
+            };
+            SwitchToMode "Normal"
+        }
+        bind "a" {
+            Run "zsh" "-lc" "/Users/rmgpinto/dev/personal/devenv/bin/zellij-open-gha" {
+                close_on_exit true
+            };
+            SwitchToMode "Normal"
+        }
         bind "w" {
             LaunchOrFocusPlugin "session-manager" {
                 floating true
@@ -248,9 +260,15 @@ plugins {
 
         format_left   "#[bg=$base]{mode}#[bg=$lavender,fg=$crust,bold]  {session} #[bg=$base,fg=$lavender]#[bg=$base]{tabs}"
         format_center "{notifications}"
+        format_right  "{command_github}"
         format_space  "#[bg=$base]"
         format_hide_on_overlength "true"
         format_precedence "lrc"
+
+        command_github_command "/Users/rmgpinto/dev/personal/devenv/bin/zjstatus-github"
+        command_github_format "{stdout}"
+        command_github_interval "60"
+        command_github_rendermode "dynamic"
 
         border_enabled  "false"
         border_char     "─"

@@ -1,0 +1,48 @@
+#!/bin/zsh
+set -euo pipefail
+
+export PATH="$HOME/.local/share/mise/shims:$PATH"
+
+GIT="${GIT:-/usr/bin/git}"
+GH="${GH:-$(command -v gh 2>/dev/null || true)}"
+JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
+ZELLIJ="${ZELLIJ:-$(command -v zellij 2>/dev/null || true)}"
+
+repo_dir="$PWD"
+
+if ! "$GIT" -C "$repo_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  if [[ -n "$ZELLIJ" && -n "$JQ" ]]; then
+    panes_json="$("$ZELLIJ" action list-panes --json --all --state --tab 2>/dev/null || true)"
+    pane_cwd="$("$JQ" -r '[.[] | select(.is_focused == true and (.is_plugin | not) and ((.pane_cwd // "") != "")) | .pane_cwd][0] // empty' <<<"$panes_json" 2>/dev/null || true)"
+
+    if [[ -n "$pane_cwd" ]]; then
+      repo_dir="$pane_cwd"
+    fi
+  fi
+fi
+
+if [[ -z "$GH" || -z "$JQ" ]]; then
+  exit 0
+fi
+
+if ! "$GIT" -C "$repo_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  exit 0
+fi
+
+branch="$("$GIT" -C "$repo_dir" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+if [[ -z "$branch" || "$branch" == "HEAD" ]]; then
+  exit 0
+fi
+
+url="$(cd "$repo_dir" && "$GH" run list --branch "$branch" --limit 1 --json url --jq '.[0].url // empty' 2>/dev/null || true)"
+
+if [[ -z "$url" ]]; then
+  repo_url="$(cd "$repo_dir" && "$GH" repo view --json url --jq '.url // empty' 2>/dev/null || true)"
+  if [[ -n "$repo_url" ]]; then
+    url="${repo_url}/actions"
+  fi
+fi
+
+if [[ -n "$url" ]]; then
+  /usr/bin/open "$url"
+fi

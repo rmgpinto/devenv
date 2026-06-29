@@ -1,0 +1,116 @@
+#!/bin/zsh
+set -euo pipefail
+
+export PATH="$HOME/.local/share/mise/shims:$PATH"
+
+GIT="${GIT:-/usr/bin/git}"
+GH="${GH:-$(command -v gh 2>/dev/null || true)}"
+JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
+ZELLIJ="${ZELLIJ:-$(command -v zellij 2>/dev/null || true)}"
+
+color_base="#1e1e2e"
+color_black="#181825"
+color_crust="#11111b"
+color_blue="#89b4fa"
+color_sapphire="#74c7ec"
+color_green="#a6e3a1"
+color_teal="#94e2d5"
+color_flamingo="#f2cdcd"
+color_lavender="#b4befe"
+color_mauve="#cba6f7"
+color_peach="#fab387"
+color_red="#f38ba8"
+color_yellow="#f9e2af"
+
+repo_dir="$PWD"
+
+if ! "$GIT" -C "$repo_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  if [[ -n "$ZELLIJ" && -n "$JQ" ]]; then
+    panes_json="$("$ZELLIJ" action list-panes --json --all --state --tab 2>/dev/null || true)"
+    pane_cwd="$("$JQ" -r '[.[] | select(.is_focused == true and (.is_plugin | not) and ((.pane_cwd // "") != "")) | .pane_cwd][0] // empty' <<<"$panes_json" 2>/dev/null || true)"
+
+    if [[ -n "$pane_cwd" ]]; then
+      repo_dir="$pane_cwd"
+    fi
+  fi
+fi
+
+if ! "$GIT" -C "$repo_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  exit 0
+fi
+
+branch="$("$GIT" -C "$repo_dir" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+if [[ -z "$branch" || "$branch" == "HEAD" ]]; then
+  exit 0
+fi
+
+branch_segment="#[bg=${color_blue},fg=${color_black},bold]  #[bg=${color_blue},fg=${color_crust},bold]${branch} "
+pr_segment=""
+gha_segment=""
+
+if [[ -z "$GH" || -z "$JQ" ]]; then
+  printf '%s\n' "$branch_segment"
+  exit 0
+fi
+
+pr_json="$(cd "$repo_dir" && "$GH" pr view --json number,state,mergedAt 2>/dev/null || true)"
+has_pr=false
+if [[ -n "$pr_json" ]]; then
+  number="$("$JQ" -r '.number // empty' <<<"$pr_json")"
+  state="$("$JQ" -r '.state // empty' <<<"$pr_json")"
+  merged_at="$("$JQ" -r '.mergedAt // empty' <<<"$pr_json")"
+
+  if [[ -n "$number" ]]; then
+    has_pr=true
+    case "$state:$merged_at" in
+      MERGED:*|*:20*) pr_icon=""; pr_color="$color_mauve" ;;
+      OPEN:*)         pr_icon=""; pr_color="$color_green" ;;
+      CLOSED:*)       pr_icon=""; pr_color="$color_red" ;;
+      *)              pr_icon=""; pr_color="$color_yellow" ;;
+    esac
+
+    pr_segment="#[bg=${color_lavender},fg=${color_crust},bold] PR #${number} #[bg=${color_lavender},fg=${color_black},bold]${pr_icon} "
+  fi
+elif [[ "$branch" != "main" ]]; then
+  pr_color="$color_yellow"
+  pr_segment="#[bg=${color_lavender},fg=${color_crust},bold] PR #[bg=${color_lavender},fg=${color_black},bold]↑ "
+fi
+
+checks_json=""
+if [[ "$has_pr" == "true" ]]; then
+  checks_json="$(cd "$repo_dir" && "$GH" pr checks --json bucket 2>/dev/null || true)"
+fi
+if [[ -n "$checks_json" ]] && [[ "$("$JQ" 'length' <<<"$checks_json")" -gt 0 ]]; then
+  if "$JQ" -e 'any(.bucket == "fail" or .bucket == "cancel")' <<<"$checks_json" >/dev/null; then
+    gha_icon=""
+    gha_color="$color_red"
+  elif "$JQ" -e 'any(.bucket == "pending")' <<<"$checks_json" >/dev/null; then
+    gha_icon=""
+    gha_color="$color_yellow"
+  elif "$JQ" -e 'all(.bucket == "pass" or .bucket == "skipping")' <<<"$checks_json" >/dev/null; then
+    gha_icon=""
+    gha_color="$color_green"
+  else
+    gha_icon=""
+    gha_color="$color_yellow"
+  fi
+
+  gha_segment="#[bg=${color_mauve},fg=${color_crust},bold] GHA #[bg=${color_mauve},fg=${color_black},bold]${gha_icon} "
+fi
+
+out=""
+previous_bg="$color_base"
+
+if [[ -n "$gha_segment" ]]; then
+  out="${out}#[bg=${previous_bg},fg=${color_mauve}]${gha_segment}"
+  previous_bg="$color_mauve"
+fi
+
+if [[ -n "$pr_segment" ]]; then
+  out="${out}#[bg=${previous_bg},fg=${color_lavender}]${pr_segment}"
+  previous_bg="$color_lavender"
+fi
+
+out="${out}#[bg=${previous_bg},fg=${color_blue}]${branch_segment}"
+
+printf '%s\n' "$out"
