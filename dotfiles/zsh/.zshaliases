@@ -81,6 +81,7 @@ function cx() {
       --dangerously-bypass-hook-trust "$@"
 }
 alias tf='terraform'
+alias j='just'
 alias r='rails'
 alias credentials-edit='rails credentials:edit'
 alias credentials-edit-dev='rails credentials:edit --environment development'
