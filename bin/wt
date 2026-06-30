@@ -9,15 +9,24 @@ set -euo pipefail
 DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
 WORK_DIR="${WT_WORK_DIR:-${DEV_WORKSPACE}/work}"
 ORG="TryGhost"
+AGENT_STATE_HOOK="$(cd "$(dirname "$0")" && pwd)/agent-state-hook"
 
 mkdir -p "$WORK_DIR"
 
 # --- 0. If we're inside a worktree, offer to delete it ------------------
+WT_PATH=$(git rev-parse --show-toplevel 2>/dev/null || true)
 git_dir=$(git rev-parse --git-dir 2>/dev/null || true)
-if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
-  WT_PATH=$(git rev-parse --show-toplevel)
+in_worktree_path=0
+if [ -n "$WT_PATH" ] && [ "$(basename "$(dirname "$WT_PATH")")" = ".worktrees" ]; then
+  in_worktree_path=1
+fi
+if { [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; } || [ "$in_worktree_path" -eq 1 ]; then
   if gum confirm --default=false "Delete worktree at $WT_PATH?"; then
-    MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')
+    if [ "$in_worktree_path" -eq 1 ]; then
+      MAIN_REPO=$(dirname "$(dirname "$WT_PATH")")
+    else
+      MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')
+    fi
     BRANCH=$(git -C "$WT_PATH" rev-parse --abbrev-ref HEAD 2>/dev/null)
     [ "$BRANCH" = HEAD ] && BRANCH=
     # zellij rejects '/' in session names — slugify like WT_DIR below.
@@ -31,6 +40,7 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     # it here (that would take wt down before the removal) — deferred to the end.
     if [ -n "$SESSION" ] && [ "${ZELLIJ_SESSION_NAME:-}" != "$SESSION" ]; then
       zellij delete-session --force "$SESSION" || true
+      "$AGENT_STATE_HOOK" prune || true
     fi
     # Clear read-only bits on anything we own so `git worktree remove` (rm -rf)
     # doesn't trip over our own leftovers. Files owned by the *other* sandbox
@@ -38,7 +48,14 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     # as another user can't be chmod'd or deleted by rmgpinto — the shared ACL on
     # The workspace ACL grants `delete` but not `delete_child`.
     chmod -R u+rwX "$WT_PATH" 2>/dev/null || true
-    if ! git worktree remove --force "$WT_PATH"; then
+    if git -C "$MAIN_REPO" worktree list --porcelain 2>/dev/null | awk '/^worktree / {print $2}' | grep -Fxq "$WT_PATH"; then
+      remove_failed=0
+      git -C "$MAIN_REPO" worktree remove --force "$WT_PATH" || remove_failed=1
+    else
+      remove_failed=0
+      rm -rf "$WT_PATH" || remove_failed=1
+    fi
+    if [ "$remove_failed" -ne 0 ]; then
       me=$(id -un)
       blocker=$(find "$WT_PATH" \! -user "$me" -print 2>/dev/null | head -1)
       owner=$(stat -f '%Su' "$blocker" 2>/dev/null)
@@ -62,6 +79,7 @@ if [ -n "$git_dir" ] && echo "$git_dir" | grep -q '/worktrees/'; then
     if [ -n "$SESSION" ] && [ "${ZELLIJ_SESSION_NAME:-}" = "$SESSION" ]; then
       ( sleep 1
         zellij delete-session --force "$SESSION"
+        "$AGENT_STATE_HOOK" prune || true
       ) </dev/null &
       disown 2>/dev/null || true
     fi
