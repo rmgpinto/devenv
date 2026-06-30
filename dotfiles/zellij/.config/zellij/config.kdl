@@ -254,7 +254,7 @@ plugins {
 
         command_github_command "/Users/rmgpinto/dev/personal/devenv/bin/zjstatus-github"
         command_github_format "{stdout}"
-        command_github_interval "60"
+        command_github_interval "5"
         command_github_rendermode "dynamic"
 
         border_enabled  "false"
