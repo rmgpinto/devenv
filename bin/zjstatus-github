@@ -24,15 +24,15 @@ color_yellow="#f9e2af"
 
 repo_dir="$PWD"
 
-if ! "$GIT" -C "$repo_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  if [[ -n "$ZELLIJ" && -n "$JQ" ]]; then
-    panes_json="$("$ZELLIJ" action list-panes --json --all --state --tab 2>/dev/null || true)"
-    pane_cwd="$("$JQ" -r '[.[] | select(.is_focused == true and (.is_plugin | not) and ((.pane_cwd // "") != "")) | .pane_cwd][0] // empty' <<<"$panes_json" 2>/dev/null || true)"
+if [[ -n "$ZELLIJ" && -n "$JQ" ]]; then
+  panes_json="$("$ZELLIJ" action list-panes --json --all --state --tab 2>/dev/null || true)"
 
-    if [[ -n "$pane_cwd" ]]; then
+  while IFS= read -r pane_cwd; do
+    if "$GIT" -C "$pane_cwd" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
       repo_dir="$pane_cwd"
+      break
     fi
-  fi
+  done < <("$JQ" -r '[.[] | select((.is_plugin | not) and ((.pane_cwd // "") != ""))] | sort_by(if ((.pane_title // .title // .name // "") == "nvim") then 0 elif .is_focused then 1 else 2 end) | .[].pane_cwd' <<<"$panes_json" 2>/dev/null || true)
 fi
 
 if ! "$GIT" -C "$repo_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -66,14 +66,14 @@ if [[ -n "$pr_json" ]]; then
       MERGED:*|*:20*) pr_icon=""; pr_color="$color_mauve" ;;
       OPEN:*)         pr_icon=""; pr_color="$color_green" ;;
       CLOSED:*)       pr_icon=""; pr_color="$color_red" ;;
-      *)              pr_icon=""; pr_color="$color_yellow" ;;
+      *)              pr_icon="⇡"; pr_color="$color_yellow" ;;
     esac
 
     pr_segment="#[bg=${color_lavender},fg=${color_crust},bold] PR #${number} #[bg=${color_lavender},fg=${color_black},bold]${pr_icon} "
   fi
 elif [[ "$branch" != "main" ]]; then
   pr_color="$color_yellow"
-  pr_segment="#[bg=${color_lavender},fg=${color_crust},bold] PR #[bg=${color_lavender},fg=${color_black},bold]↑ "
+  pr_segment="#[bg=${color_lavender},fg=${color_crust},bold] PR #[bg=${color_lavender},fg=${color_black},bold]⇡ "
 fi
 
 checks_json=""
