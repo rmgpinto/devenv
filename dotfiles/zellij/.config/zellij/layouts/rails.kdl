@@ -9,13 +9,13 @@ layout {
         pane split_direction="vertical" size="70%" {
             pane {
               name "nvim"
-              size "60%"
+              size "40%"
               command "zsh"
               args "-c" "CWD=$(basename \"$PWD\"); BRANCH=$(/usr/bin/git -C \"$PWD\" rev-parse --abbrev-ref HEAD 2>/dev/null); [ \"$BRANCH\" = HEAD ] && BRANCH=; SESSION=\"${CWD}${BRANCH:+-${BRANCH}}\"; SESSION=$(printf '%s' \"$SESSION\" | tr / -); (( ${#SESSION} > 60 )) && SESSION=\"${SESSION:0:60}\"; SOCK=/tmp/nvim-${SESSION}.sock; rm -f \"$SOCK\"; ~/.local/share/mise/shims/nvim --listen \"$SOCK\""
             }
-            pane name="claude" size="40%" {
+            pane name="claude" size="60%" {
                 command "zsh"
-                args "-ic" "cc"
+                args "-ic" "agent=cc; pane=claude; [[ \"$PWD\" == \"$HOME/dev/personal/\"* ]] && { agent=cx; pane=codex; }; zellij action rename-pane \"$pane\" 2>/dev/null || true; \"$agent\""
                 focus true
             }
         }
