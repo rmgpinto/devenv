@@ -1,6 +1,6 @@
 [tasks.zellij]
 description = "zellij"
-run = "~/.local/share/mise/shims/zellij --layout code attach --create devenv"
+run = 'zellij --layout code attach --create "$(basename "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")")-$(git branch --show-current)"'
 
 [hooks]
 enter = "if [ -z ${ZELLIJ} ]; then mise run zellij; fi"
