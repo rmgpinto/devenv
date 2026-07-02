@@ -45,7 +45,7 @@ if [[ -z "$branch" || "$branch" == "HEAD" ]]; then
   exit 0
 fi
 
-branch_segment="#[bg=${color_surface0},fg=${color_blue},bold]  ${branch} "
+branch_segment="#[bg=${color_surface0},fg=${color_blue},bold]  ${branch} "
 pr_segment=""
 gha_segment=""
 

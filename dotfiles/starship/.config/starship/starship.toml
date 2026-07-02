@@ -23,7 +23,7 @@ format = "[$symbol]($style) "
 style = "bold mauve"
 
 [git_branch]
-symbol = " "
+symbol = " "
 format = "on [$symbol$branch]($style) "
 style = "bold blue"
 

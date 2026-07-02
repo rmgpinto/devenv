@@ -9,7 +9,7 @@ return {
     },
     sections = {
       lualine_a = { "mode" },
-      lualine_b = { { "branch", color = { gui = "bold" } } },
+      lualine_b = { { "branch", icon = "", color = { gui = "bold" } } },
       lualine_c = {
         { "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0.5 } },
         {
