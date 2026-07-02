@@ -108,5 +108,5 @@ fi
 
 # zsh Completion
 autoload -Uz compinit
-compinit
+compinit -C
 
