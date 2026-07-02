@@ -10,7 +10,7 @@ layout {
             name "nvim"
             size "65%"
             command "zsh"
-            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && CWD=$(basename \"$PWD\"); BRANCH=$(/usr/bin/git -C \"$PWD\" rev-parse --abbrev-ref HEAD 2>/dev/null); [ \"$BRANCH\" = HEAD ] && BRANCH=; SESSION=\"${CWD}${BRANCH:+-${BRANCH}}\"; SESSION=$(printf '%s' \"$SESSION\" | tr / -); (( ${#SESSION} > 60 )) && SESSION=\"${SESSION:0:60}\"; SOCK=/tmp/nvim-${SESSION}.sock; rm -f \"$SOCK\"; mise activate --shims && ~/.local/share/mise/shims/nvim --listen \"$SOCK\""
+            args "-c" "if [ -d ../../modules ]; then cd ../../; fi && CWD=$(basename \"$PWD\"); BRANCH=$(/usr/bin/git -C \"$PWD\" rev-parse --abbrev-ref HEAD 2>/dev/null); [ \"$BRANCH\" = HEAD ] && BRANCH=; SESSION=\"${CWD}${BRANCH:+-${BRANCH}}\"; SESSION=$(printf '%s' \"$SESSION\" | tr / -); (( ${#SESSION} > 60 )) && SESSION=\"${SESSION:0:60}\"; SOCK=/tmp/nvim-${SESSION}.sock; rm -f \"$SOCK\"; $HOME/.local/share/mise/installs/aqua-neovim-neovim/latest/nvim-macos-arm64/bin/nvim --listen \"$SOCK\""
             focus true
         }
         pane split_direction="horizontal" {

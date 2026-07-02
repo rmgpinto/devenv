@@ -58,7 +58,14 @@ function setup_git() {
 
 function setup_gh() {
   log info "Setting up gh..."
-  gh completion -s zsh | sudo tee /usr/local/share/zsh/site-functions/_gh > /dev/null
+  gh_latest_source="${DEV_WORKSPACE}/personal/devenv/dotfiles/gh/.config/gh/gh-latest"
+  gh_latest_target="${HOME}/.local/share/mise/installs/github-cli/latest/gh-latest"
+  if [[ -x "${gh_latest_source}" && -d "${gh_latest_target:h}" ]]; then
+    ln -sfn "${gh_latest_source}" "${gh_latest_target}"
+    "${gh_latest_target}" completion -s zsh | sudo tee /usr/local/share/zsh/site-functions/_gh > /dev/null
+  else
+    log error "Unable to link gh-latest into mise github-cli latest install"
+  fi
   /opt/homebrew/bin/stow --adopt gh -t ${HOME}
   log info "Done."
 }
@@ -78,7 +85,7 @@ function setup_ssh() {
 function setup_zellij() {
   log info "Setting up zellij..."
   mkdir -p zellij/.config/zellij/zsh
-  ~/.local/share/mise/shims/zellij setup --generate-completion zsh > zellij/.config/zellij/zsh/_zellij
+  $HOME/.local/share/mise/installs/zellij/latest/zellij setup --generate-completion zsh > zellij/.config/zellij/zsh/_zellij
   /opt/homebrew/bin/stow --adopt zellij -t ${HOME}
   log info "Done."
 }

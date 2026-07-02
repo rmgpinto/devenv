@@ -1,0 +1,10 @@
+#!/bin/zsh
+set -euo pipefail
+
+matches=($HOME/.local/share/mise/installs/github-cli/latest/*/bin/gh(N))
+if (( ${#matches[@]} == 0 )); then
+  print -u2 "gh not found under mise installs/github-cli/latest"
+  exit 127
+fi
+
+exec "${matches[1]}" "$@"

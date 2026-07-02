@@ -1,10 +1,10 @@
 #!/bin/zsh
 set -euo pipefail
 
-export PATH="$HOME/.local/share/mise/shims:$PATH"
+export PATH="$HOME/.local/share/mise/installs/jq/latest:$HOME/.local/share/mise/installs/zellij/latest:$PATH"
 
 GIT="${GIT:-/usr/bin/git}"
-GH="${GH:-$(command -v gh 2>/dev/null || true)}"
+GH="${GH:-$HOME/.local/share/mise/installs/github-cli/latest/gh-latest}"
 JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
 ZELLIJ="${ZELLIJ:-$(command -v zellij 2>/dev/null || true)}"
 

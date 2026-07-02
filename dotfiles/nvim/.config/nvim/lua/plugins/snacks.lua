@@ -50,10 +50,10 @@ return {
             {
               icon = " ",
               title = "Open PRs",
-              cmd = "~/.local/share/mise/shims/gh pr list -L 3",
+              cmd = "/Users/rmgpinto/.local/share/mise/installs/github-cli/latest/gh-latest pr list -L 3",
               key = "p",
               action = function()
-                vim.fn.jobstart("~/.local/share/mise/shims/gh pr list --web", { detach = true })
+                vim.fn.jobstart("/Users/rmgpinto/.local/share/mise/installs/github-cli/latest/gh-latest pr list --web", { detach = true })
               end,
               height = 7,
             },
