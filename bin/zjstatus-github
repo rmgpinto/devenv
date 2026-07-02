@@ -13,6 +13,7 @@ color_black="#181825"
 color_crust="#11111b"
 color_blue="#89b4fa"
 color_sapphire="#74c7ec"
+color_surface0="#313244"
 color_green="#a6e3a1"
 color_teal="#94e2d5"
 color_flamingo="#f2cdcd"
@@ -44,7 +45,7 @@ if [[ -z "$branch" || "$branch" == "HEAD" ]]; then
   exit 0
 fi
 
-branch_segment="#[bg=${color_blue},fg=${color_black},bold]  #[bg=${color_blue},fg=${color_crust},bold]${branch} "
+branch_segment="#[bg=${color_surface0},fg=${color_blue},bold]  ${branch} "
 pr_segment=""
 gha_segment=""
 
@@ -69,11 +70,11 @@ if [[ -n "$pr_json" ]]; then
       *)              pr_icon="⇡"; pr_color="$color_yellow" ;;
     esac
 
-    pr_segment="#[bg=${color_lavender},fg=${color_crust},bold] PR #${number} #[bg=${color_lavender},fg=${color_black},bold]${pr_icon} "
+    pr_segment="#[bg=${color_surface0},fg=${color_lavender},bold] PR #${number} ${pr_icon} "
   fi
 elif [[ "$branch" != "main" ]]; then
   pr_color="$color_yellow"
-  pr_segment="#[bg=${color_lavender},fg=${color_crust},bold] PR #[bg=${color_lavender},fg=${color_black},bold]⇡ "
+  pr_segment="#[bg=${color_surface0},fg=${color_lavender},bold] PR ⇡ "
 fi
 
 checks_json=""
@@ -95,22 +96,22 @@ if [[ -n "$checks_json" ]] && [[ "$("$JQ" 'length' <<<"$checks_json")" -gt 0 ]];
     gha_color="$color_yellow"
   fi
 
-  gha_segment="#[bg=${color_mauve},fg=${color_crust},bold] GHA #[bg=${color_mauve},fg=${color_black},bold]${gha_icon} "
+  gha_segment="#[bg=${color_surface0},fg=${color_mauve},bold] GHA ${gha_icon} "
 fi
 
 out=""
 previous_bg="$color_base"
 
 if [[ -n "$gha_segment" ]]; then
-  out="${out}#[bg=${previous_bg},fg=${color_mauve}]${gha_segment}"
-  previous_bg="$color_mauve"
+  out="${out}#[bg=${previous_bg},fg=${color_surface0}]${gha_segment}"
+  previous_bg="$color_surface0"
 fi
 
 if [[ -n "$pr_segment" ]]; then
-  out="${out}#[bg=${previous_bg},fg=${color_lavender}]${pr_segment}"
-  previous_bg="$color_lavender"
+  out="${out}#[bg=${previous_bg},fg=${color_surface0}]${pr_segment}"
+  previous_bg="$color_surface0"
 fi
 
-out="${out}#[bg=${previous_bg},fg=${color_blue}]${branch_segment}"
+out="${out}#[bg=${previous_bg},fg=${color_surface0}]${branch_segment}"
 
 printf '%s\n' "$out"
