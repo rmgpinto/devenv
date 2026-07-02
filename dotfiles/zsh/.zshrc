@@ -42,7 +42,7 @@ export ZELLIJ_SOCKET_DIR=/tmp/zellij-$(id -u)
 
 # starship
 export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/starship.toml"
-eval "$(~/.local/share/mise/shims/starship init zsh)"
+eval "$($HOME/.local/share/mise/installs/starship/latest/starship init zsh)"
 
 # homebrew
 if type brew &>/dev/null
@@ -67,10 +67,10 @@ export FZF_CTRL_T_OPTS="
   --walker-skip .git,node_modules,target
   --preview 'bat -n --color=always {}'
   --bind 'ctrl-/:change-preview-window(down|hidden|)'"
-source <(~/.local/share/mise/shims/fzf --zsh)
+source <($HOME/.local/share/mise/installs/fzf/latest/fzf --zsh)
 
 # zoxide
-eval "$(~/.local/share/mise/shims/zoxide init zsh)"
+eval "$($HOME/.local/share/mise/installs/zoxide/latest/zoxide init zsh)"
 
 # gum
 export GUM_CHOOSE_CURSOR_FOREGROUND="#cba6f7"
