@@ -6,6 +6,7 @@ local servers = {
   "jsonls",
   "terraformls",
   "dockerls",
+  "ruby_lsp",
   "rubocop",
   "herb_ls", -- for erb
   "tailwindcss",
@@ -40,6 +41,9 @@ return {
     config = function()
       vim.lsp.config("bashls", {
         filetypes = { "sh", "bash", "zsh" },
+      })
+      vim.lsp.config("ruby_lsp", {
+        filetypes = { "ruby", "eruby" },
       })
       vim.lsp.config("rubocop", {
         cmd = { "/Users/rmgpinto/.local/share/mise/installs/gem-rubocop/latest/bin/rubocop", "--lsp" },
@@ -95,6 +99,14 @@ return {
           vim.lsp.buf.hover()
         end,
         desc = "LSP Hover",
+        {},
+      },
+      {
+        "gd",
+        function()
+          vim.lsp.buf.definition()
+        end,
+        desc = "LSP Goto Definition",
         {},
       },
       {
