@@ -25,7 +25,7 @@ return {
         "rcarriga/nvim-dap-ui",
       },
       keys = {
-        { "<leader>dB", function() require("drp").set_breakpoint(vim.fn.input("Breakpoint condition: ")) end },
+        { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: ")) end },
         { "<leader>db", function() require("dap").toggle_breakpoint() end,                                   desc = "DAP Toggle Breakpoint" },
         { "<leader>dc", function() require("dap").continue() end,                                            desc = "DAP Continue" },
         { "<leader>dC", function() require("dap").run_to_cursor() end,                                       desc = "DAP Run to Cursor" },
