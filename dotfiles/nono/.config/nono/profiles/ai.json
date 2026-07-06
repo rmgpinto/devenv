@@ -28,7 +28,10 @@
     "read_file": [
       "$HOME/dev/CLAUDE.md",
       "$HOME/dev/AGENTS.md",
-      "$HOME/.CFUserTextEncoding"
+      "$HOME/.CFUserTextEncoding",
+      "$HOME/.config/git/config",
+      "$HOME/.config/gh/config.yml",
+      "$HOME/.gitconfig"
     ],
     "read": [
       "/bin",
