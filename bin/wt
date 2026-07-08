@@ -274,21 +274,25 @@ fi
 
 # --- 8. Copy git-ignored mise configs from the main repo dir ------------
 # Skip tracked files (e.g. .mise.toml) — they're already at HEAD in the
-# worktree and copying would create spurious unstaged changes. Strip the
-# [hooks] section while copying: mise's hook subprocess has no controlling
-# TTY, so an enter hook that spawns zellij directly hangs (and going via
-# `mise run zellij` from wt's cd path produces a double-spawn). The wt
-# wrapper attaches via zcode instead, which runs in the user's interactive
-# zsh and has a proper TTY.
-for f in .mise.local.toml .mise.*.local.toml; do
-  [ -f "$f" ] || continue
+# worktree and copying would create spurious unstaged changes. Copy ignored
+# local mise files anywhere in the repo tree, preserving their relative paths.
+# Strip the [hooks] section while copying: mise's hook subprocess has no
+# controlling TTY, so an enter hook that spawns zellij directly hangs (and going
+# via `mise run zellij` from wt's cd path produces a double-spawn). The wt
+# wrapper attaches via zcode instead, which runs in the user's interactive zsh
+# and has a proper TTY.
+find . -path './.worktrees' -prune -o \
+  \( -name '.mise.local.toml' -o -name '.mise.*.local.toml' \) \
+  -type f -print | while IFS= read -r f; do
   git check-ignore -q "$f" 2>/dev/null || continue
+  target="$WT_DIR/${f#./}"
+  mkdir -p "$(dirname "$target")"
   awk '
     BEGIN { in_hooks = 0 }
     /^\[hooks\][[:space:]]*$/ { in_hooks = 1; next }
     /^\[/ && !/^\[hooks\][[:space:]]*$/ { in_hooks = 0 }
     !in_hooks { print }
-  ' "$f" > "$WT_DIR/$f"
+  ' "$f" > "$target"
 done
 
 # --- 9. cd into the worktree ------------------------------------

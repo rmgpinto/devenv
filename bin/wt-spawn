@@ -97,15 +97,18 @@ else
 fi
 
 # --- copy git-ignored mise configs, stripping [hooks] (bin/wt step 8) ---
-for f in .mise.local.toml .mise.*.local.toml; do
-  [ -f "$f" ] || continue
+find . -path './.worktrees' -prune -o \
+  \( -name '.mise.local.toml' -o -name '.mise.*.local.toml' \) \
+  -type f -print | while IFS= read -r f; do
   git check-ignore -q "$f" 2>/dev/null || continue
+  target="$WT_DIR/${f#./}"
+  mkdir -p "$(dirname "$target")"
   awk '
     BEGIN { in_hooks = 0 }
     /^\[hooks\][[:space:]]*$/ { in_hooks = 1; next }
     /^\[/ && !/^\[hooks\][[:space:]]*$/ { in_hooks = 0 }
     !in_hooks { print }
-  ' "$f" > "$WT_DIR/$f"
+  ' "$f" > "$target"
 done
 
 ABS="$WORK_DIR/$REPO/$WT_DIR"
