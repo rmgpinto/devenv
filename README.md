@@ -38,13 +38,18 @@ Caching in the keychain avoids `op read`'s latency on every shell/mise load:
 
 Secrets are cached under one of two services — `nono` for AI-sandbox secrets,
 `mise` for host mise-only secrets — with each account prefixed by its store
-(`nono-…` / `mise-…`), and added with `-A` so reads never prompt for the
-keychain password (the readers — `mise` and the ad-hoc-signed `nono` binary —
-can't hold a durable keychain trust grant):
+(`nono-...` / `mise-...`). Host `mise` secrets are added with `-A`;
+AI-sandbox `nono` secrets are granted to the real `nono` binary with `-T` when
+created. Existing items keep their ACLs during normal syncs; set
+`REFRESH_NONO_KEYCHAIN_ACL=1` for a deliberate repair after a `nono` reinstall
+or upgrade:
 
 ```
-# add secret to keychain (<store> is nono or mise)
-security add-generic-password -a <store>-name-of-my-secret -s <store> -w <secret> -A
+# add host mise secret to keychain
+security add-generic-password -a mise-name-of-my-secret -s mise -w <secret> -A
+
+# repair existing nono secret ACL, trusting the actual nono binary
+security add-generic-password -a nono-name-of-my-secret -s nono -w <secret> -U -T "$(mise which nono)"
 
 # read secret from keychain
 security find-generic-password -a <store>-name-of-my-secret -s <store> -w
@@ -52,3 +57,8 @@ security find-generic-password -a <store>-name-of-my-secret -s <store> -w
 # delete secret from keychain
 security delete-generic-password -a <store>-name-of-my-secret -s <store>
 ```
+
+Use `REFRESH_NONO_KEYCHAIN_ACL=1` only when `cc` or `cx` prompts for Keychain
+access to `nono-*` secrets after `nono` was reinstalled or upgraded. Do not use
+it for normal `./devenv.sh` runs; it intentionally rewrites Keychain ACLs and
+macOS may prompt once per `nono-*` item.

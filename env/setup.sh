@@ -27,6 +27,7 @@ SECRETS_FILE="${SCRIPT_DIR}/secrets"
 # non-interactively (no mise shell activation), so `command -v nono` would miss
 # it or return a shim, and -T on a shim wouldn't match the real reader.
 NONO_BIN="$(/opt/homebrew/bin/mise which nono 2>/dev/null || command -v nono 2>/dev/null || true)"
+REFRESH_NONO_KEYCHAIN_ACL="${REFRESH_NONO_KEYCHAIN_ACL:-0}"
 
 function require_op() {
   if ! command -v op >/dev/null 2>&1; then
@@ -57,8 +58,10 @@ function require_op() {
 #     exec()), which is trusted by default; -A keeps them readable with no prompt.
 #     Adding -T here would instead LOCK them to nono and make mise prompt.
 #
-# Authorizing the -T grant prompts once (click "Always Allow"); updating an
-# existing item in place avoids re-prompting on every sync.
+# Authorizing the -T grant prompts once per nono keychain item (click "Always Allow").
+# Existing items normally preserve their ACLs because rewriting access policy
+# prompts every run. Set REFRESH_NONO_KEYCHAIN_ACL=1 for a deliberate repair
+# after reinstalling/upgrading nono if Keychain still trusts the old executable.
 function kc_add() {
   local service="$1" account="$2" value="$3"
   local -a trust
@@ -70,8 +73,13 @@ function kc_add() {
     trust=(-A)
   fi
   if "${SECURITY}" find-generic-password -a "${account}" -s "${service}" >/dev/null 2>&1; then
-    # Item exists: update the value in place, preserving its ACL grants.
-    "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -U
+    if [[ "${service}" == "nono" && -n "${NONO_BIN}" && "${REFRESH_NONO_KEYCHAIN_ACL}" == "1" ]]; then
+      # Deliberate repair path: this rewrites ACLs and may prompt per item.
+      "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -U "${trust[@]}"
+    else
+      # Normal sync: preserve existing ACLs; only the value needs refreshing.
+      "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -U
+    fi
   else
     "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" "${trust[@]}"
   fi
