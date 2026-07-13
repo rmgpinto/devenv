@@ -5,16 +5,32 @@ git:
       pager: delta --paging=never --side-by-side
 os:
   open: >-
-    (ROOT=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree / {print $2; exit}');
+    ROOT=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree / {print $2; exit}');
     ROOT=${ROOT:-$PWD};
     [ "$(basename "$(dirname "$ROOT")")" = ".worktrees" ] && ROOT=$(dirname "$(dirname "$ROOT")");
     CWD=$(basename "$ROOT");
-    BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null);
-    [ "$BRANCH" = HEAD ] && BRANCH=;
-    SESSION="${CWD}${BRANCH:+-${BRANCH}}";
-    SESSION=$(printf '%.60s' "$SESSION");
+    SESSION=${ZELLIJ_SESSION_NAME:-};
+    if [ -z "$SESSION" ]; then
+      BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null);
+      [ "$BRANCH" = HEAD ] && BRANCH=;
+      BRANCH=$(printf '%s' "$BRANCH" | tr / -);
+      SESSION="${CWD}${BRANCH:+-${BRANCH}}";
+      SESSION=$(printf '%.60s' "$SESSION");
+    fi;
     SOCK="/tmp/nvim-${SESSION}.sock";
-    [ -S "$SOCK" ] && nvim --server "$SOCK" --remote-silent "{{filename}}" && pkill -TERM -x lazygit) &
+    if [ ! -S "$SOCK" ]; then
+      SOCK=$(ls -t /tmp/nvim-${CWD}-*.sock 2>/dev/null | head -n 1);
+    fi;
+    NVIM="$HOME/.local/share/mise/installs/aqua-neovim-neovim/latest/nvim-macos-arm64/bin/nvim";
+    if [ -S "$SOCK" ]; then
+      LINE=$({ git diff --no-color --unified=0 -- "{{filename}}"; git diff --cached --no-color --unified=0 -- "{{filename}}"; } |
+        sed -n 's/^@@ -[0-9][0-9]*\(,[0-9][0-9]*\)\{0,1\} +\([0-9][0-9]*\)\(,[0-9][0-9]*\)\{0,1\} @@.*/\2/p' |
+        awk '{ line = $1 > 0 ? $1 : 1; if (!first || line < first) first = line } END { if (first) print first }');
+      if "$NVIM" --server "$SOCK" --remote-silent "{{filename}}"; then
+        [ -z "$LINE" ] || "$NVIM" --server "$SOCK" --remote-expr "cursor($LINE, 1)" >/dev/null;
+        zellij action toggle-floating-panes;
+      fi;
+    fi
 # catppuccin mocha-blue: https://github.com/catppuccin/lazygit
 gui:
   theme:
