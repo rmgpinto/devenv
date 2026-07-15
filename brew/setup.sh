@@ -20,7 +20,12 @@ function install_brew_packages() {
 
 function install_brew_cask_packages() {
   log info "Installing brew cask packages..."
-  [ -f cask_packages ] && cat cask_packages | grep -vE "^(#|$)" | sed 's/#.*//' | sed '/^\s*$/d' | xargs /opt/homebrew/bin/brew install --cask -y
+  if [[ -f cask_packages ]]; then
+    sed 's/#.*//' cask_packages | sed '/^[[:space:]]*$/d' | while read -r cask; do
+      /opt/homebrew/bin/brew list --cask "$cask" >/dev/null 2>&1 ||
+        /opt/homebrew/bin/brew install --cask -y "$cask"
+    done
+  fi
   log info "Done."
 }
 
@@ -33,9 +38,9 @@ function install_brew_mas_packages() {
 function upgrade_brew_packages() {
   log info "Upgrading brew packages..."
   brew update --force
-  brew outdated --cask --greedy
+  brew outdated --cask
   brew upgrade -y
-  brew upgrade --cask --greedy -y
+  brew upgrade --cask -y
   brew cleanup
   log info "Done."
 }
