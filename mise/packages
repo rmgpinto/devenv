@@ -12,6 +12,7 @@ npm:@openai/codex
 ripgrep
 nodejs
 aqua:neovim/neovim # registry default is vfox; pick aqua for prebuilt binary
+aqua:max-sixty/worktrunk
 tree-sitter # used by tree-sitter-manager.nvim to build parsers
 cmake # telescope-fzf-native
 watchexec
@@ -27,5 +28,4 @@ zoxide
 gitleaks
 doctl
 gcloud
-sops
 kubectl
