@@ -76,6 +76,13 @@ function setup_lazygit() {
   log info "Done."
 }
 
+function setup_worktrunk() {
+  log info "Setting up Worktrunk..."
+  /opt/homebrew/bin/stow --adopt worktrunk -t ${HOME}
+  /opt/homebrew/bin/mise exec aqua:max-sixty/worktrunk -- wt config shell install --yes zsh
+  log info "Done."
+}
+
 function setup_ssh() {
   log info "Setting up ssh..."
   log info "Done."
@@ -182,6 +189,7 @@ function main() {
   setup_git
   setup_gh
   setup_lazygit
+  setup_worktrunk
   setup_ssh
   setup_zellij
   setup_neovim

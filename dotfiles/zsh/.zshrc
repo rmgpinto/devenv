@@ -33,6 +33,9 @@ export MISE_LOG_LEVEL=warn
 export MISE_TRUSTED_CONFIG_PATHS="${HOME}/dev"
 eval "$(mise activate zsh)"
 
+# worktrunk
+if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+
 # zellij
 FPATH="${XDG_CONFIG_HOME}/zellij/zsh:${FPATH}"
 # Keep zellij's socket path short — macOS sun_path is 104 bytes and the default

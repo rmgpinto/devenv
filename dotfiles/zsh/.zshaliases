@@ -3,55 +3,6 @@ alias zs='source ~/.zshrc'
 alias upgrade_packages='brew update && brew outdated --cask --greedy && brew upgrade && brew upgrade --cask --greedy && brew cleanup && mise plugins update && mise outdated && mise upgrade && mise prune -y'
 alias vi='nvim'
 alias v='nvim'
-function zcode() {
-  local root cwd branch session
-  root=$(/usr/bin/git -C "$PWD" worktree list --porcelain 2>/dev/null | awk '/^worktree / {print $2; exit}')
-  root=${root:-$PWD}
-  [ "$(basename "$(dirname "$root")")" = ".worktrees" ] && root=$(dirname "$(dirname "$root")")
-  cwd=$(basename "$root")
-  branch=$(/usr/bin/git -C "$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null)
-  [ "$branch" = HEAD ] && branch=
-  # zellij rejects '/' in session names — slugify like bin/wt's WT_DIR.
-  branch=${branch//\//-}
-  session="${cwd}${branch:+-${branch}}"
-  (( ${#session} > 60 )) && session="${session:0:60}"
-  # If wt seeded a prompt, force a fresh session so the layout re-runs and the
-  # claude pane reads .wt-claude-prompt. Attaching/switching to an existing
-  # session would skip the layout, leaving the prompt unread. Never delete the
-  # session we're currently sitting in.
-  if [ -s "$PWD/.wt-claude-prompt" ] && [ "${ZELLIJ_SESSION_NAME:-}" != "$session" ]; then
-    zellij delete-session --force "$session" 2>/dev/null
-  fi
-  if [ -n "${ZELLIJ:-}" ]; then
-    # Already inside a zellij session: switch the current client to the target
-    # session instead of attaching, which would stack a nested client and
-    # require multiple detaches to escape.
-    zellij action switch-session --layout code --cwd "$PWD" "$session"
-  else
-    zellij --layout code attach --create "$session"
-  fi
-}
-# Delete the zellij session for the current directory (same name scheme as
-# zcode/cc: <repo-basename>-<worktree|branch>).
-function zd() {
-  local root cwd branch session
-  root=$(/usr/bin/git -C "$PWD" worktree list --porcelain 2>/dev/null | awk '/^worktree / {print $2; exit}')
-  root=${root:-$PWD}
-  [ "$(basename "$(dirname "$root")")" = ".worktrees" ] && root=$(dirname "$(dirname "$root")")
-  cwd=$(basename "$root")
-  branch=$(/usr/bin/git -C "$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null)
-  [ "$branch" = HEAD ] && branch=
-  branch=${branch//\//-}
-  session="${cwd}${branch:+-${branch}}"
-  (( ${#session} > 60 )) && session="${session:0:60}"
-  if [ "${ZELLIJ_SESSION_NAME:-}" = "$session" ]; then
-    # Can't delete the session we're sitting in from within it — defer the kill
-    # to a detached child so this shell finishes first (this closes the pane).
-    ( sleep 1; zellij delete-session --force "$session" ) </dev/null &!
-  else
-    zellij delete-session --force "$session"
-  fi
-}
 alias ls='eza --icons -lah'
 alias l='eza --icons -lah'
 alias lt='eza --icons --tree --level=2 --long'
@@ -63,23 +14,6 @@ alias myip='curl -s -4 https://ifconfig.co'
 alias flushdns='sudo dscacheutil -flushcache sudo killall -HUP mDNSResponder'
 alias setdns='networksetup -setdnsservers Wi-Fi 1.1.1.1 1.0.0.1'
 alias unsetdns='networksetup -setdnsservers Wi-Fi 192.168.0.1'
-function cc() {
-  NONO_AUTO_MIGRATE=1 nono run \
-    --profile ai \
-    --allow-cwd \
-    --workdir "$PWD" -- \
-      /usr/bin/env CLAUDE_CONFIG_DIR="$HOME/.config/claude" \
-      claude --dangerously-skip-permissions "$@"
-}
-function cx() {
-  NONO_AUTO_MIGRATE=1 nono run \
-    --profile ai \
-    --allow-cwd \
-    --workdir "$PWD" -- \
-      /usr/bin/env CODEX_HOME="$HOME/.config/codex" codex \
-      --dangerously-bypass-approvals-and-sandbox \
-      --dangerously-bypass-hook-trust "$@"
-}
 alias tf='terraform'
 alias j='just'
 alias r='rails'
@@ -87,62 +21,6 @@ alias credentials-edit='rails credentials:edit'
 alias credentials-edit-dev='rails credentials:edit --environment development'
 alias credentials-edit-test='rails credentials:edit --environment test'
 alias credentials-edit-prod='rails credentials:edit --environment production'
-
-function wt() {
-  local cd_file prompt_file
-  cd_file=$(mktemp -t wt-cd) || return
-  prompt_file=$(mktemp -t wt-prompt) || return
-  WT_CD_FILE="$cd_file" WT_PROMPT_FILE="$prompt_file" command wt "$@"
-  local rc=$?
-  if [ -s "$cd_file" ]; then
-    local dir
-    dir=$(<"$cd_file")
-    if [ -d "$dir" ]; then
-      # Drop the prompt before cd so the mise `enter` hook (which spawns
-      # zellij from the worktree's .mise.local.toml) sees .wt-claude-prompt
-      # when the code layout runs. Copying after cd would race the layout
-      # and the claude pane would start without the prompt.
-      [ -s "$prompt_file" ] && cp "$prompt_file" "$dir/.wt-claude-prompt"
-      cd "$dir"
-      # bin/wt strips [hooks] from the worktree's .mise.local.toml (mise hooks
-      # have no TTY and can't host zellij). Attach explicitly here.
-      if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        zcode
-      fi
-    fi
-  fi
-  rm -f "$cd_file" "$prompt_file"
-  return $rc
-}
-
-# Host-side half of wt-spawn: open the zellij session for a worktree an agent
-# prepared (the agent runs as ai-sandbox and can't reach our zellij socket).
-# Must be a function, not a bin script — it cds the calling shell. zcode reads
-# any .wt-claude-prompt the agent seeded and force-recreates the session.
-function wt-here() {
-  local dir="${1:?usage: wt-here <worktree-path>}"
-  [ -d "$dir" ] || { echo "wt-here: no such dir: $dir" >&2; return 1; }
-  cd "$dir" && zcode
-}
-
-function wtl() {
-  if [ -t 1 ]; then
-    command ls -1d "$HOME"/dev/work/*/.worktrees/*/ | sed $'s/.*/\e[1;34m&\e[0m/'
-  else
-    command ls -1d "$HOME"/dev/work/*/.worktrees/*/
-  fi
-}
-
-function wtg() {
-  local paths display sel idx
-  paths=$(wtl)
-  display=$(echo "$paths" | sed -e "s|^$HOME/dev/work/||" -e 's|/\.worktrees/|-|' -e 's|/$||')
-  sel=$(echo "$display" | gum filter --header "Pick a worktree" --placeholder "type to filter")
-  [ -z "$sel" ] && return 1
-  idx=$(echo "$display" | grep -nFx -- "$sel" | head -1 | cut -d: -f1)
-  [ -z "$idx" ] && return 1
-  cd "$(echo "$paths" | sed -n "${idx}p")"
-}
 
 # Work
 alias dkill='docker kill $(docker ps -q) 2>/dev/null; docker rm $(docker ps -aq) 2>/dev/null'

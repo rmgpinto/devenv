@@ -27,7 +27,7 @@ Repos in this workspace may use git worktrees under `<repo>/.worktrees/<branch>/
 
 ## Delegating work to another repo
 
-To hand a task to a fresh agent on a *different* repo, prepare a worktree there and seed its prompt with `bin/wt-spawn` (the non-interactive guts of `bin/wt`):
+To hand a task to a fresh agent on a *different* repo, prepare a worktree there and seed its prompt with `bin/wt-spawn` (the non-interactive guts of `bin/wt-new`):
 
 ```
 ~/dev/personal/devenv/bin/wt-spawn <repo> <branch> --prompt "<task for the sub-agent>"
@@ -36,10 +36,10 @@ To hand a task to a fresh agent on a *different* repo, prepare a worktree there 
 It clones/pulls the repo under `work/`, creates the worktree, and seeds `.wt-claude-prompt`, printing the worktree's absolute path on stdout. It does **not** open the zellij session. So `wt-spawn` ends by printing a handoff line — surface it to the user verbatim:
 
 ```
-wt-here <path>
+wt go <path>
 ```
 
-When the user runs `wt-here` in their own shell, `zcode` spawns the session and its claude pane reads the seeded prompt, starting the sub-agent on the task. Use `--from-pr` to base the worktree on an existing PR branch.
+When the user runs `wt go <path>` in their own shell, `zcode` spawns the session and its agent pane reads the seeded prompt, starting the sub-agent on the task. Use `--from-pr` to base the worktree on an existing PR branch.
 
 # This file
 

@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Cross-repository launcher for TryGhost Worktrunk sessions.
+# Picks an optional Linear issue and repository, lets Worktrunk select or
+# create the worktree, carries local mise config across, then opens Zellij.
+
+set -euo pipefail
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/../lib/wt/linear.sh"
+source "$SCRIPT_DIR/../lib/wt/github.sh"
+source "$SCRIPT_DIR/../lib/wt/return-directory.sh"
+
+DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
+WORK_DIR="${WT_WORK_DIR:-${DEV_WORKSPACE}/work}"
+ORG="TryGhost"
+
+mkdir -p "$WORK_DIR"
+
+# 1. Pick Linear issue (optional)
+ISSUE_DESC=$(pick_linear_issue_description)
+
+# 2. Pick GitHub repo
+REPO=$(pick_github_repo "$ORG")
+
+# 3. Clone if missing
+cd "$WORK_DIR"
+if [ ! -d "$REPO" ]; then
+  gum spin --title "Cloning $ORG/$REPO" -- gh repo clone "$ORG/$REPO"
+fi
+
+cd "$REPO"
+
+# 4. Create a branch, or pick an existing worktree or local branch
+BRANCH=$(gum input \
+  --header "New branch (leave blank to pick existing)" \
+  --placeholder "branch-name" || true)
+
+if [ -n "$BRANCH" ]; then
+  SWITCH_JSON=$(command wt switch --create "$BRANCH" --no-cd --format=json)
+else
+  SWITCH_JSON=$(command wt \
+    --config-set 'list.columns=["branch","status","path"]' \
+    switch --branches --prs --no-cd --format=json)
+fi
+TARGET=$(printf '%s' "$SWITCH_JSON" | jq -r '.path // empty')
+[ -n "$TARGET" ] && [ -d "$TARGET" ] || {
+  echo "wt-new: Worktrunk did not return a valid worktree path" >&2
+  exit 1
+}
+
+set_worktrunk_return_directory "$TARGET"
+
+# 5. Compose the initial prompt for the agent pane
+PROMPT=$(gum write \
+  --header "Initial prompt (ctrl-d submit, esc skip)" \
+  --width 100 --height 20 \
+  --value "$ISSUE_DESC" || true)
+
+# 6. Start the worktree's session
+cd "$TARGET"
+exec /Users/rmgpinto/dev/personal/devenv/bin/zcode "$PROMPT"

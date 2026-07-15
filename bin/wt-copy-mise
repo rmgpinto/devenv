@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Copy ignored mise-local configuration into a newly created worktree.
+
+set -euo pipefail
+
+SOURCE=${1:?usage: wt copy-mise SOURCE_WORKTREE TARGET_WORKTREE}
+TARGET=${2:?usage: wt copy-mise SOURCE_WORKTREE TARGET_WORKTREE}
+
+cd "$SOURCE"
+find . -path './.worktrees' -prune -o \
+  -name '.mise*.toml' -type f -print | while IFS= read -r file; do
+  git check-ignore -q "$file" 2>/dev/null || continue
+  destination="$TARGET/${file#./}"
+  mkdir -p "$(dirname "$destination")"
+  cp "$file" "$destination"
+done

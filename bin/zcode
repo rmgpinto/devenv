@@ -1,0 +1,42 @@
+#!/usr/bin/env zsh
+# Open the current repository worktree in its Zellij code session.
+
+set -e
+
+source /Users/rmgpinto/dev/personal/devenv/lib/zellij/session.sh
+
+prompt="${1:-}"
+session=$(zellij_session_name_at "$PWD")
+
+# A prompt requires a fresh session so its generated layout is applied.
+# Retain file detection temporarily for wt-spawn compatibility.
+if { [ -n "$prompt" ] || [ -s "$PWD/.wt-claude-prompt" ]; } \
+    && [ "${ZELLIJ_SESSION_NAME:-}" != "$session" ]; then
+  zellij delete-session --force "$session" 2>/dev/null || true
+  /Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook prune 2>/dev/null || true
+fi
+
+if [ -n "$prompt" ]; then
+  layout_file="/Users/rmgpinto/dev/personal/devenv/dotfiles/zellij/.config/zellij/layouts/code.kdl"
+  encoded=$(printf '%s' "$prompt" | base64 | tr -d '\n')
+  layout=$(<"$layout_file")
+  layout=${layout/p=\\\"\\\"/p=\$(printf %s $encoded | base64 -d)}
+  if [[ "$layout" == *'p=\"\"'* ]]; then
+    echo "zcode: failed to inject the agent prompt into code.kdl" >&2
+    exit 1
+  fi
+fi
+
+if [ -n "${ZELLIJ:-}" ]; then
+  if [ -n "$prompt" ]; then
+    exec zellij action switch-session --layout-string "$layout" --cwd "$PWD" "$session"
+  else
+    exec zellij action switch-session --layout code --cwd "$PWD" "$session"
+  fi
+else
+  if [ -n "$prompt" ]; then
+    exec zellij --layout-string "$layout" attach --create "$session"
+  else
+    exec zellij --layout code attach --create "$session"
+  fi
+fi

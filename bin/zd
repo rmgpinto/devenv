@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+# Delete the Zellij session for the current repository worktree.
+
+set -e
+
+source /Users/rmgpinto/dev/personal/devenv/lib/zellij/session.sh
+
+session=$(zellij_session_name_at "$PWD")
+
+if [ "${ZELLIJ_SESSION_NAME:-}" = "$session" ]; then
+  ( sleep 1; zellij delete-session --force "$session"; /Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook prune 2>/dev/null || true ) </dev/null &!
+else
+  zellij delete-session --force "$session"
+  /Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook prune 2>/dev/null || true
+fi

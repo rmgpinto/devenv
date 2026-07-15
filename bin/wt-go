@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# Pick a worktree across all repositories and switch to it via Worktrunk.
+
+set -euo pipefail
+shopt -s nullglob
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/../lib/wt/return-directory.sh"
+
+DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
+paths=()
+labels=()
+
+if [ "$#" -gt 0 ]; then
+  target="$1"
+  prompt=""
+  [ -d "$target" ] || {
+    echo "wt-go: no such worktree: $target" >&2
+    exit 1
+  }
+  cd "$target"
+  set_worktrunk_return_directory "$PWD"
+  if [ -s .wt-claude-prompt ]; then
+    prompt=$(<.wt-claude-prompt)
+    rm -f .wt-claude-prompt
+  fi
+  exec zcode "$prompt"
+fi
+
+for root in "$DEV_WORKSPACE/personal" "$DEV_WORKSPACE/work"; do
+  [ -d "$root" ] || continue
+  for repo in "$root"/*; do
+    [ -d "$repo/.git" ] || continue
+    for path in "$repo"/.worktrees/*/; do
+      paths+=("${path%/}")
+      relative="${path#"$DEV_WORKSPACE"/}"
+      labels+=("${relative/\/.worktrees\// → }")
+    done
+  done
+done
+
+if [ "${#paths[@]}" -eq 0 ]; then
+  echo "wt-go: no worktrees found under $DEV_WORKSPACE" >&2
+  exit 1
+fi
+
+selection=$(printf '%s\n' "${labels[@]}" |
+  gum filter --header "Pick a worktree" --placeholder "type to filter")
+
+for i in "${!labels[@]}"; do
+  if [ "${labels[$i]}" = "$selection" ]; then
+    if [ -s "${paths[$i]}/.wt-claude-prompt" ]; then
+      cd "${paths[$i]}"
+      set_worktrunk_return_directory "$PWD"
+      prompt=$(<.wt-claude-prompt)
+      rm -f .wt-claude-prompt
+      exec zcode "$prompt"
+    fi
+    if [ -n "${WORKTRUNK_DIRECTIVE_CD_FILE:-}" ]; then
+      printf '%s\n' "${paths[$i]}" >"$WORKTRUNK_DIRECTIVE_CD_FILE"
+    else
+      printf '%s\n' "${paths[$i]}"
+    fi
+    exit 0
+  fi
+done
+
+echo "wt-go: selected worktree disappeared" >&2
+exit 1

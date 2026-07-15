@@ -15,7 +15,7 @@ layout {
         pane split_direction="horizontal" size="60%" {
             pane name="claude" size="65%" {
                 command "zsh"
-                args "-ic" "agent=cc; pane=claude; [[ \"$PWD\" == \"$HOME/dev/personal/\"* ]] && { agent=cx; pane=codex; }; zellij action rename-pane \"$pane\" 2>/dev/null || true; f=.wt-claude-prompt; if [ -s \"$f\" ]; then p=$(cat \"$f\"); rm -f \"$f\"; \"$agent\" \"$p\"; else \"$agent\"; fi"
+                args "-ic" "p=\"\"; agent=cc; pane=claude; [[ \"$PWD\" == \"$HOME/dev/personal/\"* ]] && { agent=cx; pane=codex; }; zellij action rename-pane \"$pane\" 2>/dev/null || true; f=.wt-claude-prompt; if [ -z \"$p\" ] && [ -s \"$f\" ]; then p=$(cat \"$f\"); rm -f \"$f\"; fi; if [ -n \"$p\" ]; then \"$agent\" \"$p\"; else \"$agent\"; fi"
                 focus true
             }
             pane name="shell" size="35%"

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Non-interactive worktree spawner — the agent-side half of cross-repo handoff.
 #
-# `bin/wt` is interactive (gum pickers + gum write). This is its gum-free guts:
+# `bin/wt-new` is interactive (gum pickers + gum write). This is its gum-free guts:
 # it prepares a worktree on a TryGhost repo and seeds the claude prompt, so a
 # Claude session can delegate work to a fresh agent on *another* repo.
 #
 # It does NOT spawn the zellij session. The zellij server is owned by the host
 # user (rmgpinto, socket mode 700); an agent may be running under a nono profile and
-# can't reach that socket. So this prints a one-command handoff — `wt-here
+# can't reach that socket. So this prints a one-command handoff — `wt go
 # <path>` — for the host user to run, which materialises the session via zcode.
 # zcode's claude pane then reads .wt-claude-prompt and starts `cc "$prompt"`.
 #
@@ -15,7 +15,7 @@
 #   wt-spawn <repo> <branch> [--from-pr] [--prompt TEXT | --prompt-file FILE]
 #
 #   --from-pr      <branch> is an existing PR/remote branch; base the worktree
-#                  on origin's tip of it (mirrors bin/wt "From PR" mode).
+#                  on origin's tip of it (mirrors bin/wt-new "From PR" mode).
 #   --prompt       seed .wt-claude-prompt with TEXT (the sub-agent's task).
 #   --prompt-file  seed it from FILE instead (use "-" for stdin).
 #
@@ -58,7 +58,7 @@ if [ -n "$PROMPT_FILE" ]; then
   fi
 fi
 
-# --- clone if missing / pull default branch -----------------------------
+# 1. Clone if missing or pull the default branch
 mkdir -p "$WORK_DIR"
 cd "$WORK_DIR"
 if [ ! -d "$REPO" ]; then
@@ -76,7 +76,7 @@ cd "$REPO"
 mkdir -p .worktrees
 git worktree prune
 
-# --- create the worktree (mirrors bin/wt step 7) ------------------------
+# 2. Create the worktree
 WT_DIR=".worktrees/${BRANCH//\//-}"
 if [ "$FROM_PR" -eq 1 ]; then
   # Always base on origin's tip; -B resets a stale local branch of the same name.
@@ -96,7 +96,7 @@ else
   git worktree add "$WT_DIR" -b "$BRANCH" >&2
 fi
 
-# --- copy git-ignored mise configs, stripping [hooks] (bin/wt step 8) ---
+# 3. Copy git-ignored mise configs
 find . -path './.worktrees' -prune -o \
   \( -name '.mise.local.toml' -o -name '.mise.*.local.toml' \) \
   -type f -print | while IFS= read -r f; do
@@ -113,16 +113,16 @@ done
 
 ABS="$WORK_DIR/$REPO/$WT_DIR"
 
-# --- seed the claude prompt (read by zcode's code-layout claude pane) ---
+# 4. Seed the agent prompt
 if [ -n "$PROMPT" ]; then
   printf '%s' "$PROMPT" > "$ABS/.wt-claude-prompt"
 fi
 
-# --- handoff ------------------------------------------------------------
+# 5. Print the host handoff
 echo "$ABS"
 {
   echo
   echo "wt-spawn: worktree ready at $ABS"
   echo "To open the zellij session (run as the host user, not the agent):"
-  echo "    wt-here $ABS"
+  printf '    wt go %q\n' "$ABS"
 } >&2

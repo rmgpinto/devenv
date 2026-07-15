@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# List Worktrunk worktrees for every repository under ~/dev.
+
+set -uo pipefail
+shopt -s nullglob
+
+DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
+roots=()
+for root in "$DEV_WORKSPACE/personal" "$DEV_WORKSPACE/work"; do
+  [ ! -d "$root" ] || roots+=("$root")
+done
+
+if [ "${#roots[@]}" -eq 0 ]; then
+  echo "wt-list-all: no repository roots found under $DEV_WORKSPACE" >&2
+  exit 1
+fi
+
+status=0
+for root in "${roots[@]}"; do
+  for repo in "$root"/*; do
+    [ -d "$repo/.git" ] || continue
+    worktrees=("$repo"/.worktrees/*/)
+    [ "${#worktrees[@]}" -gt 0 ] || continue
+    printf '\n\033[1;34m━━ %s ━━\033[0m\n' "${repo#"$DEV_WORKSPACE"/}"
+    wt -C "$repo" list --no-progressive "$@" || status=$?
+  done
+done
+
+exit "$status"

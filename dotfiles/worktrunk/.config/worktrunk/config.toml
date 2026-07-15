@@ -1,0 +1,10 @@
+worktree-path = "{{ repo_path }}/.worktrees/{{ branch | sanitize }}"
+
+[pre-switch]
+pull-main = '[ "{{ cwd }}" != "{{ primary_worktree_path }}" ] || git -C "{{ primary_worktree_path }}" pull --ff-only origin "{{ default_branch }}"'
+
+[pre-start]
+copy-mise = 'wt copy-mise "{{ primary_worktree_path }}" "{{ worktree_path }}"'
+
+[post-remove]
+delete-session = 'wt delete-session "{{ repo }}" "{{ branch }}"'
