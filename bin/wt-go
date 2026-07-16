@@ -11,6 +11,36 @@ DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
 paths=()
 labels=()
 
+open_sessions="$({
+  /usr/bin/osascript 2>/dev/null <<'APPLESCRIPT' || true
+tell application "Ghostty"
+  set output to ""
+  repeat with ghosttyWindow in windows
+    repeat with ghosttyTab in tabs of ghosttyWindow
+      set tabName to name of ghosttyTab
+      if tabName contains " | " then
+        set AppleScript's text item delimiters to " | "
+        set tabName to text item 1 of tabName
+        set AppleScript's text item delimiters to ""
+      end if
+      set output to output & tabName & linefeed
+    end repeat
+  end repeat
+  return output
+end tell
+APPLESCRIPT
+  zellij list-sessions --no-formatting 2>/dev/null \
+    | awk '!/\(EXITED - attach to resurrect\)$/ { sub(/ \[Created.*/, ""); if (length) print }' || true
+} | sort -u)"
+
+session_is_open() {
+  local candidate="$1"
+  while IFS= read -r session; do
+    [ "$session" = "$candidate" ] && return 0
+  done <<<"$open_sessions"
+  return 1
+}
+
 if [ "$#" -gt 0 ]; then
   target="$1"
   prompt=""
@@ -32,6 +62,13 @@ for root in "$DEV_WORKSPACE/personal" "$DEV_WORKSPACE/work"; do
   for repo in "$root"/*; do
     [ -d "$repo/.git" ] || continue
     for path in "$repo"/.worktrees/*/; do
+      branch=$(/usr/bin/git -C "$path" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+      [ "$branch" = HEAD ] && branch=""
+      branch=${branch//\//-}
+      session="$(basename "$repo")${branch:+-$branch}"
+      session=${session:0:60}
+      session_is_open "$session" && continue
+
       paths+=("${path%/}")
       relative="${path#"$DEV_WORKSPACE"/}"
       labels+=("${relative/\/.worktrees\// → }")
@@ -40,7 +77,7 @@ for root in "$DEV_WORKSPACE/personal" "$DEV_WORKSPACE/work"; do
 done
 
 if [ "${#paths[@]}" -eq 0 ]; then
-  echo "wt-go: no worktrees found under $DEV_WORKSPACE" >&2
+  echo "wt-go: no unopened worktrees found under $DEV_WORKSPACE" >&2
   exit 1
 fi
 

@@ -1,20 +1,11 @@
 {
-  "env": {
-    "DISABLE_TELEMETRY": "1"
-  },
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
-  "model": "claude-fable-5[1m]",
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook claude",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook codex",
             "timeout": 5
           }
         ]
@@ -22,11 +13,10 @@
     ],
     "UserPromptSubmit": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook claude",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook codex",
             "timeout": 5
           }
         ]
@@ -34,11 +24,10 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook claude",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook codex",
             "timeout": 5
           }
         ]
@@ -46,11 +35,10 @@
     ],
     "PermissionRequest": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook claude",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook codex",
             "timeout": 5
           }
         ]
@@ -58,11 +46,10 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook claude",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook codex",
             "timeout": 5
           }
         ]
@@ -70,11 +57,10 @@
     ],
     "PreCompact": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook claude",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook codex",
             "timeout": 5
           }
         ]
@@ -82,11 +68,10 @@
     ],
     "PostCompact": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook claude",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook codex",
             "timeout": 5
           }
         ]
@@ -94,11 +79,10 @@
     ],
     "SubagentStart": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook claude",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook codex",
             "timeout": 5
           }
         ]
@@ -106,11 +90,10 @@
     ],
     "SubagentStop": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook claude",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook codex",
             "timeout": 5
           }
         ]
@@ -118,20 +101,14 @@
     ],
     "Stop": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook claude",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook codex",
             "timeout": 5
           }
         ]
       }
     ]
-  },
-  "spinnerTipsEnabled": false,
-  "effortLevel": "medium",
-  "fastMode": true,
-  "skipDangerousModePermissionPrompt": true,
-  "theme": "custom:catppuccin-mocha"
+  }
 }

@@ -1,6 +1,20 @@
 layout {
     default_tab_template {
-        pane size=1 borderless=true {
+        pane size=2 borderless=true {
+            plugin location="file:~/.local/share/mise/installs/zjstatus/latest/bin/zjstatus" {
+                format_left "{command_agents}"
+                format_center ""
+                format_right ""
+                format_space "#[bg=#1e1e2e]"
+                format_hide_on_overlength "false"
+                command_agents_command "/Users/rmgpinto/dev/personal/devenv/bin/zjstatus-agents"
+                command_agents_format "{stdout}"
+                command_agents_interval "1"
+                command_agents_rendermode "dynamic"
+                border_enabled "false"
+            }
+        }
+        pane size=2 borderless=true {
             plugin location="zjstatus"
         }
         children

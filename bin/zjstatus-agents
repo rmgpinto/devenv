@@ -1,0 +1,149 @@
+#!/usr/bin/env zsh
+
+set -euo pipefail
+
+export PATH="$HOME/.local/share/mise/installs/jq/latest:$PATH"
+
+state_file="${AGENT_STATE_FILE:-$HOME/.local/state/agents.json}"
+jq_bin="${JQ:-$(command -v jq 2>/dev/null || true)}"
+osascript_bin="${OSASCRIPT:-/usr/bin/osascript}"
+zellij_bin="${ZELLIJ_BIN:-$HOME/.local/share/mise/installs/zellij/latest/zellij}"
+
+[[ -s "$state_file" && -n "$jq_bin" ]] || exit 0
+
+rows="$($jq_bin -r \
+  --argjson now "$(date +%s)" \
+  '
+    def rank:
+      if . == "waiting" then 0
+      elif . == "working" or . == "tool" then 1
+      elif . == "idle" then 2
+      else 3
+      end;
+
+    to_entries
+    | map({
+        session: .key,
+        status: (
+          [.value.agents[]?
+            | if .status == "idle" and ($now - (.active_at // 0) <= 2)
+              then "working"
+              else (.status // "unknown")
+              end
+          ]
+          | sort_by(rank)
+          | first // "unknown"
+        )
+      })
+    | sort_by(.session | ascii_downcase)
+    | .[]
+    | [.session, .status] | @tsv
+  ' "$state_file" 2>/dev/null || true)"
+[[ -n "$rows" ]] || exit 0
+
+# Ghostty tab titles begin with the Zellij session name (for example,
+# "devenv-main | codex"). Render one equal-width cell per Ghostty tab so each
+# active-agent label sits beneath the corresponding native tab.
+typeset -A statuses
+sessions=()
+while IFS=$'\t' read -r session agent_status; do
+  [[ -n "$session" ]] || continue
+  statuses[$session]="$agent_status"
+  sessions+=("$session")
+done <<<"$rows"
+
+tab_sessions=()
+if [[ -x "$osascript_bin" ]]; then
+  tab_titles="$($osascript_bin 2>/dev/null <<'APPLESCRIPT' || true
+tell application "Ghostty"
+  set output to ""
+  if (count of windows) > 0 then
+    repeat with ghosttyTab in tabs of front window
+      set output to output & (name of ghosttyTab) & linefeed
+    end repeat
+  end if
+  return output
+end tell
+APPLESCRIPT
+)"
+
+  while IFS= read -r tab_title; do
+    [[ -n "$tab_title" ]] || continue
+    tab_sessions+=("${tab_title%% | *}")
+  done <<<"$tab_titles"
+fi
+
+(( ${#tab_sessions[@]} > 0 )) || tab_sessions=("${sessions[@]}")
+tab_count=${#tab_sessions[@]}
+(( tab_count > 0 )) || exit 0
+
+# Commands spawned by zjstatus have no TTY. Cache the real full-width pane
+# geometry so the one-second renderer does not poll Zellij on every refresh.
+width="${ZJSTATUS_AGENTS_WIDTH:-}"
+if [[ ! "$width" == <-> ]] || (( width < 1 )); then
+  cache_session="${ZELLIJ_SESSION_NAME:-default}"
+  cache_session="${cache_session//[^A-Za-z0-9_.-]/_}"
+  width_cache="${TMPDIR:-/tmp}/zjstatus-agents-width-${cache_session}"
+  now="$(date +%s)"
+  cached_at="$(stat -f %m "$width_cache" 2>/dev/null || printf '0')"
+
+  if (( now - cached_at >= 30 )) && [[ -x "$zellij_bin" ]]; then
+    measured_width="$($zellij_bin action list-panes --json --all 2>/dev/null \
+      | "$jq_bin" -r '[.[].pane_columns // 0] | max // 0' 2>/dev/null || true)"
+    if [[ "$measured_width" == <-> ]] && (( measured_width > 0 )); then
+      printf '%s\n' "$measured_width" > "$width_cache"
+    fi
+  fi
+
+  if [[ -r "$width_cache" ]]; then
+    width="$(<"$width_cache")"
+  else
+    width=""
+  fi
+fi
+[[ "$width" == <-> ]] && (( width > 0 )) || width=110
+
+# Native Ghostty tabs begin after the macOS traffic-light controls. Reserve
+# their approximate width before dividing the remaining row into tab slots.
+left_offset="${ZJSTATUS_GHOSTTY_TAB_OFFSET:-8}"
+[[ "$left_offset" == <-> ]] || left_offset=8
+(( left_offset < width )) || left_offset=0
+available_width=$(( width - left_offset ))
+
+color_base="#1e1e2e"
+color_green="#a6e3a1"
+color_yellow="#f9e2af"
+color_overlay1="#7f849c"
+color_red="#f38ba8"
+
+slot_width=$(( available_width / tab_count ))
+remainder=$(( available_width % tab_count ))
+out="$(printf '%*s' "$left_offset" '')"
+
+for (( i = 1; i <= tab_count; i++ )); do
+  session="${tab_sessions[$i]}"
+  current_width=$slot_width
+  (( i <= remainder )) && (( current_width += 1 ))
+
+  agent_status="${statuses[$session]-}"
+  if [[ -z "$agent_status" ]]; then
+    out+="$(printf '%*s' "$current_width" '')"
+    continue
+  fi
+
+  case "$agent_status" in
+    working|tool) icon="●"; color="$color_green" ;;
+    waiting)      icon="◆"; color="$color_yellow" ;;
+    idle)         icon="○"; color="$color_overlay1" ;;
+    *)            icon="×"; color="$color_red" ;;
+  esac
+
+  label="󰚩 ${icon}"
+  styled_label="#[fg=${color_overlay1}]󰚩 #[fg=${color}]${icon}"
+
+  left=$(( (current_width - ${#label}) / 2 ))
+  right=$(( current_width - ${#label} - left ))
+  out+="$(printf '%*s' "$left" '')#[bg=${color_base}]${styled_label}#[bg=${color_base},fg=${color_overlay1}]$(printf '%*s' "$right" '')"
+done
+
+printf '%s\n' "$out"
