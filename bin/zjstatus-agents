@@ -85,8 +85,15 @@ tab_count=${#tab_sessions[@]}
 
 # Never query Zellij from a status command: the server is waiting for this
 # process, so a nested `zellij action` deadlocks and accumulates children.
-# zcode captures the terminal width before starting the server.
-width="${ZJSTATUS_AGENTS_WIDTH:-${COLUMNS:-110}}"
+# zcode captures the terminal width before starting or switching sessions.
+cache_session="${ZELLIJ_SESSION_NAME:-default}"
+cache_session="${cache_session//[^A-Za-z0-9_.-]/_}"
+width_cache="${TMPDIR:-/tmp}/zjstatus-agents-width-${cache_session}"
+width="${ZJSTATUS_AGENTS_WIDTH:-}"
+if [[ -r "$width_cache" ]]; then
+  width="$(<"$width_cache")"
+fi
+width="${width:-${COLUMNS:-110}}"
 [[ "$width" == <-> ]] && (( width > 0 )) || width=110
 
 # Native Ghostty tabs begin after the macOS traffic-light controls. Reserve
