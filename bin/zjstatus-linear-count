@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export PATH="$HOME/.local/share/mise/installs/jq/latest:$PATH"
+
+JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
+CURL="${CURL:-/usr/bin/curl}"
+CACHE="${TMPDIR:-/tmp}/zjstatus-linear-count-${UID}"
+LOCK="${CACHE}.lock"
+MAX_AGE=5
+
+[ -n "$JQ" ] || exit 0
+
+if [ -z "${LINEAR_API_KEY:-}" ]; then
+  printf '#[fg=#fab387]◌ #[fg=#fab387,bold]? #[bg=#1e1e2e]\n'
+  exit 0
+fi
+
+now=$(date +%s)
+cached_at=$(stat -f %m "$CACHE" 2>/dev/null || printf '0')
+
+if (( now - cached_at >= MAX_AGE )) && mkdir "$LOCK" 2>/dev/null; then
+  trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT
+
+  query='query AgentIssueCount {
+    viewer {
+      assignedIssues(
+        filter: {state: {name: {in: ["Todo", "In Progress", "Shaping"]}}}
+        first: 100
+      ) {
+        nodes {
+          labels { nodes { name parent { name } } }
+        }
+      }
+    }
+  }'
+
+  response=$("$JQ" -nc --arg q "$query" '{query: $q}' \
+    | "$CURL" -fsS -X POST https://api.linear.app/graphql \
+        -H "Content-Type: application/json" \
+        -H "Authorization: $LINEAR_API_KEY" \
+        --data-binary @- 2>/dev/null || true)
+
+  if [ "$(printf '%s' "$response" | "$JQ" -r '.errors | length // 0' 2>/dev/null || printf '1')" -eq 0 ]; then
+    count=$(printf '%s' "$response" | "$JQ" -r '
+      [.data.viewer.assignedIssues.nodes[]?
+        | select(any(.labels.nodes[]?;
+            .name == "WIP" and .parent.name == "Bots") | not)]
+      | length
+    ' 2>/dev/null || true)
+    if [[ "$count" =~ ^[0-9]+$ ]]; then
+      tmp="${CACHE}.tmp.$$"
+      printf '%s\n' "$count" > "$tmp"
+      mv "$tmp" "$CACHE"
+    fi
+  fi
+fi
+
+if [ -r "$CACHE" ]; then
+  count=$(<"$CACHE")
+else
+  count="?"
+fi
+
+printf '#[fg=#fab387]◌ #[fg=#fab387,bold]%s #[bg=#1e1e2e]\n' "$count"

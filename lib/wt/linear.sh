@@ -54,6 +54,9 @@ pick_linear_issue_description() {
     [ -n "$selection" ] || return 0
 
     issue_id=$(printf '%s' "$selection" | sed 's/^\[\([^]]*\)\].*/\1/')
+    if [ -n "${WT_LINEAR_ISSUE_FILE:-}" ]; then
+      printf '%s\n' "$issue_id" > "$WT_LINEAR_ISSUE_FILE"
+    fi
     printf '%s' "$response" | jq -r --arg id "$issue_id" '
       .data.viewer.assignedIssues.nodes[]
       | select(.identifier == $id)
@@ -61,4 +64,57 @@ pick_linear_issue_description() {
     '
     return
   done
+}
+
+mark_linear_issue_in_progress() {
+  local issue_identifier="$1"
+  local query response issue_id state_id label_id label_ids mutation
+
+  [ -n "${LINEAR_API_KEY:-}" ] && [ -n "$issue_identifier" ] || return 1
+
+  query='query IssueAutomationContext($issueId: String!) {
+    issue(id: $issueId) {
+      id
+      labels { nodes { id } }
+      team { states { nodes { id name } } }
+    }
+    issueLabels(filter: {name: {eq: "WIP"}}, first: 50) {
+      nodes { id name parent { name } }
+    }
+  }'
+  response=$(jq -nc --arg q "$query" --arg issueId "$issue_identifier" \
+    '{query: $q, variables: {issueId: $issueId}}' \
+    | curl -fsS -X POST https://api.linear.app/graphql \
+        -H "Content-Type: application/json" \
+        -H "Authorization: $LINEAR_API_KEY" \
+        --data-binary @-) || return 1
+
+  [ "$(printf '%s' "$response" | jq -r '.errors | length // 0')" -eq 0 ] || return 1
+  issue_id=$(printf '%s' "$response" | jq -r '.data.issue.id // empty')
+  state_id=$(printf '%s' "$response" | jq -r \
+    '.data.issue.team.states.nodes[] | select(.name == "In Progress") | .id' | head -1)
+  label_id=$(printf '%s' "$response" | jq -r \
+    '.data.issueLabels.nodes[] | select(.name == "WIP" and .parent.name == "Bots") | .id' \
+    | head -1)
+  [ -n "$issue_id" ] && [ -n "$state_id" ] && [ -n "$label_id" ] || return 1
+
+  label_ids=$(printf '%s' "$response" | jq -c --arg label "$label_id" \
+    '[.data.issue.labels.nodes[].id, $label] | unique')
+  mutation='mutation StartIssue($issueId: String!, $stateId: String!, $labelIds: [String!]!) {
+    issueUpdate(id: $issueId, input: {stateId: $stateId, labelIds: $labelIds}) {
+      success
+    }
+  }'
+  response=$(jq -nc \
+    --arg q "$mutation" \
+    --arg issueId "$issue_id" \
+    --arg stateId "$state_id" \
+    --argjson labelIds "$label_ids" \
+    '{query: $q, variables: {issueId: $issueId, stateId: $stateId, labelIds: $labelIds}}' \
+    | curl -fsS -X POST https://api.linear.app/graphql \
+        -H "Content-Type: application/json" \
+        -H "Authorization: $LINEAR_API_KEY" \
+        --data-binary @-) || return 1
+
+  [ "$(printf '%s' "$response" | jq -r '.data.issueUpdate.success // false')" = "true" ]
 }

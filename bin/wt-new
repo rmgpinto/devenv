@@ -17,7 +17,14 @@ ORG="TryGhost"
 mkdir -p "$WORK_DIR"
 
 # 1. Pick Linear issue (optional)
+ISSUE_FILE=$(mktemp -t wt-linear-issue.XXXXXX)
+trap 'rm -f "$ISSUE_FILE"' EXIT
+export WT_LINEAR_ISSUE_FILE="$ISSUE_FILE"
 ISSUE_DESC=$(pick_linear_issue_description)
+unset WT_LINEAR_ISSUE_FILE
+ISSUE_ID=$(<"$ISSUE_FILE")
+rm -f "$ISSUE_FILE"
+trap - EXIT
 
 # 2. Pick GitHub repo
 REPO=$(pick_github_repo "$ORG")
@@ -55,6 +62,14 @@ PROMPT=$(gum write \
   --header "Initial prompt (ctrl-d submit, esc skip)" \
   --width 100 --height 20 \
   --value "$ISSUE_DESC" || true)
+
+if [ -n "$ISSUE_ID" ] && [ -n "$PROMPT" ]; then
+  if mark_linear_issue_in_progress "$ISSUE_ID"; then
+    rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/wt/linear.json"
+  else
+    echo "wt-new: warning: could not mark $ISSUE_ID In Progress with label 'Bots / WIP'" >&2
+  fi
+fi
 
 # 6. Start the worktree's session
 cd "$TARGET"

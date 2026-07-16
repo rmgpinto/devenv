@@ -8,6 +8,11 @@ source /Users/rmgpinto/dev/personal/devenv/lib/zellij/session.sh
 prompt="${1:-}"
 session=$(zellij_session_name_at "$PWD")
 
+# Commands rendered by zjstatus have no TTY of their own. Capture the client
+# width here so they never need to call back into the Zellij server and
+# deadlock it while it waits for their output.
+export ZJSTATUS_AGENTS_WIDTH="${COLUMNS:-$(tput cols 2>/dev/null || printf 110)}"
+
 # A prompt requires a fresh session so its generated layout is applied.
 # Retain file detection temporarily for wt-spawn compatibility.
 if { [ -n "$prompt" ] || [ -s "$PWD/.wt-claude-prompt" ]; } \
