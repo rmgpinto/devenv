@@ -78,7 +78,7 @@ mark_linear_issue_in_progress() {
       labels { nodes { id } }
       team { states { nodes { id name } } }
     }
-    issueLabels(filter: {name: {eq: "WIP"}}, first: 50) {
+    issueLabels(filter: {name: {eq: "Agent-assisted"}}, first: 50) {
       nodes { id name parent { name } }
     }
   }'
@@ -94,7 +94,7 @@ mark_linear_issue_in_progress() {
   state_id=$(printf '%s' "$response" | jq -r \
     '.data.issue.team.states.nodes[] | select(.name == "In Progress") | .id' | head -1)
   label_id=$(printf '%s' "$response" | jq -r \
-    '.data.issueLabels.nodes[] | select(.name == "WIP" and .parent.name == "Bots") | .id' \
+    '.data.issueLabels.nodes[] | select(.name == "Agent-assisted" and .parent.name == "Bots") | .id' \
     | head -1)
   [ -n "$issue_id" ] && [ -n "$state_id" ] && [ -n "$label_id" ] || return 1
 

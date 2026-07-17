@@ -52,7 +52,7 @@ if (( now - cached_at >= MAX_AGE )) && mkdir "$LOCK" 2>/dev/null; then
     count=$(printf '%s' "$response" | "$JQ" -r '
       [.data.viewer.assignedIssues.nodes[]?
         | select(any(.labels.nodes[]?;
-            .name == "WIP" and .parent.name == "Bots") | not)]
+            .name == "Agent-assisted" and .parent.name == "Bots") | not)]
       | length
     ' 2>/dev/null || true)
     if [[ "$count" =~ ^[0-9]+$ ]]; then

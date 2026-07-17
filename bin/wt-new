@@ -67,7 +67,7 @@ if [ -n "$ISSUE_ID" ] && [ -n "$PROMPT" ]; then
   if mark_linear_issue_in_progress "$ISSUE_ID"; then
     rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/wt/linear.json"
   else
-    echo "wt-new: warning: could not mark $ISSUE_ID In Progress with label 'Bots / WIP'" >&2
+    echo "wt-new: warning: could not mark $ISSUE_ID In Progress with label 'Bots / Agent-assisted'" >&2
   fi
 fi
 
