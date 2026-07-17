@@ -8,12 +8,18 @@ JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
 CURL="${CURL:-/usr/bin/curl}"
 CACHE="${TMPDIR:-/tmp}/zjstatus-linear-count-${UID}"
 LOCK="${CACHE}.lock"
-MAX_AGE=5
+MAX_AGE="${ZJSTATUS_LINEAR_MAX_AGE:-5}"
 
 [ -n "$JQ" ] || exit 0
+[[ "$MAX_AGE" =~ ^[0-9]+$ ]] || MAX_AGE=5
 
 if [ -z "${LINEAR_API_KEY:-}" ]; then
-  printf '#[fg=#fab387]◌ #[fg=#fab387,bold]? #[bg=#1e1e2e]\n'
+  if [ -r "$CACHE" ]; then
+    count=$(<"$CACHE")
+  else
+    count="?"
+  fi
+  printf '#[fg=#fab387]◌ #[fg=#fab387,bold]%s #[bg=#1e1e2e]\n' "$count"
   exit 0
 fi
 

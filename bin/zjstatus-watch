@@ -1,0 +1,70 @@
+#!/usr/bin/env zsh
+# Watch Ghostty geometry and publish only when tabs or window dimensions change.
+
+set -euo pipefail
+unsetopt BG_NICE
+
+lock="${TMPDIR:-/tmp}/zjstatus-watch.lock"
+pid_file="${lock}/pid"
+state_file="${AGENT_STATE_FILE:-$HOME/.local/state/agents.json}"
+geometry_signal=/tmp/zjstatus-geometry.signal
+watchexec_bin="${WATCHEXEC:-$(command -v watchexec 2>/dev/null || true)}"
+
+[[ -x "$watchexec_bin" ]] || exit 0
+
+if ! mkdir "$lock" 2>/dev/null; then
+  pid="$(<"$pid_file" 2>/dev/null || true)"
+  [[ "$pid" == <-> ]] && kill -0 "$pid" 2>/dev/null && exit 0
+  rm -f "$pid_file" 2>/dev/null || true
+  rmdir "$lock" 2>/dev/null || exit 0
+  mkdir "$lock" 2>/dev/null || exit 0
+fi
+
+printf '%s\n' $$ > "$pid_file"
+/usr/bin/touch "$state_file" "$geometry_signal"
+
+"$watchexec_bin" --postpone --debounce 50ms --shell none \
+  --watch "$state_file" --watch "$geometry_signal" -- \
+  /Users/rmgpinto/dev/personal/devenv/bin/zjstatus-publish --geometry \
+  </dev/null >/dev/null 2>&1 &
+events_pid=$!
+
+trap 'kill "$events_pid" 2>/dev/null || true; rm -f "$pid_file"; rmdir "$lock" 2>/dev/null || true' EXIT INT TERM
+
+/usr/bin/osascript <<'APPLESCRIPT'
+set previousSignature to ""
+
+repeat
+  set currentSignature to ""
+  try
+    tell application "Ghostty"
+      if (count of windows) > 0 then
+        repeat with ghosttyTab in tabs of front window
+          set currentSignature to currentSignature & (name of ghosttyTab) & "|"
+        end repeat
+      end if
+    end tell
+
+    tell application "System Events"
+      tell process "Ghostty"
+        if (count of windows) > 0 then
+          set ghosttyWindow to front window
+          set currentSignature to currentSignature & (position of ghosttyWindow as text) & ":" & (size of ghosttyWindow as text)
+          set tabGroups to every UI element of ghosttyWindow whose role is "AXTabGroup"
+          if (count of tabGroups) > 0 then
+            repeat with tabItem in (every UI element of item 1 of tabGroups whose role is "AXRadioButton")
+              set currentSignature to currentSignature & ":" & (position of tabItem as text) & ":" & (size of tabItem as text)
+            end repeat
+          end if
+        end if
+      end tell
+    end tell
+
+    if currentSignature is not previousSignature then
+      set previousSignature to currentSignature
+      do shell script "/usr/bin/touch /tmp/zjstatus-geometry.signal"
+    end if
+  end try
+  delay 0.5
+end repeat
+APPLESCRIPT

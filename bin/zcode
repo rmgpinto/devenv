@@ -2,27 +2,23 @@
 # Open the current repository worktree in its Zellij code session.
 
 set -e
+unsetopt BG_NICE
 
 source /Users/rmgpinto/dev/personal/devenv/lib/zellij/session.sh
 
 prompt="${1:-}"
 session=$(zellij_session_name_at "$PWD")
 
-# Commands rendered by zjstatus have no TTY of their own. Capture the full
-# client width before starting or switching sessions so they never call back
-# into a Zellij server that is waiting for their output. Environment variables
-# are not propagated reliably by `switch-session`, so persist it per session.
-width="${COLUMNS:-$(tput cols 2>/dev/null || printf 110)}"
-if [ -n "${ZELLIJ:-}" ]; then
-  measured_width="$(zellij action list-panes --json 2>/dev/null \
-    | jq -r '[.[].pane_columns // 0] | max // 0' 2>/dev/null || true)"
-  if [[ "$measured_width" == <-> ]] && (( measured_width > width )); then
-    width="$measured_width"
-  fi
-fi
-export ZJSTATUS_AGENTS_WIDTH="$width"
-width_session="${session//[^A-Za-z0-9_.-]/_}"
-printf '%s\n' "$width" > "${TMPDIR:-/tmp}/zjstatus-agents-width-${width_session}"
+# One persistent watcher refreshes status only when Ghostty geometry changes.
+nohup /Users/rmgpinto/dev/personal/devenv/bin/zjstatus-watch \
+  </dev/null >/dev/null 2>&1 &!
+
+# Pipe widgets start empty and may not be ready for the SessionStart hook.
+# Seed them once after the target session has finished loading.
+(
+  sleep 1
+  /Users/rmgpinto/dev/personal/devenv/bin/zjstatus-publish --geometry
+) </dev/null >/dev/null 2>&1 &!
 
 # A prompt requires a fresh session so its generated layout is applied.
 # Retain file detection temporarily for wt-spawn compatibility.
