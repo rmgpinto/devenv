@@ -3,6 +3,18 @@
 
 set -e
 
+for arg in "$@"; do
+  case "$arg" in
+    -c|-E|-S|-o|--version|-v|-###|\
+    -arch|-isysroot|-shared|-dynamiclib|-static|-bundle|\
+    -mmacosx-version-min=*|-miphoneos-version-min=*|-mios-simulator-version-min=*|\
+    -Wl,*|-l*|-L*|-I*|-D*|-U*|-std=*|-O*|-g|\
+    *.c|*.C|*.cc|*.cpp|*.cxx|*.m|*.mm|*.s|*.S|*.o|*.a|*.dylib|*.so|*.rlib)
+      exec /usr/bin/cc "$@"
+      ;;
+  esac
+done
+
 mkdir -p "$HOME/.local/state"
 [[ -e "$HOME/.local/state/agents.json" ]] || : >| "$HOME/.local/state/agents.json"
 [[ -e "$HOME/.local/state/agents.json.lock" ]] || : >| "$HOME/.local/state/agents.json.lock"
