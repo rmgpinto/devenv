@@ -77,7 +77,7 @@ function setup_lazygit() {
 }
 
 function setup_worktrunk() {
-  log info "Setting up Worktrunk..."
+  log info "Setting up worktrunk..."
   /opt/homebrew/bin/stow --adopt worktrunk -t ${HOME}
   /opt/homebrew/bin/mise exec aqua:max-sixty/worktrunk -- wt config shell install --yes zsh
   log info "Done."
@@ -183,14 +183,26 @@ function setup_nono() {
 }
 
 function setup_claude() {
-  log info "Setting up Claude Code settings..."
+  log info "Setting up claude code..."
+  local claude_bin="${HOME}/.local/share/mise/installs/claude-code/latest/claude"
+  local claude_marketplace_dir="${DEV_WORKSPACE}/work/Claude"
   mkdir -p "${HOME}/.config/claude/themes"
   /opt/homebrew/bin/stow --adopt --no-folding claude -t "${HOME}"
+  if [[ -x "${claude_bin}" && -f "${claude_marketplace_dir}/.claude-plugin/marketplace.json" ]]; then
+    CLAUDE_CONFIG_DIR="${HOME}/.config/claude" \
+      "${claude_bin}" plugin marketplace add "${claude_marketplace_dir}" --scope user
+    CLAUDE_CONFIG_DIR="${HOME}/.config/claude" \
+      "${claude_bin}" plugin install repo-audit@ghost-claude-marketplace --scope user
+    CLAUDE_CONFIG_DIR="${HOME}/.config/claude" \
+      "${claude_bin}" plugin install ghost-pro@ghost-claude-marketplace --scope user
+  else
+    log error "Claude Code or marketplace not found; skipping Claude plugins"
+  fi
   log info "Done."
 }
 
 function setup_codex() {
-  log info "Setting up Codex CLI config..."
+  log info "Setting up codex..."
   mkdir -p "${HOME}/.config/codex"
   /opt/homebrew/bin/stow --adopt --no-folding codex -t "${HOME}"
   log info "Done."
