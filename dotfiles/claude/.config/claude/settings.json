@@ -7,6 +7,18 @@
     "pr": ""
   },
   "model": "claude-fable-5[1m]",
+  "enabledPlugins": {
+    "repo-audit@ghost-claude-marketplace": true,
+    "ghost-pro@ghost-claude-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "ghost-claude-marketplace": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/rmgpinto/dev/work/Claude"
+      }
+    }
+  },
   "spinnerTipsEnabled": false,
   "effortLevel": "medium",
   "fastMode": true,
