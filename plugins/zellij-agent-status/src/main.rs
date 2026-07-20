@@ -1,9 +1,11 @@
 use std::collections::{hash_map::DefaultHasher, BTreeMap, HashMap, HashSet};
 use std::hash::{Hash, Hasher};
+use std::time::{Duration, Instant};
 
 use zellij_tile::prelude::*;
 
 const POLL_INTERVAL_SECONDS: f64 = 0.25;
+const COMMAND_DISCOVERY_INTERVAL: Duration = Duration::from_secs(5);
 
 struct PluginConfig {
     terminal_title: String,
@@ -87,6 +89,9 @@ struct State {
     terminal_panes: HashSet<PaneId>,
     pane_titles: HashMap<PaneId, String>,
     agents: HashMap<PaneId, AgentState>,
+    dirty_agents: HashSet<PaneId>,
+    last_command_discovery: Option<Instant>,
+    input_mode: InputMode,
     activity: u64,
     last_terminal_title: Option<String>,
 }
@@ -101,6 +106,9 @@ impl Default for State {
             terminal_panes: HashSet::new(),
             pane_titles: HashMap::new(),
             agents: HashMap::new(),
+            dirty_agents: HashSet::new(),
+            last_command_discovery: None,
+            input_mode: InputMode::Normal,
             activity: 0,
             last_terminal_title: None,
         }
@@ -115,6 +123,7 @@ impl ZellijPlugin for State {
         subscribe(&[
             EventType::PaneUpdate,
             EventType::SessionUpdate,
+            EventType::ModeUpdate,
             EventType::PermissionRequestResult,
             EventType::Timer,
         ]);
@@ -126,7 +135,11 @@ impl ZellijPlugin for State {
             Event::PermissionRequestResult(PermissionStatus::Granted) => {
                 self.permissions_granted = true;
                 self.refresh_session_snapshot();
-                subscribe(&[EventType::PaneUpdate, EventType::SessionUpdate]);
+                subscribe(&[
+                    EventType::PaneUpdate,
+                    EventType::SessionUpdate,
+                    EventType::ModeUpdate,
+                ]);
                 self.poll_agents();
             }
             Event::PermissionRequestResult(PermissionStatus::Denied) => {
@@ -134,13 +147,20 @@ impl ZellijPlugin for State {
             }
             Event::PaneUpdate(panes) if self.permissions_granted => {
                 self.update_panes(&panes);
-                self.poll_agents();
+                self.mark_agents_dirty();
             }
             Event::SessionUpdate(sessions, _) if self.permissions_granted => {
                 if let Some(session) = sessions.iter().find(|session| session.is_current_session) {
                     self.session_name.clone_from(&session.name);
                     self.update_panes(&session.panes);
                     self.update_terminal_title();
+                }
+            }
+            Event::ModeUpdate(mode_info) if self.permissions_granted => {
+                let was_scrolling = self.is_scrollback_mode();
+                self.input_mode = mode_info.mode;
+                if was_scrolling && !self.is_scrollback_mode() {
+                    self.mark_agents_dirty();
                 }
             }
             Event::Timer(_) => {
@@ -195,22 +215,31 @@ impl State {
         self.pane_titles = pane_titles;
         self.agents
             .retain(|pane_id, _| self.terminal_panes.contains(pane_id));
+        self.dirty_agents
+            .retain(|pane_id| self.terminal_panes.contains(pane_id));
     }
 
     fn poll_agents(&mut self) {
-        let panes = self.terminal_panes.iter().copied().collect::<Vec<_>>();
-        let mut detected = HashSet::new();
+        if self
+            .last_command_discovery
+            .is_none_or(|last| last.elapsed() >= COMMAND_DISCOVERY_INTERVAL)
+        {
+            self.discover_agents();
+        }
 
-        for pane_id in panes {
-            let Ok(command) = get_pane_running_command(pane_id) else {
-                continue;
-            };
-            let Some(agent) = agent_from_command(&command) else {
-                continue;
-            };
-            detected.insert(pane_id);
+        if self.is_scrollback_mode() {
+            return;
+        }
 
-            let Ok(contents) = get_pane_scrollback(pane_id, true) else {
+        let agents = self
+            .agents
+            .iter()
+            .filter(|(pane_id, _)| self.dirty_agents.contains(pane_id))
+            .map(|(pane_id, state)| (*pane_id, state.agent))
+            .collect::<Vec<_>>();
+
+        for (pane_id, agent) in agents {
+            let Ok(contents) = get_pane_scrollback(pane_id, false) else {
                 continue;
             };
             let screen = pane_contents_to_string(contents);
@@ -246,10 +275,51 @@ impl State {
                     activity,
                 },
             );
+            self.dirty_agents.remove(&pane_id);
+        }
+
+        self.update_terminal_title();
+    }
+
+    fn discover_agents(&mut self) {
+        let panes = self.terminal_panes.iter().copied().collect::<Vec<_>>();
+        let mut detected = HashSet::new();
+
+        for pane_id in panes {
+            let Ok(command) = get_pane_running_command(pane_id) else {
+                continue;
+            };
+            let Some(agent) = agent_from_command(&command) else {
+                continue;
+            };
+            detected.insert(pane_id);
+            self.agents
+                .entry(pane_id)
+                .and_modify(|state| state.agent = agent)
+                .or_insert(AgentState {
+                    agent,
+                    status: Status::Unknown,
+                    signature: 0,
+                    activity: 0,
+                });
+            self.dirty_agents.insert(pane_id);
         }
 
         self.agents.retain(|pane_id, _| detected.contains(pane_id));
-        self.update_terminal_title();
+        self.dirty_agents
+            .retain(|pane_id| detected.contains(pane_id));
+        self.last_command_discovery = Some(Instant::now());
+    }
+
+    fn mark_agents_dirty(&mut self) {
+        self.dirty_agents.extend(self.agents.keys().copied());
+    }
+
+    fn is_scrollback_mode(&self) -> bool {
+        matches!(
+            self.input_mode,
+            InputMode::Scroll | InputMode::Search | InputMode::EnterSearch
+        )
     }
 
     fn update_terminal_title(&mut self) {
@@ -273,14 +343,7 @@ impl State {
 }
 
 fn pane_contents_to_string(contents: PaneContents) -> String {
-    let viewport_rows = contents.viewport.len();
-    let lines = contents
-        .lines_above_viewport
-        .into_iter()
-        .chain(contents.viewport)
-        .chain(contents.lines_below_viewport)
-        .collect::<Vec<_>>();
-    lines[lines.len().saturating_sub(viewport_rows)..].join("\n")
+    contents.viewport.join("\n")
 }
 
 fn screen_signature(agent: Agent, status: Status, screen: &str) -> u64 {
@@ -324,19 +387,20 @@ fn parse_codex_screen_status(title: &str, screen: &str) -> Status {
     let combined = lines.join("\n");
     let lower = combined.to_ascii_lowercase();
 
+    if ['›', '❯'].into_iter().any(|prompt| {
+        last_prompt_like_line(screen, prompt).is_some_and(|line| !is_numbered_selection_line(line))
+    }) {
+        return Status::Idle;
+    }
+
     if lower.contains("press enter to confirm or esc to cancel")
         || lower.contains("enter to submit answer")
         || lower.contains("allow command?")
         || lower.contains("[y/n]")
         || lower.contains("yes (y)")
-        || combined.contains("Do you want to run this command?")
-        || combined.contains("Do you want to allow this command?")
         || combined.contains("Confirm with number keys")
         || combined.contains("Cancel with Esc")
         || lower.contains("approval required")
-        || combined.contains("Would you like to run the following command?")
-        || combined.contains("Yes, proceed (y)")
-        || combined.contains("No, and tell Codex what to do differently")
         || has_confirmation_prompt(&lower)
     {
         return Status::Waiting;
@@ -450,7 +514,7 @@ fn has_selection_prompt(screen: &str) -> bool {
 }
 
 fn is_numbered_selection_line(line: &str) -> bool {
-    let selection = line.trim().trim_start_matches('❯').trim_start();
+    let selection = line.trim().trim_start_matches(['❯', '›']).trim_start();
     selection
         .split_once('.')
         .is_some_and(|(number, _)| !number.is_empty() && number.chars().all(|c| c.is_ascii_digit()))
@@ -566,13 +630,22 @@ mod tests {
     }
 
     #[test]
-    fn uses_live_viewport_while_scrolled_up() {
+    fn ignores_stale_waiting_prompts_when_codex_is_idle() {
+        let screen = "Do you want to run this command?\nYes, proceed\nTask complete\n›";
+        assert_eq!(parse_codex_screen_status("codex", screen), Status::Idle);
+    }
+
+    #[test]
+    fn uses_only_the_current_viewport() {
         let contents = PaneContents {
             lines_above_viewport: vec!["Do you want to proceed?".into()],
             viewport: vec!["❯ 1. Yes".into(), "old output".into(), "more output".into()],
             lines_below_viewport: vec!["Task complete".into(), "".into(), "❯".into()],
             ..Default::default()
         };
-        assert_eq!(pane_contents_to_string(contents), "Task complete\n\n❯");
+        assert_eq!(
+            pane_contents_to_string(contents),
+            "❯ 1. Yes\nold output\nmore output"
+        );
     }
 }
