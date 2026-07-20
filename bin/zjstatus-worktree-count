@@ -12,7 +12,8 @@ fi
 
 open_sessions="${ZJSTATUS_OPEN_SESSIONS:-}"
 if [ -z "$open_sessions" ]; then
-  open_sessions="$(/usr/bin/osascript 2>/dev/null <<'APPLESCRIPT' || true
+  open_sessions="$({
+    /usr/bin/osascript 2>/dev/null <<'APPLESCRIPT' || true
 tell application "Ghostty"
   set output to ""
   repeat with ghosttyWindow in windows
@@ -29,7 +30,9 @@ tell application "Ghostty"
   return output
 end tell
 APPLESCRIPT
-  )"
+    /Users/rmgpinto/dev/personal/devenv/bin/zellij list-sessions --no-formatting 2>/dev/null \
+      | awk '!/\(EXITED - attach to resurrect\)$/ { sub(/ \[Created.*/, ""); if (length) print }' || true
+  } | sort -u)"
 fi
 
 session_is_open() {
