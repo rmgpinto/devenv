@@ -8,4 +8,9 @@ if [[ ! -x "$local_zellij" ]]; then
   exit 1
 fi
 
+# Zellij servers inherit launchd's low soft limit (256 on macOS), which is easy
+# to exhaust across panes and plugins even when the shell advertises a higher
+# limit. Raise it before the server starts; the hard limit remains unchanged.
+ulimit -n 65536
+
 exec "$local_zellij" "$@"
