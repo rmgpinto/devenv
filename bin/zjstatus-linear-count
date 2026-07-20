@@ -61,6 +61,7 @@ if (( now - cached_at >= MAX_AGE )); then
         first: 100
       ) {
         nodes {
+          identifier
           labels { nodes { name parent { name } } }
         }
       }
@@ -76,6 +77,7 @@ if (( now - cached_at >= MAX_AGE )); then
     if [ "$(printf '%s' "$response" | "$JQ" -r '.errors | length // 0' 2>/dev/null || printf '1')" -eq 0 ]; then
       count=$(printf '%s' "$response" | "$JQ" -r '
       [.data.viewer.assignedIssues.nodes[]?
+        | select((.identifier // "") | startswith("ONC-") | not)
         | select(any(.labels.nodes[]?;
             .name == "Agent-assisted" and .parent.name == "Bots") | not)]
       | length
