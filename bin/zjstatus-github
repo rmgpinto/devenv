@@ -6,6 +6,8 @@ export PATH="/Users/rmgpinto/dev/personal/devenv/bin:$HOME/.local/share/mise/ins
 GIT="${GIT:-/usr/bin/git}"
 GH="${GH:-$HOME/.local/share/mise/installs/github-cli/latest/gh-latest}"
 JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
+MAX_AGE="${ZJSTATUS_GITHUB_MAX_AGE:-5}"
+TIMEOUT="${ZJSTATUS_GITHUB_TIMEOUT:-3}"
 
 color_base="#1e1e2e"
 color_black="#181825"
@@ -22,9 +24,8 @@ color_peach="#fab387"
 color_red="#f38ba8"
 color_yellow="#f9e2af"
 
-repo_dir="$PWD"
-
-if ! "$GIT" -C "$repo_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+repo_dir="$("$GIT" -C "$PWD" rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "$repo_dir" ]]; then
   exit 0
 fi
 
@@ -42,7 +43,49 @@ if [[ -z "$GH" || -z "$JQ" ]]; then
   exit 0
 fi
 
-pr_json="$(cd "$repo_dir" && "$GH" pr view --json number,state,mergedAt 2>/dev/null || true)"
+[[ "$MAX_AGE" =~ ^[0-9]+$ ]] || MAX_AGE=5
+[[ "$TIMEOUT" =~ ^[0-9]+$ ]] || TIMEOUT=3
+worktree_id="$(printf '%s' "$repo_dir" | /usr/bin/cksum | /usr/bin/awk '{print $1}')"
+cache_key="${repo_dir:t}-${branch//[^A-Za-z0-9_.-]/-}-${worktree_id}"
+CACHE="${TMPDIR:-/tmp}/zjstatus-github-${UID}-${cache_key}"
+LOCK="${CACHE}.lock"
+
+print_cached() {
+  local cached=""
+  if [[ -r "$CACHE" ]]; then
+    IFS= read -r cached <"$CACHE" || cached=""
+  fi
+  printf '%s\n' "${cached:-$branch_segment}"
+}
+
+now=$(/bin/date +%s)
+cached_at=$(/usr/bin/stat -f %m "$CACHE" 2>/dev/null || printf '0')
+if (( now - cached_at < MAX_AGE )); then
+  print_cached
+  exit 0
+fi
+
+if ! /bin/mkdir "$LOCK" 2>/dev/null; then
+  lock_at=$(/usr/bin/stat -f %m "$LOCK" 2>/dev/null || printf '%s' "$now")
+  if (( now - lock_at < 60 )); then
+    print_cached
+    exit 0
+  fi
+  /bin/rm -f "$LOCK/pid" 2>/dev/null || true
+  /bin/rmdir "$LOCK" 2>/dev/null || true
+  if ! /bin/mkdir "$LOCK" 2>/dev/null; then
+    print_cached
+    exit 0
+  fi
+fi
+printf '%s\n' "$$" >"$LOCK/pid"
+trap '/bin/rm -f "$LOCK/pid" 2>/dev/null || true; /bin/rmdir "$LOCK" 2>/dev/null || true' EXIT INT TERM
+
+run_with_timeout() {
+  /usr/bin/perl -e '$timeout = shift; alarm $timeout; exec @ARGV' "$TIMEOUT" "$@"
+}
+
+pr_json="$(cd "$repo_dir" && run_with_timeout "$GH" pr view --json number,state,mergedAt 2>/dev/null || true)"
 has_pr=false
 if [[ -n "$pr_json" ]]; then
   number="$("$JQ" -r '.number // empty' <<<"$pr_json")"
@@ -67,7 +110,7 @@ fi
 
 checks_json=""
 if [[ "$has_pr" == "true" ]]; then
-  checks_json="$(cd "$repo_dir" && "$GH" pr checks --json bucket 2>/dev/null || true)"
+  checks_json="$(cd "$repo_dir" && run_with_timeout "$GH" pr checks --json bucket 2>/dev/null || true)"
 fi
 if [[ -n "$checks_json" ]] && [[ "$("$JQ" 'length' <<<"$checks_json")" -gt 0 ]]; then
   if "$JQ" -e 'any(.bucket == "fail" or .bucket == "cancel")' <<<"$checks_json" >/dev/null; then
@@ -102,4 +145,7 @@ fi
 
 out="${out}#[bg=${previous_bg},fg=${color_surface0}]${branch_segment}"
 
+tmp="${CACHE}.tmp.$$"
+printf '%s\n' "$out" >"$tmp"
+/bin/mv "$tmp" "$CACHE"
 printf '%s\n' "$out"

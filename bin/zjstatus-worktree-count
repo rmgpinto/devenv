@@ -4,35 +4,69 @@ set -euo pipefail
 shopt -s nullglob
 
 DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
+CACHE="${TMPDIR:-/tmp}/zjstatus-worktree-count-${UID}"
+LOCK="${CACHE}.lock"
+MAX_AGE="${ZJSTATUS_WORKTREE_MAX_AGE:-5}"
 RAW_COUNT=0
 
 if [ "${1:-}" = "--count" ]; then
   RAW_COUNT=1
 fi
 
+[[ "$MAX_AGE" =~ ^[0-9]+$ ]] || MAX_AGE=5
+
+print_count() {
+  local count="${1:-?}"
+  if (( RAW_COUNT )); then
+    printf '%s\n' "$count"
+  else
+    printf '#[bg=#313244,fg=#74c7ec,bold] 󰙅 %s \n' "$count"
+  fi
+}
+
+cached_count() {
+  if [ -r "$CACHE" ]; then
+    IFS= read -r count <"$CACHE" || count="?"
+    print_count "$count"
+  else
+    print_count "?"
+  fi
+}
+
+now=$(/bin/date +%s)
+cached_at=$(/usr/bin/stat -f %m "$CACHE" 2>/dev/null || printf '0')
+if (( now - cached_at < MAX_AGE )); then
+  cached_count
+  exit 0
+fi
+
+# Only one status bar may perform the global scan at a time. Recover a lock
+# left behind by a killed process, otherwise serve the previous value.
+if ! /bin/mkdir "$LOCK" 2>/dev/null; then
+  lock_at=$(/usr/bin/stat -f %m "$LOCK" 2>/dev/null || printf '%s' "$now")
+  if (( now - lock_at < 60 )); then
+    cached_count
+    exit 0
+  fi
+  /bin/rm -f "$LOCK/pid" 2>/dev/null || true
+  /bin/rmdir "$LOCK" 2>/dev/null || true
+  if ! /bin/mkdir "$LOCK" 2>/dev/null; then
+    cached_count
+    exit 0
+  fi
+fi
+printf '%s\n' "$$" >"$LOCK/pid"
+trap '/bin/rm -f "$LOCK/pid" 2>/dev/null || true; /bin/rmdir "$LOCK" 2>/dev/null || true' EXIT INT TERM
+
+# Query Zellij directly. The previous Ghostty AppleScript query could block in
+# Apple Events/TCC and allowed status refreshes to pile up indefinitely.
 open_sessions="${ZJSTATUS_OPEN_SESSIONS:-}"
 if [ -z "$open_sessions" ]; then
-  open_sessions="$({
-    /usr/bin/osascript 2>/dev/null <<'APPLESCRIPT' || true
-tell application "Ghostty"
-  set output to ""
-  repeat with ghosttyWindow in windows
-    repeat with ghosttyTab in tabs of ghosttyWindow
-      set tabName to name of ghosttyTab
-      if tabName contains " | " then
-        set AppleScript's text item delimiters to " | "
-        set tabName to text item 1 of tabName
-        set AppleScript's text item delimiters to ""
-      end if
-      set output to output & tabName & linefeed
-    end repeat
-  end repeat
-  return output
-end tell
-APPLESCRIPT
+  open_sessions="$(
     /Users/rmgpinto/dev/personal/devenv/bin/zellij list-sessions --no-formatting 2>/dev/null \
-      | awk '!/\(EXITED - attach to resurrect\)$/ { sub(/ \[Created.*/, ""); if (length) print }' || true
-  } | sort -u)"
+      | /usr/bin/awk '!/\(EXITED - attach to resurrect\)$/ { sub(/ \[Created.*/, ""); if (length) print }' \
+      || true
+  )"
 fi
 
 session_is_open() {
@@ -52,7 +86,8 @@ for root in "$DEV_WORKSPACE/personal" "$DEV_WORKSPACE/work"; do
       branch=$(/usr/bin/git -C "$path" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
       [ "$branch" = HEAD ] && branch=""
       branch=${branch//\//-}
-      session="$(basename "$repo")${branch:+-$branch}"
+      repo_name=${repo##*/}
+      session="${repo_name}${branch:+-$branch}"
       session=${session:0:60}
       session_is_open "$session" && continue
       count=$((count + 1))
@@ -60,9 +95,7 @@ for root in "$DEV_WORKSPACE/personal" "$DEV_WORKSPACE/work"; do
   done
 done
 
-if (( RAW_COUNT )); then
-  printf '%s\n' "$count"
-  exit 0
-fi
-
-printf '#[bg=#313244,fg=#74c7ec,bold] 󰙅 %s \n' "$count"
+tmp="${CACHE}.tmp.$$"
+printf '%s\n' "$count" >"$tmp"
+/bin/mv "$tmp" "$CACHE"
+print_count "$count"

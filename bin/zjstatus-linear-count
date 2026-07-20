@@ -9,6 +9,7 @@ CURL="${CURL:-/usr/bin/curl}"
 CACHE="${TMPDIR:-/tmp}/zjstatus-linear-count-${UID}"
 LOCK="${CACHE}.lock"
 MAX_AGE="${ZJSTATUS_LINEAR_MAX_AGE:-5}"
+TIMEOUT="${ZJSTATUS_LINEAR_TIMEOUT:-10}"
 RAW_COUNT=0
 
 if [ "${1:-}" = "--count" ]; then
@@ -17,6 +18,7 @@ fi
 
 [ -n "$JQ" ] || exit 0
 [[ "$MAX_AGE" =~ ^[0-9]+$ ]] || MAX_AGE=5
+[[ "$TIMEOUT" =~ ^[0-9]+$ ]] || TIMEOUT=10
 
 if [ -z "${LINEAR_API_KEY:-}" ]; then
   if [ -r "$CACHE" ]; then
@@ -35,10 +37,24 @@ fi
 now=$(date +%s)
 cached_at=$(stat -f %m "$CACHE" 2>/dev/null || printf '0')
 
-if (( now - cached_at >= MAX_AGE )) && mkdir "$LOCK" 2>/dev/null; then
-  trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT
+if (( now - cached_at >= MAX_AGE )); then
+  have_lock=0
+  if /bin/mkdir "$LOCK" 2>/dev/null; then
+    have_lock=1
+  else
+    lock_at=$(/usr/bin/stat -f %m "$LOCK" 2>/dev/null || printf '%s' "$now")
+    if (( now - lock_at >= 60 )); then
+      /bin/rm -f "$LOCK/pid" 2>/dev/null || true
+      /bin/rmdir "$LOCK" 2>/dev/null || true
+      /bin/mkdir "$LOCK" 2>/dev/null && have_lock=1
+    fi
+  fi
 
-  query='query AgentIssueCount {
+  if (( have_lock )); then
+    printf '%s\n' "$$" >"$LOCK/pid"
+    trap '/bin/rm -f "$LOCK/pid" 2>/dev/null || true; /bin/rmdir "$LOCK" 2>/dev/null || true' EXIT INT TERM
+
+    query='query AgentIssueCount {
     viewer {
       assignedIssues(
         filter: {state: {name: {in: ["Todo", "In Progress", "Shaping"]}}}
@@ -51,23 +67,24 @@ if (( now - cached_at >= MAX_AGE )) && mkdir "$LOCK" 2>/dev/null; then
     }
   }'
 
-  response=$("$JQ" -nc --arg q "$query" '{query: $q}' \
-    | "$CURL" -fsS -X POST https://api.linear.app/graphql \
+    response=$("$JQ" -nc --arg q "$query" '{query: $q}' \
+    | "$CURL" -fsS --connect-timeout 3 --max-time "$TIMEOUT" -X POST https://api.linear.app/graphql \
         -H "Content-Type: application/json" \
         -H "Authorization: $LINEAR_API_KEY" \
         --data-binary @- 2>/dev/null || true)
 
-  if [ "$(printf '%s' "$response" | "$JQ" -r '.errors | length // 0' 2>/dev/null || printf '1')" -eq 0 ]; then
-    count=$(printf '%s' "$response" | "$JQ" -r '
+    if [ "$(printf '%s' "$response" | "$JQ" -r '.errors | length // 0' 2>/dev/null || printf '1')" -eq 0 ]; then
+      count=$(printf '%s' "$response" | "$JQ" -r '
       [.data.viewer.assignedIssues.nodes[]?
         | select(any(.labels.nodes[]?;
             .name == "Agent-assisted" and .parent.name == "Bots") | not)]
       | length
     ' 2>/dev/null || true)
-    if [[ "$count" =~ ^[0-9]+$ ]]; then
-      tmp="${CACHE}.tmp.$$"
-      printf '%s\n' "$count" > "$tmp"
-      mv "$tmp" "$CACHE"
+      if [[ "$count" =~ ^[0-9]+$ ]]; then
+        tmp="${CACHE}.tmp.$$"
+        printf '%s\n' "$count" > "$tmp"
+        /bin/mv "$tmp" "$CACHE"
+      fi
     fi
   fi
 fi
