@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s nullglob
+
+DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
+RAW_COUNT=0
+
+if [ "${1:-}" = "--count" ]; then
+  RAW_COUNT=1
+fi
+
+open_sessions="${ZJSTATUS_OPEN_SESSIONS:-}"
+if [ -z "$open_sessions" ]; then
+  open_sessions="$(/usr/bin/osascript 2>/dev/null <<'APPLESCRIPT' || true
+tell application "Ghostty"
+  set output to ""
+  repeat with ghosttyWindow in windows
+    repeat with ghosttyTab in tabs of ghosttyWindow
+      set tabName to name of ghosttyTab
+      if tabName contains " | " then
+        set AppleScript's text item delimiters to " | "
+        set tabName to text item 1 of tabName
+        set AppleScript's text item delimiters to ""
+      end if
+      set output to output & tabName & linefeed
+    end repeat
+  end repeat
+  return output
+end tell
+APPLESCRIPT
+  )"
+fi
+
+session_is_open() {
+  local candidate="$1"
+  while IFS= read -r session; do
+    [ "$session" = "$candidate" ] && return 0
+  done <<<"$open_sessions"
+  return 1
+}
+
+count=0
+for root in "$DEV_WORKSPACE/personal" "$DEV_WORKSPACE/work"; do
+  [ -d "$root" ] || continue
+  for repo in "$root"/*; do
+    [ -d "$repo/.git" ] || continue
+    for path in "$repo"/.worktrees/*/; do
+      branch=$(/usr/bin/git -C "$path" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+      [ "$branch" = HEAD ] && branch=""
+      branch=${branch//\//-}
+      session="$(basename "$repo")${branch:+-$branch}"
+      session=${session:0:60}
+      session_is_open "$session" && continue
+      count=$((count + 1))
+    done
+  done
+done
+
+if (( RAW_COUNT )); then
+  printf '%s\n' "$count"
+  exit 0
+fi
+
+printf '#[bg=#313244,fg=#74c7ec,bold] 󰙅 %s \n' "$count"

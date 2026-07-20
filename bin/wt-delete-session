@@ -5,9 +5,9 @@ set -euo pipefail
 
 source /Users/rmgpinto/dev/personal/devenv/lib/zellij/session.sh
 
+ZELLIJ=/Users/rmgpinto/dev/personal/devenv/bin/zellij
 REPO=${1:?usage: wt delete-session REPO BRANCH}
 BRANCH=${2:?usage: wt delete-session REPO BRANCH}
 SESSION=$(zellij_session_name_for "$REPO" "$BRANCH")
 
-zellij delete-session --force "$SESSION" 2>/dev/null || true
-/Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook prune 2>/dev/null || true
+"$ZELLIJ" delete-session --force "$SESSION" 2>/dev/null || true

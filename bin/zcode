@@ -6,26 +6,15 @@ unsetopt BG_NICE
 
 source /Users/rmgpinto/dev/personal/devenv/lib/zellij/session.sh
 
+zellij_bin=/Users/rmgpinto/dev/personal/devenv/bin/zellij
 prompt="${1:-}"
 session=$(zellij_session_name_at "$PWD")
-
-# One persistent watcher refreshes status only when Ghostty geometry changes.
-nohup /Users/rmgpinto/dev/personal/devenv/bin/zjstatus-watch \
-  </dev/null >/dev/null 2>&1 &!
-
-# Pipe widgets start empty and may not be ready for the SessionStart hook.
-# Seed them once after the target session has finished loading.
-(
-  sleep 1
-  /Users/rmgpinto/dev/personal/devenv/bin/zjstatus-publish --geometry
-) </dev/null >/dev/null 2>&1 &!
 
 # A prompt requires a fresh session so its generated layout is applied.
 # Retain file detection temporarily for wt-spawn compatibility.
 if { [ -n "$prompt" ] || [ -s "$PWD/.wt-claude-prompt" ]; } \
     && [ "${ZELLIJ_SESSION_NAME:-}" != "$session" ]; then
-  zellij delete-session --force "$session" 2>/dev/null || true
-  /Users/rmgpinto/dev/personal/devenv/bin/agent-state-hook prune 2>/dev/null || true
+  "$zellij_bin" delete-session --force "$session" 2>/dev/null || true
 fi
 
 if [ -n "$prompt" ]; then
@@ -41,14 +30,14 @@ fi
 
 if [ -n "${ZELLIJ:-}" ]; then
   if [ -n "$prompt" ]; then
-    exec zellij action switch-session --layout-string "$layout" --cwd "$PWD" "$session"
+    exec "$zellij_bin" action switch-session --layout-string "$layout" --cwd "$PWD" "$session"
   else
-    exec zellij action switch-session --layout code --cwd "$PWD" "$session"
+    exec "$zellij_bin" action switch-session --layout code --cwd "$PWD" "$session"
   fi
 else
   if [ -n "$prompt" ]; then
-    exec zellij --layout-string "$layout" attach --create "$session"
+    exec "$zellij_bin" --layout-string "$layout" attach --create "$session"
   else
-    exec zellij --layout code attach --create "$session"
+    exec "$zellij_bin" --layout code attach --create "$session"
   fi
 fi

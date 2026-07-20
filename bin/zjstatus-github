@@ -1,12 +1,11 @@
 #!/bin/zsh
 set -euo pipefail
 
-export PATH="$HOME/.local/share/mise/installs/jq/latest:$HOME/.local/share/mise/installs/zellij/latest:$PATH"
+export PATH="/Users/rmgpinto/dev/personal/devenv/bin:$HOME/.local/share/mise/installs/jq/latest:$PATH"
 
 GIT="${GIT:-/usr/bin/git}"
 GH="${GH:-$HOME/.local/share/mise/installs/github-cli/latest/gh-latest}"
 JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
-ZELLIJ="${ZELLIJ:-$(command -v zellij 2>/dev/null || true)}"
 
 color_base="#1e1e2e"
 color_black="#181825"
@@ -24,17 +23,6 @@ color_red="#f38ba8"
 color_yellow="#f9e2af"
 
 repo_dir="$PWD"
-
-if [[ -n "$ZELLIJ" && -n "$JQ" ]]; then
-  panes_json="$("$ZELLIJ" action list-panes --json --all --state --tab 2>/dev/null || true)"
-
-  while IFS= read -r pane_cwd; do
-    if "$GIT" -C "$pane_cwd" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-      repo_dir="$pane_cwd"
-      break
-    fi
-  done < <("$JQ" -r '[.[] | select((.is_plugin | not) and ((.pane_cwd // "") != ""))] | sort_by(if ((.pane_title // .title // .name // "") == "nvim") then 0 elif .is_focused then 1 else 2 end) | .[].pane_cwd' <<<"$panes_json" 2>/dev/null || true)
-fi
 
 if ! "$GIT" -C "$repo_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   exit 0
@@ -70,11 +58,11 @@ if [[ -n "$pr_json" ]]; then
       *)              pr_icon="⇡"; pr_color="$color_yellow" ;;
     esac
 
-    pr_segment="#[bg=${color_surface0},fg=${color_lavender},bold] PR #${number} ${pr_icon} "
+    pr_segment="#[bg=${color_surface0},fg=${color_lavender},bold] PR #${number} ${pr_icon}"
   fi
 elif [[ "$branch" != "main" ]]; then
   pr_color="$color_yellow"
-  pr_segment="#[bg=${color_surface0},fg=${color_lavender},bold] PR ⇡ "
+  pr_segment="#[bg=${color_surface0},fg=${color_lavender},bold] PR ⇡"
 fi
 
 checks_json=""
@@ -96,7 +84,7 @@ if [[ -n "$checks_json" ]] && [[ "$("$JQ" 'length' <<<"$checks_json")" -gt 0 ]];
     gha_color="$color_yellow"
   fi
 
-  gha_segment="#[bg=${color_surface0},fg=${color_mauve},bold] GHA ${gha_icon} "
+  gha_segment="#[bg=${color_surface0},fg=${color_mauve},bold] GHA ${gha_icon}"
 fi
 
 out=""

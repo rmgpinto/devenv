@@ -29,7 +29,7 @@ tell application "Ghostty"
   return output
 end tell
 APPLESCRIPT
-  zellij list-sessions --no-formatting 2>/dev/null \
+  /Users/rmgpinto/dev/personal/devenv/bin/zellij list-sessions --no-formatting 2>/dev/null \
     | awk '!/\(EXITED - attach to resurrect\)$/ { sub(/ \[Created.*/, ""); if (length) print }' || true
 } | sort -u)"
 

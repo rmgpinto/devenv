@@ -126,13 +126,13 @@ keybinds clear-defaults=true {
         bind "Super s" { SwitchToMode "Scroll"; }
         bind "d" { Detach; }
         bind "p" {
-            Run "zsh" "-lc" "/Users/rmgpinto/dev/personal/devenv/bin/zellij-open-pr" {
+            Run "zsh" "-lc" "~/dev/personal/devenv/bin/zellij-open-pr" {
                 close_on_exit true
             };
             SwitchToMode "Normal"
         }
         bind "a" {
-            Run "zsh" "-lc" "/Users/rmgpinto/dev/personal/devenv/bin/zellij-open-gha" {
+            Run "zsh" "-lc" "~/dev/personal/devenv/bin/zellij-open-gha" {
                 close_on_exit true
             };
             SwitchToMode "Normal"
@@ -149,7 +149,7 @@ keybinds clear-defaults=true {
         unbind "Ctrl g"
         bind "Super L" { SwitchToMode "Locked"; }
         bind "Super g" {
-            Run "/Users/rmgpinto/.local/share/mise/installs/lazygit/latest/lazygit" {
+            Run "zsh" "-lc" "exec ~/.local/share/mise/installs/lazygit/latest/lazygit" {
                 floating true
                 close_on_exit true
                 width "100%"
@@ -199,10 +199,6 @@ keybinds clear-defaults=true {
         unbind "Ctrl z"
         bind "Super z" { SwitchToMode "Move"; }
     }
-    shared_except "tmux" "locked" {
-        unbind "Ctrl b"
-        bind "Super b" { SwitchToMode "Tmux"; }
-    }
 }
 
 plugins {
@@ -247,15 +243,26 @@ plugins {
 
         format_left   "#[bg=$base]{mode}#[bg=$lavender,fg=$crust,bold]  {session} #[bg=$base,fg=$lavender]#[bg=$base]{tabs}"
         format_center "{notifications}"
-        format_right  "{command_github}"
+        format_right  "{command_github}{command_worktrees}{command_linear}"
         format_space  "#[bg=$base]"
         format_hide_on_overlength "true"
-        format_precedence "lrc"
+        format_precedence "rlc"
 
         command_github_command "/Users/rmgpinto/dev/personal/devenv/bin/zjstatus-github"
         command_github_format "{stdout}"
         command_github_interval "5"
         command_github_rendermode "dynamic"
+        command_github_cwd "{focused_pane_cwd}"
+
+        command_worktrees_command "/Users/rmgpinto/dev/personal/devenv/bin/zjstatus-worktree-count"
+        command_worktrees_format "{stdout}"
+        command_worktrees_interval "5"
+        command_worktrees_rendermode "dynamic"
+
+        command_linear_command "/Users/rmgpinto/dev/personal/devenv/bin/zjstatus-linear-count"
+        command_linear_format "{stdout}"
+        command_linear_interval "5"
+        command_linear_rendermode "dynamic"
 
         border_enabled  "false"
         border_char     "─"
@@ -265,7 +272,6 @@ plugins {
         hide_frame_for_single_pane "false"
 
         mode_normal        "#[bg=$blue,fg=$crust,bold] NORMAL  #[bg=$lavender,fg=$blue]"
-        mode_tmux          "#[bg=$mauve,fg=$crust,bold] TMUX #[bg=$lavender,fg=$mauve]"
         mode_locked        "#[bg=$red,fg=$crust,bold] LOCKED  #[bg=$lavender,fg=$red]"
         mode_pane          "#[bg=$teal,fg=$crust,bold] PANE    #[bg=$lavender,fg=$teal]"
         mode_tab           "#[bg=$teal,fg=$crust,bold] TAB     #[bg=$lavender,fg=$teal]"
@@ -295,6 +301,16 @@ plugins {
     }
 }
 
+load_plugins {
+    "file:~/dev/personal/devenv/plugins/zellij-agent-status/target/wasm32-wasip1/release/zellij-agent-status.wasm" {
+        terminal_title "{session} · AI {agent_status}"
+        agent_status_working "●"
+        agent_status_waiting "◆"
+        agent_status_idle "○"
+        agent_status_unknown "×"
+    }
+}
+
 mouse_mode true
 theme "catppuccin-mocha-blue"
 themes {
@@ -320,9 +336,10 @@ themes {
         }
     }
 }
-layout_dir "/Users/rmgpinto/.config/zellij/layouts"
 default_layout "empty"
 pane_frames true
+pane_frame_style "full"
+visual_bell false
 show_startup_tips false
 show_release_notes false
 mouse_hover_effects false

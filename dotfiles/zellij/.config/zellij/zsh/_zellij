@@ -70,6 +70,7 @@ tmux\:"`Tmux` mode allows for basic tmux keybindings functionality"))' \
 '*--theme-dir=[Set the theme_dir, defaults to subdirectory of config dir]:THEME_DIR:_files' \
 '*--mouse-mode=[Set the handling of mouse events (true or false) Can be temporarily bypassed by the \[SHIFT\] key]:MOUSE_MODE:(true false)' \
 '*--pane-frames=[Set display of the pane frames (true or false)]:PANE_FRAMES:(true false)' \
+'*--pane-frame-style=[]:PANE_FRAME_STYLE:(full titles none)' \
 '*--mirror-session=[Mirror session when multiple users are connected (true or false)]:MIRROR_SESSION:(true false)' \
 '*--on-force-close=[Set behaviour on force close (quit or detach)]:ON_FORCE_CLOSE:(quit detach)' \
 '*--scroll-buffer-size=[]:SCROLL_BUFFER_SIZE: ' \
@@ -91,15 +92,20 @@ tmux\:"`Tmux` mode allows for basic tmux keybindings functionality"))' \
 '*--web-server=[Whether to make sure a local web server is running when a new Zellij session starts. This web server will allow creating new sessions and attaching to existing ones that have opted in to being shared in the browser]:WEB_SERVER:(true false)' \
 '*--web-sharing=[Whether to allow new sessions to be shared through a local web server, assuming one is running (see the `web_server` option for more details)]:WEB_SHARING:(on off disabled)' \
 '*--stacked-resize=[Whether to stack panes when resizing beyond a certain size default is true]:STACKED_RESIZE:(true false)' \
+'*--stacked-pane-list=[]:STACKED_PANE_LIST:(true false)' \
 '*--show-startup-tips=[Whether to show startup tips when starting a new session default is true]:SHOW_STARTUP_TIPS:(true false)' \
 '*--show-release-notes=[Whether to show release notes on first run of a new version default is true]:SHOW_RELEASE_NOTES:(true false)' \
 '*--advanced-mouse-actions=[Whether to enable mouse hover effects and pane grouping functionality default is true]:ADVANCED_MOUSE_ACTIONS:(true false)' \
+'*--mouse-scroll-resize=[Whether Ctrl+ScrollWheel resizes panes default is true]:MOUSE_SCROLL_RESIZE:(true false)' \
 '*--mouse-hover-effects=[Whether to enable mouse hover visual effects (frame highlight and help text) default is true]:MOUSE_HOVER_EFFECTS:(true false)' \
 '*--visual-bell=[Whether to show visual bell indicators (pane/tab frame flash and \[!\] suffix) default is true]:VISUAL_BELL:(true false)' \
 '*--focus-follows-mouse=[Whether to focus panes on mouse hover (true or false) default is false]:FOCUS_FOLLOWS_MOUSE:(true false)' \
 '*--mouse-click-through=[Whether clicking a pane to focus it also sends the click into the pane (true or false) default is false]:MOUSE_CLICK_THROUGH:(true false)' \
 '*--post-command-discovery-hook=[A command to run after the discovery of running commands when serializing, for the purpose of manipulating the command (eg. with a regex) before it gets serialized]:POST_COMMAND_DISCOVERY_HOOK: ' \
 '--client-async-worker-tasks=[Number of async worker tasks to spawn per active client]:CLIENT_ASYNC_WORKER_TASKS: ' \
+'*--mobile-layout=[When a newly-attaching client should land in the mobile UI plugin (web, always, never)]:MOBILE_LAYOUT:(web always never)' \
+'*--mobile-threshold-cols=[Column breakpoint for mobile_layout (0 to always match)]:MOBILE_THRESHOLD_COLS: ' \
+'*--mobile-threshold-rows=[Row breakpoint for mobile_layout (0 to always match)]:MOBILE_THRESHOLD_ROWS: ' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 '::web-server-ip:' \
@@ -223,6 +229,12 @@ _arguments "${_arguments_options[@]}" \
 '-h[Print help information]' \
 '--help[Print help information]' \
 ':pane-id -- The pane_id of the pane, eg. terminal_1, plugin_2 or 3:' \
+&& ret=0
+;;
+(focus-last-pane)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
 && ret=0
 ;;
 (move-focus)
@@ -377,6 +389,13 @@ _arguments "${_arguments_options[@]}" \
 '--help[Print help information]' \
 && ret=0
 ;;
+(set-pane-frame-style)
+_arguments "${_arguments_options[@]}" \
+'-h[Print help information]' \
+'--help[Print help information]' \
+':style:(full titles none)' \
+&& ret=0
+;;
 (toggle-active-sync-tab)
 _arguments "${_arguments_options[@]}" \
 '*-t+[Target a specific tab by ID]:TAB_ID: ' \
@@ -392,6 +411,7 @@ _arguments "${_arguments_options[@]}" \
 '(-d --direction)-p+[]:PLUGIN: ' \
 '(-d --direction)--plugin=[]:PLUGIN: ' \
 '*--cwd=[Change the working directory of the new pane]:CWD:_files' \
+'(--near-current-pane)*--pane-id=[The pane to replace when opening in place, eg. terminal_1, plugin_2 or 3 (only effective with --in-place; defaults to the focused pane)]:PANE_ID: ' \
 '*-n+[Name of the new pane]:NAME: ' \
 '*--name=[Name of the new pane]:NAME: ' \
 '*--configuration=[]:CONFIGURATION: ' \
@@ -421,6 +441,7 @@ _arguments "${_arguments_options[@]}" \
 '(-b --blocking --block-until-exit-success --block-until-exit)*--block-until-exit-failure[Block until the command exits with failure (non-zero exit status) OR its pane has been closed]' \
 '(-b --blocking --block-until-exit-success --block-until-exit-failure)*--block-until-exit[Block until the command exits (regardless of exit status) OR its pane has been closed]' \
 '--near-current-pane[if set, will open the pane near the current one rather than following the user'\''s focus]' \
+'--no-focus[if set, will open the pane without changing the focus of any client, placing it relative to the pane the command was issued from]' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 '*::command:' \
@@ -449,6 +470,7 @@ _arguments "${_arguments_options[@]}" \
 '(-f --floating -d --direction)*--in-place[Open the new pane in place of the current pane, temporarily suspending it]' \
 '*--close-replaced-pane[Close the replaced pane instead of suspending it (only effective with --in-place)]' \
 '--near-current-pane[if set, will open the pane near the current one rather than following the user'\''s focus]' \
+'--no-focus[if set, will open the pane without changing the focus of any client, placing it relative to the pane the command was issued from]' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 ':file:' \
@@ -617,6 +639,7 @@ _arguments "${_arguments_options[@]}" \
 '(--block-until-exit-failure --block-until-exit)*--block-until-exit-success[Block until the command exits successfully (exit status 0) OR its pane has been closed]' \
 '(--block-until-exit-success --block-until-exit)*--block-until-exit-failure[Block until the command exits with failure (non-zero exit status) OR its pane has been closed]' \
 '(--block-until-exit-success --block-until-exit-failure)*--block-until-exit[Block until the command exits (regardless of exit status) OR its pane has been closed]' \
+'--no-focus[if set, will create the tab without changing the focus of any client]' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 '*::initial-command -- Optional initial command to run in the new tab:' \
@@ -705,6 +728,7 @@ _arguments "${_arguments_options[@]}" \
 '*--close-replaced-pane[Close the replaced pane instead of suspending it (only effective with --in-place)]' \
 '*-s[]' \
 '*--skip-plugin-cache[]' \
+'--no-focus[if set, will open the plugin pane without changing the focus of any client]' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 ':url:' \
@@ -977,6 +1001,7 @@ tmux\:"`Tmux` mode allows for basic tmux keybindings functionality"))' \
 '*--theme-dir=[Set the theme_dir, defaults to subdirectory of config dir]:THEME_DIR:_files' \
 '*--mouse-mode=[Set the handling of mouse events (true or false) Can be temporarily bypassed by the \[SHIFT\] key]:MOUSE_MODE:(true false)' \
 '*--pane-frames=[Set display of the pane frames (true or false)]:PANE_FRAMES:(true false)' \
+'*--pane-frame-style=[]:PANE_FRAME_STYLE:(full titles none)' \
 '*--mirror-session=[Mirror session when multiple users are connected (true or false)]:MIRROR_SESSION:(true false)' \
 '*--on-force-close=[Set behaviour on force close (quit or detach)]:ON_FORCE_CLOSE:(quit detach)' \
 '*--scroll-buffer-size=[]:SCROLL_BUFFER_SIZE: ' \
@@ -998,15 +1023,20 @@ tmux\:"`Tmux` mode allows for basic tmux keybindings functionality"))' \
 '*--web-server=[Whether to make sure a local web server is running when a new Zellij session starts. This web server will allow creating new sessions and attaching to existing ones that have opted in to being shared in the browser]:WEB_SERVER:(true false)' \
 '*--web-sharing=[Whether to allow new sessions to be shared through a local web server, assuming one is running (see the `web_server` option for more details)]:WEB_SHARING:(on off disabled)' \
 '*--stacked-resize=[Whether to stack panes when resizing beyond a certain size default is true]:STACKED_RESIZE:(true false)' \
+'*--stacked-pane-list=[]:STACKED_PANE_LIST:(true false)' \
 '*--show-startup-tips=[Whether to show startup tips when starting a new session default is true]:SHOW_STARTUP_TIPS:(true false)' \
 '*--show-release-notes=[Whether to show release notes on first run of a new version default is true]:SHOW_RELEASE_NOTES:(true false)' \
 '*--advanced-mouse-actions=[Whether to enable mouse hover effects and pane grouping functionality default is true]:ADVANCED_MOUSE_ACTIONS:(true false)' \
+'*--mouse-scroll-resize=[Whether Ctrl+ScrollWheel resizes panes default is true]:MOUSE_SCROLL_RESIZE:(true false)' \
 '*--mouse-hover-effects=[Whether to enable mouse hover visual effects (frame highlight and help text) default is true]:MOUSE_HOVER_EFFECTS:(true false)' \
 '*--visual-bell=[Whether to show visual bell indicators (pane/tab frame flash and \[!\] suffix) default is true]:VISUAL_BELL:(true false)' \
 '*--focus-follows-mouse=[Whether to focus panes on mouse hover (true or false) default is false]:FOCUS_FOLLOWS_MOUSE:(true false)' \
 '*--mouse-click-through=[Whether clicking a pane to focus it also sends the click into the pane (true or false) default is false]:MOUSE_CLICK_THROUGH:(true false)' \
 '*--post-command-discovery-hook=[A command to run after the discovery of running commands when serializing, for the purpose of manipulating the command (eg. with a regex) before it gets serialized]:POST_COMMAND_DISCOVERY_HOOK: ' \
 '--client-async-worker-tasks=[Number of async worker tasks to spawn per active client]:CLIENT_ASYNC_WORKER_TASKS: ' \
+'*--mobile-layout=[When a newly-attaching client should land in the mobile UI plugin (web, always, never)]:MOBILE_LAYOUT:(web always never)' \
+'*--mobile-threshold-cols=[Column breakpoint for mobile_layout (0 to always match)]:MOBILE_THRESHOLD_COLS: ' \
+'*--mobile-threshold-rows=[Row breakpoint for mobile_layout (0 to always match)]:MOBILE_THRESHOLD_ROWS: ' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 '::web-server-ip:' \
@@ -1098,6 +1128,7 @@ _arguments "${_arguments_options[@]}" \
 '(--blocking --block-until-exit-success --block-until-exit)*--block-until-exit-failure[Block until the command exits with failure (non-zero exit status) OR its pane has been closed]' \
 '(--blocking --block-until-exit-success --block-until-exit-failure)*--block-until-exit[Block until the command exits (regardless of exit status) OR its pane has been closed]' \
 '--near-current-pane[if set, will open the pane near the current one rather than following the user'\''s focus]' \
+'--no-focus[if set, will open the pane without changing the focus of any client, placing it relative to the pane the command was issued from]' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 '*::command -- Command to run:' \
@@ -1124,6 +1155,7 @@ _arguments "${_arguments_options[@]}" \
 '*--close-replaced-pane[Close the replaced pane instead of suspending it (only effective with --in-place)]' \
 '*-s[Skip the memory and HD cache and force recompile of the plugin (good for development)]' \
 '*--skip-plugin-cache[Skip the memory and HD cache and force recompile of the plugin (good for development)]' \
+'--no-focus[if set, will open the plugin pane without changing the focus of any client, placing it relative to the pane the command was issued from]' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 ':url -- Plugin URL, can either start with http(s), file\: or zellij\::' \
@@ -1152,6 +1184,7 @@ _arguments "${_arguments_options[@]}" \
 '*-f[Open the new pane in floating mode]' \
 '*--floating[Open the new pane in floating mode]' \
 '--near-current-pane[if set, will open the pane near the current one rather than following the user'\''s focus]' \
+'--no-focus[if set, will open the pane without changing the focus of any client, placing it relative to the pane the command was issued from]' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 ':file:' \
@@ -1266,6 +1299,7 @@ _zellij__action_commands() {
 'focus-next-pane:Change focus to the next pane' \
 'focus-previous-pane:Change focus to the previous pane' \
 'focus-pane-id:Focus a specific pane by its ID' \
+'focus-last-pane:Change focus to the last focused frame' \
 'move-focus:Move the focused pane in the specified direction. \[right|left|up|down\]' \
 'move-focus-or-tab:Move focus to the pane or tab (if on screen edge) in the specified direction \[right|left|up|down\]' \
 'move-pane:Change the location of the focused pane in the specified direction or rotate forwrads \[right|left|up|down\]' \
@@ -1285,6 +1319,7 @@ _zellij__action_commands() {
 'half-page-scroll-down:Scroll down half page in focus pane' \
 'toggle-fullscreen:Toggle between fullscreen focus pane and normal layout' \
 'toggle-pane-frames:Toggle frames around panes in the UI' \
+'set-pane-frame-style:' \
 'toggle-active-sync-tab:Toggle between sending text commands to all panes on the current tab and normal mode' \
 'new-pane:Open a new pane in the specified direction \[right|down\] If no direction is specified, will try to use the biggest available space. Returns: Created pane ID (format: terminal_<id> or plugin_<id>)' \
 'edit:Open the specified file in a new zellij pane with your default EDITOR Returns: Created pane ID (format: terminal_<id>)' \
@@ -1434,6 +1469,11 @@ _zellij__edit_commands() {
 _zellij__action__edit-scrollback_commands() {
     local commands; commands=()
     _describe -t commands 'zellij action edit-scrollback commands' commands "$@"
+}
+(( $+functions[_zellij__action__focus-last-pane_commands] )) ||
+_zellij__action__focus-last-pane_commands() {
+    local commands; commands=()
+    _describe -t commands 'zellij action focus-last-pane commands' commands "$@"
 }
 (( $+functions[_zellij__action__focus-next-pane_commands] )) ||
 _zellij__action__focus-next-pane_commands() {
@@ -1724,6 +1764,11 @@ _zellij__action__set-pane-borderless_commands() {
 _zellij__action__set-pane-color_commands() {
     local commands; commands=()
     _describe -t commands 'zellij action set-pane-color commands' commands "$@"
+}
+(( $+functions[_zellij__action__set-pane-frame-style_commands] )) ||
+_zellij__action__set-pane-frame-style_commands() {
+    local commands; commands=()
+    _describe -t commands 'zellij action set-pane-frame-style commands' commands "$@"
 }
 (( $+functions[_zellij__setup_commands] )) ||
 _zellij__setup_commands() {

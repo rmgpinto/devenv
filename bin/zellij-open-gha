@@ -1,12 +1,12 @@
 #!/bin/zsh
 set -euo pipefail
 
-export PATH="$HOME/.local/share/mise/installs/jq/latest:$HOME/.local/share/mise/installs/zellij/latest:$PATH"
+export PATH="/Users/rmgpinto/dev/personal/devenv/bin:$HOME/.local/share/mise/installs/jq/latest:$PATH"
 
 GIT="${GIT:-/usr/bin/git}"
 GH="${GH:-$HOME/.local/share/mise/installs/github-cli/latest/gh-latest}"
 JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
-ZELLIJ="${ZELLIJ:-$(command -v zellij 2>/dev/null || true)}"
+ZELLIJ="${ZELLIJ:-/Users/rmgpinto/dev/personal/devenv/bin/zellij}"
 
 repo_dir="$PWD"
 

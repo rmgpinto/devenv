@@ -91,8 +91,60 @@ function setup_ssh() {
 
 function setup_zellij() {
   log info "Setting up zellij..."
+  local zellij_repo="${DEV_WORKSPACE}/personal/zellij"
+  local zellij_bin="${zellij_repo}/target/release/zellij"
+  local agent_plugin_dir="${DEV_WORKSPACE}/personal/devenv/plugins/zellij-agent-status"
+  local wasi_sdk_version="33.0"
+  local wasi_sdk_dir="${agent_plugin_dir}/.cache/wasi-sdk-${wasi_sdk_version}-arm64-macos"
+  local upstream
+
+  if [[ ! -d "${zellij_repo}/.git" ]]; then
+    log error "Zellij repo not found at ${zellij_repo}"
+    return 1
+  fi
+
+  if [[ "$(/usr/bin/git -C "${zellij_repo}" branch --show-current)" != "main" ]]; then
+    log error "Zellij repo is not on main; skipping sync/build"
+    return 1
+  fi
+
+  if [[ -z "$(/usr/bin/git -C "${zellij_repo}" status --porcelain)" ]]; then
+    if /usr/bin/git -C "${zellij_repo}" remote get-url upstream >/dev/null 2>&1; then
+      upstream="upstream/main"
+    else
+      upstream="origin/main"
+    fi
+    if /usr/bin/git -C "${zellij_repo}" fetch --all --prune; then
+      if ! /usr/bin/git -C "${zellij_repo}" merge --no-edit "${upstream}"; then
+        /usr/bin/git -C "${zellij_repo}" merge --abort >/dev/null 2>&1 || true
+        log error "Zellij main conflicts with ${upstream}; merge aborted"
+      fi
+    else
+      log error "Unable to fetch Zellij remotes; continuing with local checkout"
+    fi
+  else
+    log error "Zellij repo has local changes; skipping sync to avoid clobbering them"
+  fi
+
+  (cd "${zellij_repo}" && cargo build --release --bin zellij)
+  if [[ ! -x "${wasi_sdk_dir}/bin/clang" ]]; then
+    local wasi_sdk_archive="${agent_plugin_dir}/.cache/wasi-sdk-${wasi_sdk_version}-arm64-macos.tar.gz"
+    mkdir -p "${agent_plugin_dir}/.cache"
+    curl -fsSL \
+      "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${wasi_sdk_version%%.*}/wasi-sdk-${wasi_sdk_version}-arm64-macos.tar.gz" \
+      -o "${wasi_sdk_archive}"
+    tar -xzf "${wasi_sdk_archive}" -C "${agent_plugin_dir}/.cache"
+    rm -f "${wasi_sdk_archive}"
+  fi
+  (
+    cd "${agent_plugin_dir}"
+    RUSTC_BOOTSTRAP=1 \
+      CARGO_TARGET_WASM32_WASIP1_LINKER="${wasi_sdk_dir}/bin/clang" \
+      CARGO_TARGET_WASM32_WASIP1_RUSTFLAGS="-C linker-flavor=gcc -C link-self-contained=no -C link-arg=-Wl,--export=load -C link-arg=-Wl,--export=update -C link-arg=-Wl,--export=render -C link-arg=-Wl,--export=pipe -C link-arg=-Wl,--export=plugin_version" \
+      cargo build -Z build-std=std,panic_abort --release
+  )
   mkdir -p zellij/.config/zellij/zsh
-  $HOME/.local/share/mise/installs/zellij/latest/zellij setup --generate-completion zsh > zellij/.config/zellij/zsh/_zellij
+  "${zellij_bin}" setup --generate-completion zsh > zellij/.config/zellij/zsh/_zellij
   /opt/homebrew/bin/stow --adopt zellij -t ${HOME}
   log info "Done."
 }

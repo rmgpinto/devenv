@@ -3,15 +3,9 @@
 
 set -e
 
-mkdir -p "$HOME/.local/state"
-[[ -e "$HOME/.local/state/agents.json" ]] || : >| "$HOME/.local/state/agents.json"
-[[ -e "$HOME/.local/state/agents.json.lock" ]] || : >| "$HOME/.local/state/agents.json.lock"
 exec env NONO_AUTO_MIGRATE=1 nono run \
   --profile ai \
   --allow-cwd \
-  --allow-file "$HOME/.local/state/agents.json" \
-  --allow-file "$HOME/.local/state/agents.json.lock" \
   --workdir "$PWD" -- \
     /usr/bin/env CODEX_HOME="$HOME/.config/codex" codex \
-    --dangerously-bypass-approvals-and-sandbox \
-    --dangerously-bypass-hook-trust "$@"
+    --dangerously-bypass-approvals-and-sandbox "$@"

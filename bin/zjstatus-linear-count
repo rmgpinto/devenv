@@ -9,6 +9,11 @@ CURL="${CURL:-/usr/bin/curl}"
 CACHE="${TMPDIR:-/tmp}/zjstatus-linear-count-${UID}"
 LOCK="${CACHE}.lock"
 MAX_AGE="${ZJSTATUS_LINEAR_MAX_AGE:-5}"
+RAW_COUNT=0
+
+if [ "${1:-}" = "--count" ]; then
+  RAW_COUNT=1
+fi
 
 [ -n "$JQ" ] || exit 0
 [[ "$MAX_AGE" =~ ^[0-9]+$ ]] || MAX_AGE=5
@@ -19,7 +24,11 @@ if [ -z "${LINEAR_API_KEY:-}" ]; then
   else
     count="?"
   fi
-  printf '#[fg=#fab387]◌ #[fg=#fab387,bold]%s #[bg=#1e1e2e]\n' "$count"
+  if (( RAW_COUNT )); then
+    printf '%s\n' "$count"
+    exit 0
+  fi
+  printf '#[bg=#313244,fg=#fab387,bold] ◌ %s \n' "$count"
   exit 0
 fi
 
@@ -69,4 +78,9 @@ else
   count="?"
 fi
 
-printf '#[fg=#fab387]◌ #[fg=#fab387,bold]%s #[bg=#1e1e2e]\n' "$count"
+if (( RAW_COUNT )); then
+  printf '%s\n' "$count"
+  exit 0
+fi
+
+printf '#[bg=#313244,fg=#fab387,bold] ◌ %s \n' "$count"

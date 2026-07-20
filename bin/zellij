@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+local_zellij="/Users/rmgpinto/dev/personal/zellij/target/release/zellij"
+
+if [[ ! -x "$local_zellij" ]]; then
+  echo "zellij: local fork is not built at $local_zellij" >&2
+  exit 1
+fi
+
+exec "$local_zellij" "$@"

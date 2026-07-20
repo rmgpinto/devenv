@@ -1,18 +1,6 @@
 layout {
     default_tab_template {
         pane size=2 borderless=true {
-            plugin location="file:~/.local/share/mise/installs/zjstatus/latest/bin/zjstatus" {
-                format_left "{pipe_status}"
-                format_center ""
-                format_right ""
-                format_space "#[bg=#1e1e2e]"
-                format_hide_on_overlength "false"
-                pipe_status_format "{output}"
-                pipe_status_rendermode "dynamic"
-                border_enabled "false"
-            }
-        }
-        pane size=2 borderless=true {
             plugin location="zjstatus"
         }
         children
