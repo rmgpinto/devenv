@@ -17,6 +17,7 @@
       "$HOME/.config/codex",
       "$HOME/.config/mise",
       "$HOME/.config/nono",
+      "$HOME/.cache/node",
       "$HOME/.local/share/mise",
       "$HOME/dev",
       "/tmp",
@@ -30,6 +31,7 @@
       "$HOME/dev/AGENTS.md",
       "$HOME/.CFUserTextEncoding",
       "$HOME/.config/git/config",
+      "$HOME/.config/git/ignore",
       "$HOME/.config/gh/config.yml",
       "$HOME/.gitconfig"
     ],
