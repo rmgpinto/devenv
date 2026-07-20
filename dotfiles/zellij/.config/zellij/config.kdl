@@ -303,7 +303,7 @@ plugins {
 
 load_plugins {
     "file:~/dev/personal/devenv/plugins/zellij-agent-status/target/wasm32-wasip1/release/zellij-agent-status.wasm" {
-        terminal_title "{session} · AI {agent_status}"
+        terminal_title "{agent_status} · {session}"
         agent_status_working "●"
         agent_status_waiting "◆"
         agent_status_idle "○"
