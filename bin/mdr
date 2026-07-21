@@ -1,0 +1,72 @@
+#!/usr/bin/env zsh
+
+set -o pipefail
+
+worktree=$(git rev-parse --show-toplevel 2>/dev/null) || {
+  echo 'mdr: not inside a Git worktree' >&2
+  exit 1
+}
+primary_worktree=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree / { print substr($0, 10); exit }')
+if [[ -z "$primary_worktree" || "$worktree" == "$primary_worktree" ]]; then
+  echo 'mdr: refusing to remove the primary worktree' >&2
+  exit 1
+fi
+
+branch=$(git branch --show-current)
+[[ -n "$branch" ]] || {
+  echo 'mdr: the worktree has a detached HEAD' >&2
+  exit 1
+}
+
+pr_json=$(gh pr view --json number,baseRefName,headRefName,state,isDraft,mergeable 2>/dev/null) || {
+  echo "mdr: no pull request found for $branch" >&2
+  exit 1
+}
+number=$(jq -r '.number' <<<"$pr_json")
+base=$(jq -r '.baseRefName' <<<"$pr_json")
+state=$(jq -r '.state' <<<"$pr_json")
+is_draft=$(jq -r '.isDraft' <<<"$pr_json")
+mergeable=$(jq -r '.mergeable' <<<"$pr_json")
+
+[[ $(jq -r '.headRefName' <<<"$pr_json") == "$branch" ]] || {
+  echo "mdr: PR #$number does not belong to the checked-out branch $branch" >&2
+  exit 1
+}
+[[ "$base" == main ]] || {
+  echo "mdr: PR #$number targets $base, not main" >&2
+  exit 1
+}
+if [[ "$state" != MERGED ]]; then
+  [[ "$state" == OPEN && "$is_draft" == false ]] || {
+    echo "mdr: PR #$number is not an open, ready-for-review PR" >&2
+    exit 1
+  }
+  [[ "$mergeable" == MERGEABLE ]] || {
+    echo "mdr: PR #$number is not currently mergeable ($mergeable)" >&2
+    exit 1
+  }
+
+  gum confirm --default --affirmative Yes --negative No \
+    "You're about to squash-merge PR #$number into main, proceed?" || exit 0
+
+  repo=$(gh repo view --json nameWithOwner --jq '.nameWithOwner') || exit 1
+  if ! (cd /tmp && gh pr merge "$number" --repo "$repo" --squash --delete-branch); then
+    echo "mdr: PR #$number was not merged; keeping the worktree and Zellij session" >&2
+    exit 1
+  fi
+
+  state=$(gh pr view "$number" --repo "$repo" --json state --jq '.state') || {
+    echo "mdr: could not verify PR #$number after the merge command; keeping the worktree and Zellij session" >&2
+    exit 1
+  }
+  [[ "$state" == MERGED ]] || {
+    echo "mdr: PR #$number is $state, likely queued or awaiting auto-merge; keeping the worktree and Zellij session" >&2
+    exit 1
+  }
+fi
+
+if [[ -n "${ZELLIJ_SESSION_NAME:-}" ]]; then
+  zellij action detach
+fi
+zd
+wt remove --force --yes "$worktree"
