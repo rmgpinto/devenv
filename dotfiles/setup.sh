@@ -126,14 +126,14 @@ function setup_zellij() {
   log info "Setting up zellij..."
   local zellij_repo="${DEV_WORKSPACE}/personal/zellij"
   local zellij_bin="${zellij_repo}/target/release/zellij"
+  local gh_bin="${HOME}/.local/share/mise/installs/github-cli/latest/gh-latest"
   local agent_plugin_dir="${DEV_WORKSPACE}/personal/devenv/plugins/zellij-agent-status"
   local wasi_sdk_version="33.0"
   local wasi_sdk_dir="${agent_plugin_dir}/.cache/wasi-sdk-${wasi_sdk_version}-arm64-macos"
   local upstream
 
   if [[ ! -d "${zellij_repo}/.git" ]]; then
-    log error "Zellij repo not found at ${zellij_repo}"
-    return 1
+    "${gh_bin}" repo clone rmgpinto/zellij "${zellij_repo}"
   fi
 
   if [[ "$(/usr/bin/git -C "${zellij_repo}" branch --show-current)" != "main" ]]; then
