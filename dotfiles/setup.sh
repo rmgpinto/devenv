@@ -60,6 +60,8 @@ function setup_gh() {
   log info "Setting up gh..."
   gh_latest_source="${DEV_WORKSPACE}/personal/devenv/dotfiles/gh/.config/gh/gh-latest"
   gh_latest_target="${HOME}/.local/share/mise/installs/github-cli/latest/gh-latest"
+  gh_enhance_repo="${DEV_WORKSPACE}/personal/gh-enhance"
+  local upstream
   if [[ -x "${gh_latest_source}" && -d "${gh_latest_target:h}" ]]; then
     ln -sfn "${gh_latest_source}" "${gh_latest_target}"
     "${gh_latest_target}" completion -s zsh | sudo tee /usr/local/share/zsh/site-functions/_gh > /dev/null
@@ -67,6 +69,37 @@ function setup_gh() {
     log error "Unable to link gh-latest into mise github-cli latest install"
   fi
   /opt/homebrew/bin/stow --adopt gh -t ${HOME}
+
+  if [[ ! -d "${gh_enhance_repo}/.git" ]]; then
+    "${gh_latest_target}" repo clone rmgpinto/gh-enhance "${gh_enhance_repo}"
+  fi
+  if [[ "$(/usr/bin/git -C "${gh_enhance_repo}" branch --show-current)" != "main" ]]; then
+    log error "gh-enhance repo is not on main; skipping sync/build"
+    return 1
+  fi
+  if [[ -z "$(/usr/bin/git -C "${gh_enhance_repo}" status --porcelain)" ]]; then
+    if /usr/bin/git -C "${gh_enhance_repo}" remote get-url upstream >/dev/null 2>&1; then
+      upstream="upstream/main"
+    else
+      upstream="origin/main"
+    fi
+    if /usr/bin/git -C "${gh_enhance_repo}" fetch --all --prune; then
+      if ! /usr/bin/git -C "${gh_enhance_repo}" merge --no-edit "${upstream}"; then
+        /usr/bin/git -C "${gh_enhance_repo}" merge --abort >/dev/null 2>&1 || true
+        log error "gh-enhance main conflicts with ${upstream}; merge aborted"
+      fi
+    else
+      log error "Unable to fetch gh-enhance remotes; continuing with local checkout"
+    fi
+  else
+    log error "gh-enhance repo has local changes; skipping sync to avoid clobbering them"
+  fi
+  (
+    cd "${gh_enhance_repo}"
+    /opt/homebrew/bin/mise exec go@1.25.8 -- go build -o gh-enhance .
+    "${gh_latest_target}" extension remove gh-enhance > /dev/null
+    "${gh_latest_target}" extension install . --force
+  )
   log info "Done."
 }
 
