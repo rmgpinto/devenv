@@ -26,6 +26,7 @@ alias credentials-edit-prod='rails credentials:edit --environment production'
 alias dkill='docker kill $(docker ps -q) 2>/dev/null; docker rm $(docker ps -aq) 2>/dev/null'
 alias halstg='NODE_ENV=staging hal'
 alias k='kubectl'
+alias ksup='kubectl --context do-ams3-sup-k8s-01'
 alias kstg='kubectl --context do-ams3-stg-k8s-01'
 alias kprd='kubectl --context do-ams3-prd-k8s-01'
 
