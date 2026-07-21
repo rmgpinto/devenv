@@ -101,11 +101,11 @@ if [[ -n "$pr_json" ]]; then
       *)              pr_icon="⇡"; pr_color="$color_yellow" ;;
     esac
 
-    pr_segment="#[bg=${color_surface0},fg=${color_lavender},bold] PR #${number} ${pr_icon}"
+    pr_segment="#[bg=${color_surface0},fg=${color_lavender},bold] ${pr_icon} PR ${number}"
   fi
 elif [[ "$branch" != "main" ]]; then
   pr_color="$color_yellow"
-  pr_segment="#[bg=${color_surface0},fg=${color_lavender},bold] PR ⇡"
+  pr_segment="#[bg=${color_surface0},fg=${color_lavender},bold] ⇡ PR"
 fi
 
 checks_json=""
@@ -127,7 +127,7 @@ if [[ -n "$checks_json" ]] && [[ "$("$JQ" 'length' <<<"$checks_json")" -gt 0 ]];
     gha_color="$color_yellow"
   fi
 
-  gha_segment="#[bg=${color_surface0},fg=${color_mauve},bold] GHA ${gha_icon}"
+  gha_segment="#[bg=${color_surface0},fg=${color_mauve},bold] ${gha_icon} GHA"
 fi
 
 out=""
