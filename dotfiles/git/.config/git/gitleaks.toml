@@ -6,6 +6,11 @@ useDefault = true
 [[allowlists]]
 description = "Ignore explicit placeholder secrets"
 regexes = [
-  '''^CONTENT_API_KEY$''',
   '''(?i)^(?:YOUR_(?:API_KEY|AUTH_TOKEN|CLIENT_SECRET|PASSWORD|PRIVATE_KEY|SECRET|TOKEN))$''',
 ]
+
+[[allowlists]]
+description = "Ignore Ghost Content API key assignments"
+targetRules = ["generic-api-key"]
+regexTarget = "line"
+regexes = ['''\bCONTENT_API_KEY\b\s*(?:=|:)''']
