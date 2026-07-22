@@ -37,6 +37,15 @@ os:
         fi;
       fi;
     fi
+customCommands:
+  - key: C
+    context: localBranches
+    description: Create pull request
+    loadingText: Creating pull request…
+    command: >-
+      git push --set-upstream origin {{.SelectedLocalBranch.Name | quote}} &&
+      gh pr create --head {{.SelectedLocalBranch.Name | quote}} --fill
+    output: popup
 # catppuccin mocha-blue: https://github.com/catppuccin/lazygit
 gui:
   theme:
