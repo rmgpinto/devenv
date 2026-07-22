@@ -6,5 +6,6 @@ useDefault = true
 [[allowlists]]
 description = "Ignore explicit placeholder secrets"
 regexes = [
-  '''(?i)^(?:CONTENT_API_KEY|YOUR_(?:API_KEY|AUTH_TOKEN|CLIENT_SECRET|PASSWORD|PRIVATE_KEY|SECRET|TOKEN))$''',
+  '''^CONTENT_API_KEY$''',
+  '''(?i)^(?:YOUR_(?:API_KEY|AUTH_TOKEN|CLIENT_SECRET|PASSWORD|PRIVATE_KEY|SECRET|TOKEN))$''',
 ]
