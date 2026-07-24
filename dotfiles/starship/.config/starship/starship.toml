@@ -48,6 +48,10 @@ detect_folders = ["k8s"]
 format = "[$symbol$context]($style) "
 style = "bold blue"
 
+[[kubernetes.contexts]]
+context_pattern = "do-.*-(?P<environment>prd|sup|stg)-k8s-(?P<instance>[0-9]+)"
+context_alias = "$environment-k8s-$instance"
+
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"
 flamingo = "#f2cdcd"
