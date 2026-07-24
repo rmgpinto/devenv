@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ZELLIJ_BIN=/Users/rmgpinto/dev/personal/devenv/bin/zellij
+LAZYGIT_BIN="$HOME/.local/share/mise/installs/lazygit/latest/lazygit"
+
+existing_pane=$(
+  "$ZELLIJ_BIN" action list-panes --json |
+    jq -r --argjson current "${ZELLIJ_PANE_ID:?}" '
+      first(
+        .[]
+        | select(
+            .title == "lazygit"
+            and .id != $current
+            and (.exited | not)
+          )
+        | "terminal_\(.id)"
+      ) // empty
+    '
+)
+
+if [ -n "$existing_pane" ]; then
+  "$ZELLIJ_BIN" action show-floating-panes
+  exec "$ZELLIJ_BIN" action focus-pane-id "$existing_pane"
+fi
+
+exec "$LAZYGIT_BIN"

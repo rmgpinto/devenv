@@ -149,7 +149,7 @@ keybinds clear-defaults=true {
         unbind "Ctrl g"
         bind "Super L" { SwitchToMode "Locked"; }
         bind "Super g" {
-            Run "zsh" "-lc" "exec ~/.local/share/mise/installs/lazygit/latest/lazygit" {
+            Run "/Users/rmgpinto/dev/personal/devenv/bin/zellij-lazygit" {
                 floating true
                 close_on_exit true
                 width "100%"
