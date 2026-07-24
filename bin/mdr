@@ -65,10 +65,11 @@ if [[ "$state" != MERGED ]]; then
   }
 fi
 
+git -C "$primary_worktree" switch main || exit 1
+git -C "$primary_worktree" pull --ff-only || exit 1
+
 if [[ -n "${ZELLIJ_SESSION_NAME:-}" ]]; then
   zellij action detach
 fi
 zd
 wt remove --force --yes "$worktree" || exit 1
-git -C "$primary_worktree" switch main || exit 1
-git -C "$primary_worktree" pull --ff-only
