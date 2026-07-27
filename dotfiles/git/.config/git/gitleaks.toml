@@ -10,6 +10,13 @@ regexes = [
 ]
 
 [[allowlists]]
+description = "Ignore curl basic-auth examples with explicit placeholder passwords"
+targetRules = ["curl-auth-user"]
+regexes = [
+  '''(?i)^[A-Za-z0-9._-]+:YOUR_(?:AUTH_TOKEN|PASSWORD|SECRET|TOKEN)$''',
+]
+
+[[allowlists]]
 description = "Ignore Ghost Content API key assignments"
 targetRules = ["generic-api-key"]
 regexTarget = "line"
