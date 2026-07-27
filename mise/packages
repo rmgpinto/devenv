@@ -20,9 +20,11 @@ jq
 yq
 bat
 fzf
-gum
 cargo:eza
 zoxide
+go@1.25.8 # gh enhance local build
+gum
+glow
 
 # Work
 gitleaks

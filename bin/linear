@@ -1,0 +1,281 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/../lib/linear/api.sh"
+
+TEAM_NAME="${LINEAR_TEAM:-Hong Kong Bureau}"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/linear"
+STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/linear"
+STATE_DIR="$STATE_ROOT/drafts"
+ZELLIJ_BIN="${ZELLIJ_BIN:-/Users/rmgpinto/dev/personal/devenv/bin/zellij}"
+LAYOUT_FILE="${LINEAR_LAYOUT_FILE:-/Users/rmgpinto/dev/personal/devenv/dotfiles/zellij/.config/zellij/layouts/linear.kdl}"
+
+open_draft() {
+  local draft="$1"
+  local draft_name encoded layout session
+
+  draft_name=$(basename "$draft" .md)
+  encoded=$(printf '%s' "$draft" | base64 | tr -d '\n')
+  layout=$(<"$LAYOUT_FILE")
+  layout=${layout//__LINEAR_DRAFT_B64__/$encoded}
+  session="linear-${draft_name//\//-}"
+  session=${session:0:60}
+
+  printf 'Linear draft: %s\n' "$draft"
+  cd "$STATE_ROOT"
+  if [ -n "${ZELLIJ:-}" ]; then
+    exec "$ZELLIJ_BIN" action switch-session --layout-string "$layout" --cwd "$STATE_ROOT" "$session"
+  else
+    exec "$ZELLIJ_BIN" --layout-string "$layout" attach --create "$session"
+  fi
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --team)
+      TEAM_NAME="${2:-}"
+      [ -n "$TEAM_NAME" ] || {
+        echo "linear: --team requires a team name" >&2
+        exit 2
+      }
+      shift 2
+      ;;
+    -h|--help)
+      echo "usage: linear [--team NAME]"
+      echo
+      echo "Create or edit a Linear issue draft in a dedicated Zellij workspace."
+      exit 0
+      ;;
+    *)
+      echo "linear: unknown argument: $1" >&2
+      exit 2
+      ;;
+  esac
+done
+
+mkdir -p "$CACHE_DIR" "$STATE_DIR"
+
+resume_options=''
+for candidate in "$STATE_DIR"/*.md; do
+  [ -f "$candidate" ] || continue
+  if grep -q '^action: create$' "$candidate"; then
+    resume_options="${resume_options}$(basename "$candidate")"$'\n'
+  fi
+done
+
+pick_cached_item() {
+  local kind="$1"
+  local header="$2"
+  local refresh_label="$3"
+  local cache="$4"
+  local fetch_query="$5"
+  local fetch_jq="$6"
+  local name_variable="$7"
+  local id_variable="$8"
+  local optional_label="${9:-}"
+  local response selection item_id rc tmp
+
+  while :; do
+    if [ ! -s "$cache" ]; then
+      tmp=$(mktemp -t "linear-${kind}.XXXXXX")
+      if gum spin --show-output --title "Loading $kind" -- \
+          bash -c 'source "$1"; linear_graphql "$2" "$3"' bash \
+            "$SCRIPT_DIR/../lib/linear/api.sh" "$fetch_query" "$TEAM_VARIABLES" >"$tmp"; then
+        jq -c "$fetch_jq" "$tmp" >"$cache"
+      else
+        rm -f "$tmp"
+        return 1
+      fi
+      rm -f "$tmp"
+    fi
+
+    rc=0
+    selection=$(
+      {
+        printf '%s\n' "$refresh_label"
+        [ -z "$optional_label" ] || printf '%s\n' "$optional_label"
+        jq -r '.[].name' "$cache"
+      } | gum filter --header "$header" --placeholder "type to filter"
+    ) || rc=$?
+    if [ "$rc" -ge 130 ]; then
+      if [ -n "$optional_label" ]; then
+        printf -v "$name_variable" ''
+        printf -v "$id_variable" ''
+        return
+      fi
+      return "$rc"
+    fi
+
+    if [ "$selection" = "$refresh_label" ]; then
+      rm -f "$cache"
+      continue
+    fi
+    if [ -n "$optional_label" ] && [ "$selection" = "$optional_label" ]; then
+      printf -v "$name_variable" ''
+      printf -v "$id_variable" ''
+      return
+    fi
+    if [ -z "$selection" ]; then
+      [ -n "$optional_label" ] || return 1
+      printf -v "$name_variable" ''
+      printf -v "$id_variable" ''
+      return
+    fi
+    item_id=$(jq -r --arg name "$selection" \
+      '[.[] | select(.name == $name)][0].id // empty' "$cache")
+    [ -n "$item_id" ] || return 1
+    printf -v "$name_variable" '%s' "$selection"
+    printf -v "$id_variable" '%s' "$item_id"
+    return
+  done
+}
+
+actions=$'Create\nEdit\n'
+[ -z "$resume_options" ] || actions="${actions}Resume draft"$'\n'
+action=$(printf '%s' "$actions" | gum choose --header "Linear issue action")
+action=$(printf '%s' "$action" | tr '[:upper:]' '[:lower:]')
+[ -n "$action" ] || exit 0
+
+if [ "$action" = 'resume draft' ]; then
+  draft_name=$(printf '%s' "$resume_options" | gum filter \
+    --header "Resume an unpublished draft" --placeholder "type to filter")
+  [ -n "$draft_name" ] || exit 0
+  open_draft "$STATE_DIR/$draft_name"
+fi
+
+linear_require_api_key
+team_query='query TeamByName($teamName: String!) {
+  teams(filter: {name: {eq: $teamName}}, first: 10) {
+    nodes { id name key }
+  }
+}'
+team_response=$(linear_graphql "$team_query" "$(jq -nc --arg teamName "$TEAM_NAME" '{teamName: $teamName}')")
+team=$(printf '%s' "$team_response" | jq -c '.data.teams.nodes[0] // empty')
+[ -n "$team" ] || {
+  echo "linear: team '$TEAM_NAME' was not found" >&2
+  exit 1
+}
+team_id=$(printf '%s' "$team" | jq -r '.id')
+team_key=$(printf '%s' "$team" | jq -r '.key')
+TEAM_VARIABLES=$(jq -nc --arg teamId "$team_id" '{teamId: $teamId}')
+export LINEAR_API_KEY SCRIPT_DIR TEAM_VARIABLES
+
+issue_json=''
+issue_id=''
+issue_identifier=''
+title='Ticket title'
+description='Describe the problem, desired outcome, and acceptance criteria.'
+if [ "$action" = edit ]; then
+  assigned_query='query AssignedIssues {
+    viewer {
+      assignedIssues(first: 100, orderBy: updatedAt) {
+        nodes {
+          id identifier title
+          team { id }
+          state { name }
+        }
+      }
+    }
+  }'
+  assigned_response=$(gum spin --show-output --title "Loading assigned issues" -- \
+    bash -c 'source "$1"; linear_graphql "$2"' bash \
+      "$SCRIPT_DIR/../lib/linear/api.sh" "$assigned_query")
+  assigned_issues=$(printf '%s' "$assigned_response" | jq -c --arg teamId "$team_id" '
+    [.data.viewer.assignedIssues.nodes[]
+      | select(.team.id == $teamId)
+      | select(.state.name != "Done")
+      | {
+          identifier,
+          label: "[\(.identifier)] \(.title) — \(.state.name)"
+        }]
+  ')
+  [ "$(printf '%s' "$assigned_issues" | jq 'length')" -gt 0 ] || {
+    echo "linear: no issues assigned to you in $TEAM_NAME" >&2
+    exit 1
+  }
+  issue_selection=$(printf '%s' "$assigned_issues" | jq -r '.[].label' | \
+    gum filter --header "Pick an assigned issue" --placeholder "type to filter")
+  [ -n "$issue_selection" ] || exit 0
+  issue_identifier=$(printf '%s' "$assigned_issues" | jq -r \
+    --arg label "$issue_selection" '.[] | select(.label == $label) | .identifier' | head -1)
+  [ -n "$issue_identifier" ] || exit 0
+  issue_query='query IssueForEditing($issueId: String!) {
+    issue(id: $issueId) {
+      id identifier title description
+      team { id name }
+      project { id name }
+      state { id name }
+    }
+  }'
+  issue_response=$(linear_graphql "$issue_query" \
+    "$(jq -nc --arg issueId "$issue_identifier" '{issueId: $issueId}')")
+  issue_json=$(printf '%s' "$issue_response" | jq -c '.data.issue // empty')
+  [ -n "$issue_json" ] || {
+    echo "linear: issue '$issue_identifier' was not found" >&2
+    exit 1
+  }
+  [ "$(printf '%s' "$issue_json" | jq -r '.team.id')" = "$team_id" ] || {
+    echo "linear: issue '$issue_identifier' is not in $TEAM_NAME" >&2
+    exit 1
+  }
+  issue_id=$(printf '%s' "$issue_json" | jq -r '.id')
+  title=$(printf '%s' "$issue_json" | jq -r '.title')
+  description=$(printf '%s' "$issue_json" | jq -r '.description // ""')
+fi
+
+projects_query='query TeamProjects($teamId: String!) {
+  team(id: $teamId) { projects(first: 100) { nodes { id name } } }
+}'
+projects_jq='[.data.team.projects.nodes[]] | sort_by(.name | ascii_downcase)'
+if [ "$action" = edit ]; then
+  project_name=$(printf '%s' "$issue_json" | jq -r '.project.name // ""')
+  project_id=$(printf '%s' "$issue_json" | jq -r '.project.id // ""')
+else
+  project_name=''
+  project_id=''
+  pick_cached_item \
+    projects "Pick a project (optional)" "Refresh projects" \
+    "$CACHE_DIR/${team_id}-projects.json" "$projects_query" "$projects_jq" \
+    project_name project_id "No project"
+fi
+
+statuses_query='query TeamStatuses($teamId: String!) {
+  team(id: $teamId) { states { nodes { id name type position } } }
+}'
+statuses_jq='[.data.team.states.nodes[]] | sort_by(.position)'
+if [ "$action" = edit ]; then
+  status_name=$(printf '%s' "$issue_json" | jq -r '.state.name')
+  status_id=$(printf '%s' "$issue_json" | jq -r '.state.id')
+else
+  status_name=''
+  status_id=''
+  pick_cached_item \
+    statuses "Pick a status" "Refresh statuses" \
+    "$CACHE_DIR/${team_id}-statuses.json" "$statuses_query" "$statuses_jq" \
+    status_name status_id
+fi
+
+if [ "$action" = edit ]; then
+  draft_name="$issue_identifier"
+else
+  draft_name="${team_key}-new-$(date +%Y%m%d-%H%M%S)"
+fi
+draft="$STATE_DIR/${draft_name}.md"
+
+{
+  echo '<!-- linear-ticket'
+  printf 'action: %s\n' "$action"
+  printf 'issue_id: %s\n' "$issue_id"
+  printf 'team_id: %s\n' "$team_id"
+  printf 'team: %s\n' "$TEAM_NAME"
+  printf 'project_id: %s\n' "$project_id"
+  printf 'project: %s\n' "$project_name"
+  printf 'state_id: %s\n' "$status_id"
+  printf 'status: %s\n' "$status_name"
+  echo '-->'
+  printf '\n# %s\n\n%s\n' "$title" "$description"
+} >"$draft"
+
+open_draft "$draft"

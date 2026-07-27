@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/../lib/linear/api.sh"
+
+if [ "${1:-}" = -h ] || [ "${1:-}" = --help ]; then
+  echo "usage: linear-create <draft.md>"
+  echo
+  echo "Create or update the Linear issue described by a workflow draft."
+  exit 0
+fi
+
+draft="${1:-${LINEAR_DRAFT:-}}"
+[ -n "$draft" ] && [ -f "$draft" ] || {
+  echo "usage: linear-create <draft.md>" >&2
+  exit 2
+}
+linear_require_api_key
+
+metadata() {
+  local key="$1"
+  sed -n "/^${key}: /s/^${key}: //p" "$draft" | head -1
+}
+
+action=$(metadata action)
+issue_id=$(metadata issue_id)
+team_id=$(metadata team_id)
+project_id=$(metadata project_id)
+state_id=$(metadata state_id)
+title=$(sed -n 's/^# //p' "$draft" | head -1)
+description=$(awk '
+  found { print }
+  /^# / && !found { found = 1; next }
+' "$draft")
+description=${description#$'\n'}
+
+[ -n "$title" ] || {
+  echo "linear-create: the draft needs a '# Title' heading" >&2
+  exit 1
+}
+[ -n "$team_id" ] && [ -n "$state_id" ] || {
+  echo "linear-create: draft metadata is incomplete" >&2
+  exit 1
+}
+
+input=$(jq -nc \
+  --arg title "$title" \
+  --arg description "$description" \
+  --arg teamId "$team_id" \
+  --arg projectId "$project_id" \
+  --arg stateId "$state_id" \
+  '{title: $title, description: $description, teamId: $teamId,
+    projectId: $projectId, stateId: $stateId}')
+input=$(printf '%s' "$input" | jq 'if .projectId == "" then del(.projectId) else . end')
+
+if [ "$action" = create ]; then
+  viewer_query='query Viewer {
+    viewer { id }
+  }'
+  viewer_response=$(linear_graphql "$viewer_query")
+  assignee_id=$(printf '%s' "$viewer_response" | jq -r '.data.viewer.id // empty')
+  [ -n "$assignee_id" ] || {
+    echo "linear-create: could not resolve the authenticated Linear user" >&2
+    exit 1
+  }
+  input=$(printf '%s' "$input" | jq --arg assigneeId "$assignee_id" \
+    '. + {assigneeId: $assigneeId}')
+
+  query='mutation CreateIssue($input: IssueCreateInput!) {
+    issueCreate(input: $input) {
+      success
+      issue { id identifier title url }
+    }
+  }'
+  response=$(linear_graphql "$query" "$(jq -nc --argjson input "$input" '{input: $input}')")
+  issue=$(printf '%s' "$response" | jq -c '.data.issueCreate.issue // empty')
+  [ "$(printf '%s' "$response" | jq -r '.data.issueCreate.success // false')" = true ] && [ -n "$issue" ] || {
+    echo "linear-create: Linear did not create the issue" >&2
+    exit 1
+  }
+  issue_id=$(printf '%s' "$issue" | jq -r '.id')
+  tmp=$(mktemp -t linear-draft.XXXXXX)
+  awk -v issue_id="$issue_id" '
+    /^action: create$/ { print "action: edit"; next }
+    /^issue_id: / { print "issue_id: " issue_id; next }
+    { print }
+  ' "$draft" >"$tmp"
+  mv "$tmp" "$draft"
+  printf 'Created %s: %s\n' \
+    "$(printf '%s' "$issue" | jq -r '.identifier')" \
+    "$(printf '%s' "$issue" | jq -r '.url')"
+elif [ "$action" = edit ]; then
+  [ -n "$issue_id" ] || {
+    echo "linear-create: edit draft has no issue_id" >&2
+    exit 1
+  }
+  input=$(printf '%s' "$input" | jq 'del(.teamId)')
+  query='mutation UpdateIssue($issueId: String!, $input: IssueUpdateInput!) {
+    issueUpdate(id: $issueId, input: $input) {
+      success
+      issue { identifier title url }
+    }
+  }'
+  response=$(linear_graphql "$query" \
+    "$(jq -nc --arg issueId "$issue_id" --argjson input "$input" \
+      '{issueId: $issueId, input: $input}')")
+  issue=$(printf '%s' "$response" | jq -c '.data.issueUpdate.issue // empty')
+  [ "$(printf '%s' "$response" | jq -r '.data.issueUpdate.success // false')" = true ] && [ -n "$issue" ] || {
+    echo "linear-create: Linear did not update the issue" >&2
+    exit 1
+  }
+  printf 'Updated %s: %s\n' \
+    "$(printf '%s' "$issue" | jq -r '.identifier')" \
+    "$(printf '%s' "$issue" | jq -r '.url')"
+else
+  echo "linear-create: unknown draft action '$action'" >&2
+  exit 1
+fi
