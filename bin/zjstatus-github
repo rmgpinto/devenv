@@ -85,12 +85,34 @@ run_with_timeout() {
   /usr/bin/perl -e '$timeout = shift; alarm $timeout; exec @ARGV' "$TIMEOUT" "$@"
 }
 
-pr_json="$(cd "$repo_dir" && run_with_timeout "$GH" pr view --json number,state,mergedAt 2>/dev/null || true)"
+remote_url="$("$GIT" -C "$repo_dir" remote get-url origin 2>/dev/null || true)"
+case "$remote_url" in
+  git@github.com:*) repo_path="${remote_url#git@github.com:}" ;;
+  https://github.com/*) repo_path="${remote_url#https://github.com/}" ;;
+  *) repo_path="" ;;
+esac
+repo_path="${repo_path%.git}"
+remote_owner="${repo_path%%/*}"
+
+pulls_json=""
+if [[ -n "$repo_path" && "$remote_owner" != "$repo_path" ]]; then
+  pulls_json="$(
+    cd "$repo_dir" &&
+      run_with_timeout "$GH" api --method GET "repos/{owner}/{repo}/pulls" \
+        -f state=all \
+        -f head="${remote_owner}:${branch}" \
+        -f per_page=10 2>/dev/null || true
+  )"
+fi
+pr_json=""
+if [[ -n "$pulls_json" ]]; then
+  pr_json="$("$JQ" -c 'sort_by(.updated_at) | reverse | .[0] // empty' <<<"$pulls_json")"
+fi
 has_pr=false
 if [[ -n "$pr_json" ]]; then
   number="$("$JQ" -r '.number // empty' <<<"$pr_json")"
-  state="$("$JQ" -r '.state // empty' <<<"$pr_json")"
-  merged_at="$("$JQ" -r '.mergedAt // empty' <<<"$pr_json")"
+  state="$("$JQ" -r '.state // empty | ascii_upcase' <<<"$pr_json")"
+  merged_at="$("$JQ" -r '.merged_at // empty' <<<"$pr_json")"
 
   if [[ -n "$number" ]]; then
     has_pr=true
@@ -110,7 +132,29 @@ fi
 
 checks_json=""
 if [[ "$has_pr" == "true" ]]; then
-  checks_json="$(cd "$repo_dir" && run_with_timeout "$GH" pr checks --json bucket 2>/dev/null || true)"
+  head_sha="$("$JQ" -r '.head.sha // empty' <<<"$pr_json")"
+  if [[ -n "$head_sha" ]]; then
+    checks_json="$(
+      cd "$repo_dir" &&
+        run_with_timeout "$GH" api "repos/{owner}/{repo}/commits/${head_sha}/check-runs" \
+          --jq '[
+            .check_runs[] |
+            {
+              bucket:
+                if .status != "completed" then "pending"
+                elif (.conclusion == "failure"
+                      or .conclusion == "timed_out"
+                      or .conclusion == "action_required"
+                      or .conclusion == "startup_failure") then "fail"
+                elif .conclusion == "cancelled" then "cancel"
+                elif .conclusion == "success" then "pass"
+                elif (.conclusion == "skipped" or .conclusion == "neutral") then "skipping"
+                else "pending"
+                end
+            }
+          ]' 2>/dev/null || true
+    )"
+  fi
 fi
 if [[ -n "$checks_json" ]] && [[ "$("$JQ" 'length' <<<"$checks_json")" -gt 0 ]]; then
   if "$JQ" -e 'any(.bucket == "fail" or .bucket == "cancel")' <<<"$checks_json" >/dev/null; then
