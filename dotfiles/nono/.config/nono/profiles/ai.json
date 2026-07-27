@@ -17,6 +17,7 @@
       "$HOME/.config/codex",
       "$HOME/.config/mise",
       "$HOME/.config/nono",
+      "$HOME/.cache/aube",
       "$HOME/.cache/node",
       "$HOME/.local/state/linear",
       "$HOME/.local/share/mise",
