@@ -80,7 +80,8 @@
     "nono-es-production-password": "ES_PRODUCTION_PASSWORD",
     "nono-pmm-user": "PMM_USER",
     "nono-pmm-staging-password": "PMM_STAGING_PASSWORD",
-    "nono-pmm-production-password": "PMM_PRODUCTION_PASSWORD"
+    "nono-pmm-production-password": "PMM_PRODUCTION_PASSWORD",
+    "nono-gcp-activiypub-production": "ACTIVITYPUB_PRODUCTION_CREDENTIALS"
   },
   "unsafe_macos_seatbelt_rules": [
     "(allow user-preference-read)"
