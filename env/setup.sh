@@ -27,7 +27,81 @@ SECRETS_FILE="${SCRIPT_DIR}/secrets"
 # non-interactively (no mise shell activation), so `command -v nono` would miss
 # it or return a shim, and -T on a shim wouldn't match the real reader.
 NONO_BIN="$(/opt/homebrew/bin/mise which nono 2>/dev/null || command -v nono 2>/dev/null || true)"
-REFRESH_NONO_KEYCHAIN_ACL="${REFRESH_NONO_KEYCHAIN_ACL:-0}"
+NONO_SIGNING_IDENTITY="DevEnv Nono"
+NONO_SIGNING_IDENTIFIER="dev.rmgpinto.nono"
+NONO_ACL_REFRESH="${HOME}/.local/state/devenv/refresh-nono-keychain-acl"
+NONO_ACL_CONFIGURED="${HOME}/.local/state/devenv/nono-codesign-acl-v1"
+if [[ -e "${NONO_ACL_REFRESH}" ]]; then
+  REFRESH_NONO_KEYCHAIN_ACL=1
+else
+  REFRESH_NONO_KEYCHAIN_ACL="${REFRESH_NONO_KEYCHAIN_ACL:-0}"
+fi
+
+function create_nono_signing_identity() (
+  unsetopt xtrace verbose 2>/dev/null || true
+
+  local keychain="${HOME}/Library/Keychains/login.keychain-db"
+  local temporary
+  local private_key certificate bundle passphrase
+  temporary="$(mktemp -d -t devenv-nono-codesign.XXXXXX)"
+  private_key="${temporary}/nono.key"
+  certificate="${temporary}/nono.crt"
+  bundle="${temporary}/nono.p12"
+  trap '/bin/rm -f -- "${private_key}" "${certificate}" "${bundle}"; /bin/rmdir "${temporary}" 2>/dev/null || true' EXIT
+
+  passphrase="$(openssl rand -hex 32)"
+  openssl req -new -newkey rsa:3072 -x509 -sha256 -days 3650 -nodes \
+    -subj "/CN=${NONO_SIGNING_IDENTITY}" \
+    -addext "basicConstraints=critical,CA:FALSE" \
+    -addext "keyUsage=critical,digitalSignature" \
+    -addext "extendedKeyUsage=codeSigning" \
+    -keyout "${private_key}" \
+    -out "${certificate}" >/dev/null 2>&1
+  openssl pkcs12 -export \
+    -legacy \
+    -name "${NONO_SIGNING_IDENTITY}" \
+    -inkey "${private_key}" \
+    -in "${certificate}" \
+    -passout "pass:${passphrase}" \
+    -out "${bundle}"
+  "${SECURITY}" import "${bundle}" \
+    -k "${keychain}" \
+    -P "${passphrase}" \
+    -T /usr/bin/codesign \
+    -T "${SECURITY}" >/dev/null
+)
+
+function sign_nono() {
+  local keychain="${HOME}/Library/Keychains/login.keychain-db"
+  local needs_acl_refresh=false
+
+  [[ -n "${NONO_BIN}" && -x "${NONO_BIN}" ]] || return 0
+
+  if ! "${SECURITY}" find-certificate \
+      -c "${NONO_SIGNING_IDENTITY}" "${keychain}" >/dev/null 2>&1; then
+    log info "Creating stable local Nono code-signing identity..."
+    create_nono_signing_identity
+    needs_acl_refresh=true
+  fi
+
+  if [[ ! -e "${NONO_ACL_CONFIGURED}" ]]; then
+    needs_acl_refresh=true
+  fi
+
+  log info "Signing Nono with stable local identity..."
+  /usr/bin/codesign --force \
+    --sign "${NONO_SIGNING_IDENTITY}" \
+    --identifier "${NONO_SIGNING_IDENTIFIER}" \
+    --timestamp=none \
+    "${NONO_BIN}"
+  /usr/bin/codesign --verify --strict "${NONO_BIN}"
+
+  if [[ "${needs_acl_refresh}" == true ]]; then
+    mkdir -p "${NONO_ACL_REFRESH:h}"
+    touch "${NONO_ACL_REFRESH}"
+    REFRESH_NONO_KEYCHAIN_ACL=1
+  fi
+}
 
 function require_op() {
   if ! command -v op >/dev/null 2>&1; then
@@ -48,23 +122,23 @@ function require_op() {
 # "${account}". The reader differs per store, and so must the access grant:
 #
 #   - "nono" items are read by the nono binary itself when it sets up the sandbox,
-#     non-interactively. macOS won't let an ad-hoc-signed binary read a keychain
-#     item without an explicit grant — it pops an "Always Allow" dialog nono can't
-#     answer (and clicking it never sticks, since the grant is keyed to nono's
-#     signature). So these are granted to nono via -T. We also list `security`
-#     itself so this script can update the value in place on later syncs without
-#     re-triggering the one-time grant authorization.
+#     non-interactively. This script signs that binary with a stable local
+#     identity, and these items grant that identity access via -T. This survives
+#     mise upgrades after the replacement binary is re-signed. We also list
+#     `security` itself so this script can update values without re-triggering
+#     authorization.
 #   - "mise" items are read by the Apple-signed `security` CLI (via mise's
 #     exec()), which is trusted by default; -A keeps them readable with no prompt.
 #     Adding -T here would instead LOCK them to nono and make mise prompt.
 #
-# Authorizing the -T grant prompts once per nono keychain item (click "Always Allow").
-# Existing items normally preserve their ACLs because rewriting access policy
-# prompts every run. Set REFRESH_NONO_KEYCHAIN_ACL=1 for a deliberate repair
-# after reinstalling/upgrading nono if Keychain still trusts the old executable.
+# The first stable-signing migration recreates each cached nono item with the new
+# ACL. Existing items then preserve their ACLs on normal syncs. Set
+# REFRESH_NONO_KEYCHAIN_ACL=1 for a deliberate repair if the local signing
+# identity or Keychain ACL was replaced.
 function kc_add() {
   local service="$1" account="$2" value="$3"
   local -a trust
+  local current_value
   if [[ "${service}" == "nono" && -n "${NONO_BIN}" ]]; then
     trust=(-T "${NONO_BIN}" -T "${SECURITY}")
   else
@@ -74,10 +148,24 @@ function kc_add() {
   fi
   if "${SECURITY}" find-generic-password -a "${account}" -s "${service}" >/dev/null 2>&1; then
     if [[ "${service}" == "nono" && -n "${NONO_BIN}" && "${REFRESH_NONO_KEYCHAIN_ACL}" == "1" ]]; then
-      # Deliberate repair path: this rewrites ACLs and may prompt per item.
-      "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -U "${trust[@]}"
+      # Recreating an item lets this trusted setup process establish the new ACL
+      # directly. Updating an existing ACL with -U -T makes macOS request the
+      # login password separately for every item.
+      "${SECURITY}" delete-generic-password -a "${account}" -s "${service}" >/dev/null
+      "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" "${trust[@]}"
+    elif [[ "${service}" == "nono" ]]; then
+      # Do not run add-generic-password -U for an unchanged Nono item: macOS can
+      # replace its access metadata and discard the persistent signed-Nono grant.
+      # Recreate only when 1Password contains a genuinely different value.
+      current_value="$("${SECURITY}" find-generic-password \
+        -a "${account}" -s "${service}" -w 2>/dev/null || true)"
+      if [[ "${current_value}" != "${value}" ]]; then
+        "${SECURITY}" delete-generic-password -a "${account}" -s "${service}" >/dev/null
+        "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" "${trust[@]}"
+      fi
     else
-      # Normal sync: preserve existing ACLs; only the value needs refreshing.
+      # mise items are intentionally available through the Apple-signed security
+      # CLI, so their values can continue to be refreshed in place.
       "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -U
     fi
   else
@@ -141,8 +229,14 @@ function write_mise_files() {
 
 function main() {
   log info "Setting up env..."
+  sign_nono
   require_op
   sync_secrets
+  if [[ "${REFRESH_NONO_KEYCHAIN_ACL}" == "1" ]]; then
+    mkdir -p "${NONO_ACL_CONFIGURED:h}"
+    touch "${NONO_ACL_CONFIGURED}"
+    rm -f "${NONO_ACL_REFRESH}"
+  fi
   write_mise_files
   log info "Done."
 }
