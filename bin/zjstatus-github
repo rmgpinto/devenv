@@ -6,7 +6,7 @@ export PATH="/Users/rmgpinto/dev/personal/devenv/bin:$HOME/.local/share/mise/ins
 GIT="${GIT:-/usr/bin/git}"
 GH="${GH:-$HOME/.local/share/mise/installs/github-cli/latest/gh-latest}"
 JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
-MAX_AGE="${ZJSTATUS_GITHUB_MAX_AGE:-5}"
+MAX_AGE="${ZJSTATUS_GITHUB_MAX_AGE:-10}"
 TIMEOUT="${ZJSTATUS_GITHUB_TIMEOUT:-3}"
 
 color_base="#1e1e2e"
