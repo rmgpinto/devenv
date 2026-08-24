@@ -20,6 +20,7 @@
     }
   },
   "spinnerTipsEnabled": false,
+  "outputStyle": "Concise",
   "effortLevel": "medium",
   "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
