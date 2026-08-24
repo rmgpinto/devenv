@@ -78,6 +78,7 @@ struct AgentState {
     agent: Agent,
     status: Status,
     signature: u64,
+    unchanged_polls: u8,
     activity: u64,
 }
 
@@ -234,7 +235,9 @@ impl State {
         let agents = self
             .agents
             .iter()
-            .filter(|(pane_id, _)| self.dirty_agents.contains(pane_id))
+            .filter(|(pane_id, state)| {
+                should_poll_agent(state.agent, self.dirty_agents.contains(pane_id))
+            })
             .map(|(pane_id, state)| (*pane_id, state.agent))
             .collect::<Vec<_>>();
 
@@ -248,8 +251,15 @@ impl State {
                 .get(&pane_id)
                 .map(String::as_str)
                 .unwrap_or_default();
-            let status = parse_agent_screen_status(agent, title, &screen);
-            let signature = screen_signature(agent, status, &screen);
+            let mut status = parse_agent_screen_status(agent, title, &screen);
+            let signature = screen_signature(agent, &screen);
+            let unchanged_polls = self
+                .agents
+                .get(&pane_id)
+                .filter(|state| state.signature == signature)
+                .map(|state| state.unchanged_polls.saturating_add(1))
+                .unwrap_or(0);
+            status = settle_codex_status(agent, status, unchanged_polls);
             let changed = self
                 .agents
                 .get(&pane_id)
@@ -272,6 +282,7 @@ impl State {
                     agent,
                     status,
                     signature,
+                    unchanged_polls,
                     activity,
                 },
             );
@@ -300,6 +311,7 @@ impl State {
                     agent,
                     status: Status::Unknown,
                     signature: 0,
+                    unchanged_polls: 0,
                     activity: 0,
                 });
             self.dirty_agents.insert(pane_id);
@@ -346,12 +358,24 @@ fn pane_contents_to_string(contents: PaneContents) -> String {
     contents.viewport.join("\n")
 }
 
-fn screen_signature(agent: Agent, status: Status, screen: &str) -> u64 {
+fn screen_signature(agent: Agent, screen: &str) -> u64 {
     let mut hasher = DefaultHasher::new();
     std::mem::discriminant(&agent).hash(&mut hasher);
-    std::mem::discriminant(&status).hash(&mut hasher);
     screen.hash(&mut hasher);
     hasher.finish()
+}
+
+fn settle_codex_status(agent: Agent, status: Status, unchanged_polls: u8) -> Status {
+    const IDLE_AFTER_UNCHANGED_POLLS: u8 = 8;
+
+    if agent == Agent::Codex
+        && status == Status::Working
+        && unchanged_polls >= IDLE_AFTER_UNCHANGED_POLLS
+    {
+        Status::Idle
+    } else {
+        status
+    }
 }
 
 fn agent_from_command(command: &[String]) -> Option<Agent> {
@@ -375,6 +399,10 @@ fn contains_shell_token(input: &str, token: &str) -> bool {
         .any(|part| part == token)
 }
 
+fn should_poll_agent(agent: Agent, is_dirty: bool) -> bool {
+    agent == Agent::Codex || is_dirty
+}
+
 fn parse_agent_screen_status(agent: Agent, title: &str, screen: &str) -> Status {
     match agent {
         Agent::Codex => parse_codex_screen_status(title, screen),
@@ -387,9 +415,33 @@ fn parse_codex_screen_status(title: &str, screen: &str) -> Status {
     let combined = lines.join("\n");
     let lower = combined.to_ascii_lowercase();
 
-    if ['›', '❯'].into_iter().any(|prompt| {
-        last_prompt_like_line(screen, prompt).is_some_and(|line| !is_numbered_selection_line(line))
-    }) {
+    let last_prompt = lines.iter().rposition(|line| {
+        ['›', '❯']
+            .into_iter()
+            .any(|prompt| is_codex_idle_prompt(line, prompt))
+    });
+    let last_working = lines.iter().rposition(|line| {
+        let lower_line = line.to_ascii_lowercase();
+        line.contains("(Esc to cancel")
+            || lower_line.contains("esc to interrupt")
+            || lower_line.contains("ctrl+c to interrupt")
+            || {
+                let trimmed = line.trim_start();
+                trimmed.starts_with('•') && trimmed.contains("Working (")
+            }
+    });
+    let last_completed = lines.iter().rposition(|line| {
+        let lower_line = line.to_ascii_lowercase();
+        lower_line.contains("worked for ")
+    });
+
+    // Codex leaves the previous working footer in the viewport after finishing,
+    // but prints a later `Worked for ...` line before returning to its prompt.
+    if last_completed > last_working {
+        return Status::Idle;
+    }
+
+    if last_working.is_none() && last_prompt.is_some() {
         return Status::Idle;
     }
 
@@ -406,14 +458,23 @@ fn parse_codex_screen_status(title: &str, screen: &str) -> Status {
         return Status::Waiting;
     }
 
-    if title_starts_with_braille(title)
-        || lines.iter().any(|line| {
-            let lower_line = line.to_ascii_lowercase();
-            line.contains("(Esc to cancel")
-                || lower_line.contains("esc to interrupt")
-                || lower_line.contains("ctrl+c to interrupt")
-        })
-        || has_codex_working_header(screen)
+    // Codex keeps its input placeholder visible while a response is running. An
+    // active interrupt/cancel footer therefore takes precedence over the prompt,
+    // regardless of their relative screen positions.
+    if title_starts_with_braille(title) || last_working.is_some() {
+        return Status::Working;
+    }
+
+    if last_prompt.is_some() {
+        return Status::Idle;
+    }
+
+    if lines.iter().any(|line| {
+        let lower_line = line.to_ascii_lowercase();
+        line.contains("(Esc to cancel")
+            || lower_line.contains("esc to interrupt")
+            || lower_line.contains("ctrl+c to interrupt")
+    }) || has_codex_working_header(screen)
     {
         return Status::Working;
     }
@@ -421,7 +482,7 @@ fn parse_codex_screen_status(title: &str, screen: &str) -> Status {
     if screen.trim().is_empty() {
         Status::Unknown
     } else {
-        Status::Idle
+        Status::Working
     }
 }
 
@@ -480,6 +541,16 @@ fn has_codex_working_header(screen: &str) -> bool {
         let trimmed = line.trim_start();
         trimmed.starts_with('•') && trimmed.contains("Working (")
     })
+}
+
+fn is_codex_idle_prompt(line: &str, prompt: char) -> bool {
+    let Some(after_prompt) = line.strip_prefix(prompt) else {
+        return false;
+    };
+    let input = after_prompt.trim();
+    input.is_empty()
+        || input.eq_ignore_ascii_case("ask anything")
+        || input.to_ascii_lowercase().starts_with("ask anything ")
 }
 
 fn has_confirmation_prompt(lower_content: &str) -> bool {
@@ -603,6 +674,14 @@ mod tests {
     }
 
     #[test]
+    fn continuously_polls_codex_but_not_clean_claude_panes() {
+        assert!(should_poll_agent(Agent::Codex, false));
+        assert!(should_poll_agent(Agent::Codex, true));
+        assert!(!should_poll_agent(Agent::Claude, false));
+        assert!(should_poll_agent(Agent::Claude, true));
+    }
+
+    #[test]
     fn reads_title_configuration() {
         let config = PluginConfig::from_map(&BTreeMap::from([
             ("terminal_title".into(), "[{session}] {agent_status}".into()),
@@ -633,6 +712,50 @@ mod tests {
     fn ignores_stale_waiting_prompts_when_codex_is_idle() {
         let screen = "Do you want to run this command?\nYes, proceed\nTask complete\n›";
         assert_eq!(parse_codex_screen_status("codex", screen), Status::Idle);
+    }
+
+    #[test]
+    fn codex_working_indicator_after_prompt_is_working() {
+        let screen = "› investigate the bug\n• Working (3s • esc to interrupt)";
+        assert_eq!(parse_codex_screen_status("codex", screen), Status::Working);
+    }
+
+    #[test]
+    fn codex_visible_prompt_does_not_override_active_interrupt_footer() {
+        let screen = "• Working (3s • esc to interrupt)\n› Ask anything";
+        assert_eq!(parse_codex_screen_status("codex", screen), Status::Working);
+    }
+
+    #[test]
+    fn codex_completion_marker_clears_stale_working_footer() {
+        let screen = "• Working (3s • esc to interrupt)\n• Worked for 4s\n› Ask anything";
+        assert_eq!(parse_codex_screen_status("codex", screen), Status::Idle);
+    }
+
+    #[test]
+    fn stable_codex_screen_settles_to_idle_without_a_visible_prompt() {
+        assert_eq!(
+            settle_codex_status(Agent::Codex, Status::Working, 7),
+            Status::Working
+        );
+        assert_eq!(
+            settle_codex_status(Agent::Codex, Status::Working, 8),
+            Status::Idle
+        );
+    }
+
+    #[test]
+    fn submitted_codex_prompt_without_a_spinner_is_working() {
+        let screen = "› investigate the bug\nI’m checking the repository now.";
+        assert_eq!(parse_codex_screen_status("codex", screen), Status::Working);
+    }
+
+    #[test]
+    fn codex_input_placeholder_is_idle() {
+        assert_eq!(
+            parse_codex_screen_status("codex", "Task complete\n› Ask anything"),
+            Status::Idle
+        );
     }
 
     #[test]
