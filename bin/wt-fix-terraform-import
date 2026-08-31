@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Fix a sibling terraform import after Worktrunk adds .worktrees/<branch> depth.
+
+set -euo pipefail
+
+SOURCE=${1:?usage: wt fix-terraform-import SOURCE_WORKTREE TARGET_WORKTREE}
+TARGET=${2:?usage: wt fix-terraform-import SOURCE_WORKTREE TARGET_WORKTREE}
+JUSTFILE="$TARGET/justfile"
+
+# Only rewrite Worktrunk's nested worktrees, and only when the sibling terraform
+# repository exists where the adjusted import expects it.
+case "$TARGET" in
+  "$SOURCE"/.worktrees/*) ;;
+  *) exit 0 ;;
+esac
+
+[ -f "$JUSTFILE" ] || exit 0
+[ -f "$SOURCE/../terraform/justfile" ] || exit 0
+
+TEMP=$(mktemp "$TARGET/.wt-justfile.XXXXXX")
+trap 'rm -f "$TEMP"' EXIT
+
+awk '
+  /^[[:space:]]*import[[:space:]]+["'\'']\.\.\/terraform\/justfile["'\''][[:space:]]*$/ {
+    match($0, /^[[:space:]]*/)
+    indentation = substr($0, 1, RLENGTH)
+    quote = index($0, "\"") ? "\"" : sprintf("%c", 39)
+    print indentation "import " quote "../../../terraform/justfile" quote
+    next
+  }
+  { print }
+' "$JUSTFILE" > "$TEMP"
+
+if ! cmp -s "$JUSTFILE" "$TEMP"; then
+  mv "$TEMP" "$JUSTFILE"
+fi

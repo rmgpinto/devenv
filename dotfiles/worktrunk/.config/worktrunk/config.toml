@@ -5,6 +5,7 @@ pull-main = '[ "{{ cwd }}" != "{{ primary_worktree_path }}" ] || git -C "{{ prim
 
 [pre-start]
 copy-mise = 'wt copy-mise "{{ primary_worktree_path }}" "{{ worktree_path }}"'
+fix-terraform-import = 'wt fix-terraform-import "{{ primary_worktree_path }}" "{{ worktree_path }}"'
 
 [post-remove]
 delete-session = 'wt delete-session "{{ repo }}" "{{ branch }}"'
