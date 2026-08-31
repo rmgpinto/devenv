@@ -19,8 +19,8 @@
       }
     }
   },
-  "spinnerTipsEnabled": false,
   "outputStyle": "Concise",
+  "spinnerTipsEnabled": false,
   "effortLevel": "medium",
   "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
