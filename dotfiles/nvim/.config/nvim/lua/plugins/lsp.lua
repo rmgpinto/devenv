@@ -87,8 +87,14 @@ return {
       -- Enable formatting on save
       vim.api.nvim_create_autocmd("BufWritePre", {
         pattern = "*",
-        callback = function()
-          vim.lsp.buf.format()
+        callback = function(ev)
+          local clients = vim.lsp.get_clients({
+            bufnr = ev.buf,
+            method = "textDocument/formatting",
+          })
+          if #clients > 0 then
+            vim.lsp.buf.format({ bufnr = ev.buf })
+          end
         end,
       })
     end,
