@@ -39,3 +39,7 @@ vim.api.nvim_create_autocmd("BufReadPost", {
     end
   end,
 })
+
+-- Hide Neovim's terminal exit message. This also leaves plain `:terminal`
+-- buffers open after their shell exits successfully.
+vim.api.nvim_clear_autocmds({ group = "nvim.terminal", event = "TermClose" })
