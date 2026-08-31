@@ -73,6 +73,10 @@ function setup_gh() {
   if [[ ! -d "${gh_enhance_repo}/.git" ]]; then
     "${gh_latest_target}" repo clone rmgpinto/gh-enhance "${gh_enhance_repo}"
   fi
+  /usr/bin/git -C "${gh_enhance_repo}" remote set-url origin https://github.com/rmgpinto/gh-enhance.git
+  if /usr/bin/git -C "${gh_enhance_repo}" remote get-url upstream >/dev/null 2>&1; then
+    /usr/bin/git -C "${gh_enhance_repo}" remote set-url upstream https://github.com/dlvhdr/gh-enhance.git
+  fi
   if [[ "$(/usr/bin/git -C "${gh_enhance_repo}" branch --show-current)" != "main" ]]; then
     log error "gh-enhance repo is not on main; skipping sync/build"
     return 1
@@ -134,6 +138,10 @@ function setup_zellij() {
 
   if [[ ! -d "${zellij_repo}/.git" ]]; then
     "${gh_bin}" repo clone rmgpinto/zellij "${zellij_repo}"
+  fi
+  /usr/bin/git -C "${zellij_repo}" remote set-url origin https://github.com/rmgpinto/zellij.git
+  if /usr/bin/git -C "${zellij_repo}" remote get-url upstream >/dev/null 2>&1; then
+    /usr/bin/git -C "${zellij_repo}" remote set-url upstream https://github.com/zellij-org/zellij.git
   fi
 
   if [[ "$(/usr/bin/git -C "${zellij_repo}" branch --show-current)" != "main" ]]; then
@@ -218,18 +226,19 @@ function setup_nono() {
 function setup_claude() {
   log info "Setting up claude code..."
   local claude_bin="${HOME}/.local/share/mise/installs/claude-code/latest/claude"
-  local claude_marketplace_dir="${DEV_WORKSPACE}/work/Claude"
+  local claude_skills_dir="${DEV_WORKSPACE}/work/Claude"
+  local -a claude_skills
   mkdir -p "${HOME}/.config/claude/themes"
   /opt/homebrew/bin/stow --adopt --no-folding claude -t "${HOME}"
-  if [[ -x "${claude_bin}" && -f "${claude_marketplace_dir}/.claude-plugin/marketplace.json" ]]; then
-    CLAUDE_CONFIG_DIR="${HOME}/.config/claude" \
-      "${claude_bin}" plugin marketplace add "${claude_marketplace_dir}" --scope user
-    CLAUDE_CONFIG_DIR="${HOME}/.config/claude" \
-      "${claude_bin}" plugin install repo-audit@ghost-claude-marketplace --scope user
-    CLAUDE_CONFIG_DIR="${HOME}/.config/claude" \
-      "${claude_bin}" plugin install ghost-pro@ghost-claude-marketplace --scope user
+  if [[ -x "${claude_bin}" && -d "${claude_skills_dir}/skills" ]]; then
+    claude_skills=("${claude_skills_dir}"/skills/repo-*(N:t) troubleshoot-ghost-pro)
+    /opt/homebrew/bin/mise exec -- npx --yes skills add "${claude_skills_dir}" \
+      --skill "${claude_skills[@]}" \
+      --agent claude-code \
+      --global \
+      --yes
   else
-    log error "Claude Code or marketplace not found; skipping Claude plugins"
+    log error "Claude Code or shared skills repository not found; skipping Claude skills"
   fi
   log info "Done."
 }
