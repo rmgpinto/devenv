@@ -18,7 +18,7 @@ zellij_session_name_at() {
   root=${root:-$directory}
   [ "$(basename "$(dirname "$root")")" = ".worktrees" ] && root=$(dirname "$(dirname "$root")")
   repo=$(basename "$root")
-  branch=$(/usr/bin/git -C "$directory" rev-parse --abbrev-ref HEAD 2>/dev/null)
+  branch=$(/usr/bin/git -C "$directory" symbolic-ref --quiet --short HEAD 2>/dev/null || true)
   [ "$branch" = HEAD ] && branch=
 
   zellij_session_name_for "$repo" "$branch"
