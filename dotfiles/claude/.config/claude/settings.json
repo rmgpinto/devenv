@@ -6,7 +6,7 @@
     "commit": "",
     "pr": ""
   },
-  "model": "claude-fable-5[1m]",
+  "model": "claude-fable-5-1[1m]",
   "enabledPlugins": {
     "repo-audit@ghost-claude-marketplace": true,
     "ghost-pro@ghost-claude-marketplace": true

@@ -13,5 +13,18 @@ trust_level = "trusted"
 [projects."/Users/rmgpinto/dev/personal/fcf-compounders"]
 trust_level = "trusted"
 
+[projects."/Users/rmgpinto/dev/work/k8s"]
+trust_level = "trusted"
+
+[projects."/Users/rmgpinto/dev/work/Scheduler"]
+trust_level = "trusted"
+
+[projects."/Users/rmgpinto/Downloads"]
+trust_level = "trusted"
+
+[projects."/Users/rmgpinto/dev/work/Ghost"]
+trust_level = "trusted"
+
 [tui.model_availability_nux]
 "gpt-5.6-sol" = 4
+gpt-6-astra = 4
