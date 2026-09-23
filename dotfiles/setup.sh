@@ -58,20 +58,14 @@ function setup_git() {
 
 function setup_gh() {
   log info "Setting up gh..."
-  gh_latest_source="${DEV_WORKSPACE}/personal/devenv/dotfiles/gh/.config/gh/gh-latest"
-  gh_latest_target="${HOME}/.local/share/mise/installs/github-cli/latest/gh-latest"
+  local -a gh_cmd=(/opt/homebrew/bin/mise exec -- gh)
   gh_enhance_repo="${DEV_WORKSPACE}/personal/gh-enhance"
   local upstream
-  if [[ -x "${gh_latest_source}" && -d "${gh_latest_target:h}" ]]; then
-    ln -sfn "${gh_latest_source}" "${gh_latest_target}"
-    "${gh_latest_target}" completion -s zsh | sudo tee /usr/local/share/zsh/site-functions/_gh > /dev/null
-  else
-    log error "Unable to link gh-latest into mise github-cli latest install"
-  fi
+  "${gh_cmd[@]}" completion -s zsh | sudo tee /usr/local/share/zsh/site-functions/_gh > /dev/null
   /opt/homebrew/bin/stow --adopt gh -t ${HOME}
 
   if [[ ! -d "${gh_enhance_repo}/.git" ]]; then
-    "${gh_latest_target}" repo clone rmgpinto/gh-enhance "${gh_enhance_repo}"
+    "${gh_cmd[@]}" repo clone rmgpinto/gh-enhance "${gh_enhance_repo}"
   fi
   /usr/bin/git -C "${gh_enhance_repo}" remote set-url origin https://github.com/rmgpinto/gh-enhance.git
   if /usr/bin/git -C "${gh_enhance_repo}" remote get-url upstream >/dev/null 2>&1; then
@@ -101,8 +95,8 @@ function setup_gh() {
   (
     cd "${gh_enhance_repo}"
     /opt/homebrew/bin/mise exec go@1.25.8 -- go build -o gh-enhance .
-    "${gh_latest_target}" extension remove gh-enhance > /dev/null
-    "${gh_latest_target}" extension install . --force
+    "${gh_cmd[@]}" extension remove gh-enhance > /dev/null
+    "${gh_cmd[@]}" extension install . --force
   )
   log info "Done."
 }
@@ -130,14 +124,14 @@ function setup_zellij() {
   log info "Setting up zellij..."
   local zellij_repo="${DEV_WORKSPACE}/personal/zellij"
   local zellij_bin="${zellij_repo}/target/release/zellij"
-  local gh_bin="${HOME}/.local/share/mise/installs/github-cli/latest/gh-latest"
+  local -a gh_cmd=(/opt/homebrew/bin/mise exec -- gh)
   local agent_plugin_dir="${DEV_WORKSPACE}/personal/devenv/plugins/zellij-agent-status"
   local wasi_sdk_version="33.0"
   local wasi_sdk_dir="${agent_plugin_dir}/.cache/wasi-sdk-${wasi_sdk_version}-arm64-macos"
   local upstream
 
   if [[ ! -d "${zellij_repo}/.git" ]]; then
-    "${gh_bin}" repo clone rmgpinto/zellij "${zellij_repo}"
+    "${gh_cmd[@]}" repo clone rmgpinto/zellij "${zellij_repo}"
   fi
   /usr/bin/git -C "${zellij_repo}" remote set-url origin https://github.com/rmgpinto/zellij.git
   if /usr/bin/git -C "${zellij_repo}" remote get-url upstream >/dev/null 2>&1; then
@@ -225,12 +219,11 @@ function setup_nono() {
 
 function setup_claude() {
   log info "Setting up claude code..."
-  local claude_bin="${HOME}/.local/share/mise/installs/claude-code/latest/claude"
   local claude_skills_dir="${DEV_WORKSPACE}/work/Claude"
   local -a claude_skills
   mkdir -p "${HOME}/.config/claude/themes"
   /opt/homebrew/bin/stow --adopt --no-folding claude -t "${HOME}"
-  if [[ -x "${claude_bin}" && -d "${claude_skills_dir}/skills" ]]; then
+  if /opt/homebrew/bin/mise which claude >/dev/null 2>&1 && [[ -d "${claude_skills_dir}/skills" ]]; then
     claude_skills=("${claude_skills_dir}"/skills/repo-*(N:t) troubleshoot-ghost-pro)
     /opt/homebrew/bin/mise exec -- npx --yes skills add "${claude_skills_dir}" \
       --skill "${claude_skills[@]}" \

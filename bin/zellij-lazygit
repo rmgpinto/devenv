@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ZELLIJ_BIN=/Users/rmgpinto/dev/personal/devenv/bin/zellij
-LAZYGIT_BIN="$HOME/.local/share/mise/installs/lazygit/latest/lazygit"
+LAZYGIT_BIN="$HOME/.local/share/mise/shims/lazygit"
 
 existing_pane=$(
   "$ZELLIJ_BIN" action list-panes --json |

@@ -46,7 +46,7 @@ return {
         filetypes = { "ruby", "eruby" },
       })
       vim.lsp.config("rubocop", {
-        cmd = { "/Users/rmgpinto/.local/share/mise/installs/gem-rubocop/latest/bin/rubocop", "--lsp" },
+        cmd = { "/Users/rmgpinto/.local/share/mise/shims/rubocop", "--lsp" },
         filetypes = { "ruby" },
       })
       vim.lsp.config("yamlls", {

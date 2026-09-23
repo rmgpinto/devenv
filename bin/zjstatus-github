@@ -1,10 +1,10 @@
 #!/bin/zsh
 set -euo pipefail
 
-export PATH="/Users/rmgpinto/dev/personal/devenv/bin:$HOME/.local/share/mise/installs/jq/latest:$PATH"
+export PATH="/Users/rmgpinto/dev/personal/devenv/bin:$HOME/.local/share/mise/shims:$PATH"
 
 GIT="${GIT:-/usr/bin/git}"
-GH="${GH:-$HOME/.local/share/mise/installs/github-cli/latest/gh-latest}"
+GH="${GH:-$HOME/.local/share/mise/shims/gh}"
 JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
 MAX_AGE="${ZJSTATUS_GITHUB_MAX_AGE:-10}"
 TIMEOUT="${ZJSTATUS_GITHUB_TIMEOUT:-3}"

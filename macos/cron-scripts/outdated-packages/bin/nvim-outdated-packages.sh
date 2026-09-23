@@ -8,11 +8,9 @@ function create_log_file() {
 
 function main() {
   create_log_file
-  PATH="$PATH:$HOME/.local/share/mise/installs/aqua-neovim-neovim/latest/nvim-macos-arm64/bin"
-  nvim --headless "+Lazy! sync" +qa
-  nvim --headless "+TSUpdateSync" +qa
-  nvim --headless "+MasonUpdateAll" +qa
+  /opt/homebrew/bin/mise exec -- nvim --headless "+Lazy! sync" +qa
+  /opt/homebrew/bin/mise exec -- nvim --headless "+TSUpdateSync" +qa
+  /opt/homebrew/bin/mise exec -- nvim --headless "+MasonUpdateAll" +qa
 }
 
 main
-

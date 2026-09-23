@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-export PATH="$HOME/.local/share/mise/installs/jq/latest:$PATH"
+export PATH="$HOME/.local/share/mise/shims:$PATH"
 
 JQ="${JQ:-$(command -v jq 2>/dev/null || true)}"
 CURL="${CURL:-/usr/bin/curl}"
