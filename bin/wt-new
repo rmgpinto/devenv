@@ -37,19 +37,24 @@ fi
 
 cd "$REPO"
 
-# 4. Create a branch, or pick an existing worktree or local branch
-BRANCH=$(gum input \
-  --header "New branch (leave blank to pick existing)" \
-  --placeholder "branch-name" || true)
-
-if [ -n "$BRANCH" ]; then
-  SWITCH_JSON=$(command wt switch --create "$BRANCH" --no-cd --format=json)
+# 4. Empty repositories need their first commit before the worktree flow.
+if ! git rev-parse --verify HEAD >/dev/null 2>&1; then
+  TARGET="$PWD"
+  echo "wt-new: repository has no commits; opening the primary checkout for the first commit" >&2
 else
-  SWITCH_JSON=$(command wt \
-    --config-set 'list.columns=["branch","status","path"]' \
-    switch --branches --prs --no-cd --format=json)
+  BRANCH=$(gum input \
+    --header "New branch (leave blank to pick existing)" \
+    --placeholder "branch-name" || true)
+
+  if [ -n "$BRANCH" ]; then
+    SWITCH_JSON=$(command wt switch --create "$BRANCH" --no-cd --format=json)
+  else
+    SWITCH_JSON=$(command wt \
+      --config-set 'list.columns=["branch","status","path"]' \
+      switch --branches --prs --no-cd --format=json)
+  fi
+  TARGET=$(printf '%s' "$SWITCH_JSON" | jq -r '.path // empty')
 fi
-TARGET=$(printf '%s' "$SWITCH_JSON" | jq -r '.path // empty')
 [ -n "$TARGET" ] && [ -d "$TARGET" ] || {
   echo "wt-new: Worktrunk did not return a valid worktree path" >&2
   exit 1
