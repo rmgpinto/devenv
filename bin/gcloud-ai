@@ -1,0 +1,18 @@
+#!/bin/zsh
+set -euo pipefail
+
+: "${GCP_AI_READ_ONLY_USERNAME:?GCP_AI_READ_ONLY_USERNAME is not set}"
+: "${GCP_AI_READ_ONLY_CREDENTIALS:?GCP_AI_READ_ONLY_CREDENTIALS is not set}"
+
+credential_file="$(mktemp "${TMPDIR:-/tmp}/gcloud-ai-credential.XXXXXX")"
+trap '/bin/rm -f -- "$credential_file"' EXIT INT TERM
+chmod 600 "${credential_file}"
+print -rn -- "${GCP_AI_READ_ONLY_CREDENTIALS}" >"${credential_file}"
+
+export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE="${credential_file}"
+export CLOUDSDK_CONFIG="${CLOUDSDK_CONFIG:-${HOME}/.local/state/gcloud-ai}"
+export CLOUDSDK_CORE_ACCOUNT="${CLOUDSDK_CORE_ACCOUNT:-${GCP_AI_READ_ONLY_USERNAME}}"
+export CLOUDSDK_CORE_PROJECT="${CLOUDSDK_CORE_PROJECT:-ghost-pro-358310}"
+
+mkdir -p "${CLOUDSDK_CONFIG}"
+"${HOME}/.local/share/mise/shims/gcloud" "$@"

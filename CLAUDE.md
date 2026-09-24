@@ -69,4 +69,5 @@ Work vs personal env vars are **directory-scoped** — `work/.mise.toml` loads o
 - ripgrep
 - k6
 - gh token available as `GH_TOKEN` / `GITHUB_TOKEN`
+- read-only Google Cloud access is available through `~/dev/personal/devenv/bin/gcloud-ai`
 - claude-code

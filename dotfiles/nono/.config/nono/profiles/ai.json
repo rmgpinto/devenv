@@ -19,8 +19,11 @@
       "$HOME/.config/nono",
       "$HOME/.cache/aube",
       "$HOME/.cache/node",
+      "$HOME/.local/state/mise",
+      "$HOME/.local/state/gcloud-ai",
       "$HOME/.local/state/linear",
       "$HOME/.local/share/mise",
+      "$HOME/Library/Caches/mise",
       "$HOME/dev",
       "/tmp",
       "/private/tmp"
@@ -83,7 +86,9 @@
     "nono-pmm-staging-password": "PMM_STAGING_PASSWORD",
     "nono-pmm-production-password": "PMM_PRODUCTION_PASSWORD",
     "nono-digital-ocean": "DIGITALOCEAN_CREDENTIAL",
-    "nono-gcp-activiypub-production": "ACTIVITYPUB_PRODUCTION_CREDENTIALS"
+    "nono-gcp-activiypub-production": "ACTIVITYPUB_PRODUCTION_CREDENTIALS",
+    "nono-gcp-ai-read-only-username": "GCP_AI_READ_ONLY_USERNAME",
+    "nono-gcp-ai-read-only-password": "GCP_AI_READ_ONLY_CREDENTIALS"
   },
   "unsafe_macos_seatbelt_rules": [
     "(allow user-preference-read)"
