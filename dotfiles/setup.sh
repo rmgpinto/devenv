@@ -7,9 +7,8 @@ DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
 function setup_workspace() {
   log info "Setting up workspace agent files..."
   mkdir -p "${DEV_WORKSPACE}"
-  rm -f "${DEV_WORKSPACE}/CLAUDE.md" "${DEV_WORKSPACE}/AGENTS.md"
-  ln -s personal/devenv/CLAUDE.md "${DEV_WORKSPACE}/CLAUDE.md"
-  ln -s CLAUDE.md "${DEV_WORKSPACE}/AGENTS.md"
+  rm -f "${DEV_WORKSPACE}/AGENTS.md"
+  ln -s personal/devenv/AGENTS.md "${DEV_WORKSPACE}/AGENTS.md"
   log info "Done."
 }
 

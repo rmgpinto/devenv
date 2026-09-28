@@ -32,7 +32,6 @@
       "$HOME/.claude.json"
     ],
     "read_file": [
-      "$HOME/dev/CLAUDE.md",
       "$HOME/dev/AGENTS.md",
       "$HOME/.CFUserTextEncoding",
       "$HOME/.config/git/config",
