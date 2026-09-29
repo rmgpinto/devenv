@@ -8,4 +8,6 @@ exec env NONO_AUTO_MIGRATE=1 nono run \
   --allow-cwd \
   --workdir "$PWD" -- \
     /usr/bin/env CODEX_HOME="$HOME/.config/codex" codex \
-    --dangerously-bypass-approvals-and-sandbox "$@"
+    --dangerously-bypass-approvals-and-sandbox \
+    --no-daemon \
+    "$@"
