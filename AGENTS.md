@@ -71,3 +71,21 @@ Work vs personal env vars are **directory-scoped** — `work/.mise.toml` loads o
 - gh token available as `GH_TOKEN` / `GITHUB_TOKEN`
 - read-only Google Cloud access is available through `~/dev/personal/devenv/bin/gcloud-ai`
 - claude-code
+
+# Kubernetes
+
+Agents have read-only filesystem access to these kubeconfigs through the nono `ai` profile:
+
+| Cluster | Kubeconfig |
+| --- | --- |
+| `prd-k8s-01` (production) | `~/.kube-ai/prd-k8s-01-ai-agent.yaml` |
+| `stg-k8s-01` (staging) | `~/.kube-ai/stg-k8s-01-ai-agent.yaml` |
+| `sup-k8s-01` | `~/.kube-ai/sup-k8s-01-ai-agent.yaml` |
+
+Select the cluster explicitly with `--kubeconfig` on each command, for example:
+
+```sh
+kubectl --kubeconfig="$HOME/.kube-ai/stg-k8s-01-ai-agent.yaml" get pods -A
+```
+
+Use these credentials for read-only cluster inspection. Kubernetes RBAC enforces cluster permissions; nono's read-only file access only protects the kubeconfig files. Do not modify the kubeconfigs or switch the host's default context.

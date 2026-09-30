@@ -37,7 +37,10 @@
       "$HOME/.config/git/config",
       "$HOME/.config/git/ignore",
       "$HOME/.config/gh/config.yml",
-      "$HOME/.gitconfig"
+      "$HOME/.gitconfig",
+      "$HOME/.kube-ai/prd-k8s-01-ai-agent.yaml",
+      "$HOME/.kube-ai/stg-k8s-01-ai-agent.yaml",
+      "$HOME/.kube-ai/sup-k8s-01-ai-agent.yaml"
     ],
     "read": [
       "/bin",
