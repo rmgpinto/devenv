@@ -82,10 +82,14 @@ Agents have read-only filesystem access to these kubeconfigs through the nono `a
 | `stg-k8s-01` (staging) | `~/.kube-ai/stg-k8s-01-ai-agent.yaml` |
 | `sup-k8s-01` | `~/.kube-ai/sup-k8s-01-ai-agent.yaml` |
 
-Select the cluster explicitly with `--kubeconfig` on each command, for example:
+For cluster debugging, use the kubeconfigs above. Never use `~/.kube/config`, the host's default context, or bare `kubectl` commands. Always select `prd`, `stg`, or `sup` explicitly with `--kubeconfig` on every command. If the requested cluster is unclear, ask which cluster to inspect.
+
+Examples:
 
 ```sh
+kubectl --kubeconfig="$HOME/.kube-ai/prd-k8s-01-ai-agent.yaml" get pods -A
 kubectl --kubeconfig="$HOME/.kube-ai/stg-k8s-01-ai-agent.yaml" get pods -A
+kubectl --kubeconfig="$HOME/.kube-ai/sup-k8s-01-ai-agent.yaml" get pods -A
 ```
 
 Use these credentials for read-only cluster inspection. Kubernetes RBAC enforces cluster permissions; nono's read-only file access only protects the kubeconfig files. Do not modify the kubeconfigs or switch the host's default context.

@@ -24,5 +24,12 @@
   "effortLevel": "medium",
   "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
-  "theme": "custom:catppuccin-mocha"
+  "theme": "custom:catppuccin-mocha",
+  "pluginConfigs": {
+    "agents-md@builtin": {
+      "options": {
+        "instructionFiles": "claude-md-and-agents-md"
+      }
+    }
+  }
 }
