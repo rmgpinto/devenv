@@ -3,7 +3,7 @@
 
 set -e
 
-exec env NONO_AUTO_MIGRATE=1 nono run \
+exec env NONO_AUTO_MIGRATE=1 NONO_NO_SAVE_PROMPT=1 nono run \
   --profile ai \
   --allow-cwd \
   --workdir "$PWD" -- \
