@@ -23,6 +23,9 @@
 [commit]
   gpgsign = "true"
 
+[includeIf "gitdir:~/dev/work/"]
+  path = "work.gitconfig"
+
 [gpg]
   format = "ssh"
 
