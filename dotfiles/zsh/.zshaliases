@@ -17,11 +17,6 @@ alias unsetdns='networksetup -setdnsservers Wi-Fi 192.168.0.1'
 alias tf='terraform'
 alias j='just'
 alias zdl='zellij list-sessions --short --no-formatting 2>/dev/null | while IFS= read -r session; do [[ "$session" == linear-* ]] && zellij delete-session --force "$session"; done'
-alias r='rails'
-alias credentials-edit='rails credentials:edit'
-alias credentials-edit-dev='rails credentials:edit --environment development'
-alias credentials-edit-test='rails credentials:edit --environment test'
-alias credentials-edit-prod='rails credentials:edit --environment production'
 
 # Work
 alias dkill='docker kill $(docker ps -q) 2>/dev/null; docker rm $(docker ps -aq) 2>/dev/null'

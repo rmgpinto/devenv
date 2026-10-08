@@ -7,12 +7,6 @@ trust_level = "trusted"
 [projects."/Users/rmgpinto/dev/personal/devenv"]
 trust_level = "trusted"
 
-[projects."/Users/rmgpinto/dev/personal/rails-template"]
-trust_level = "trusted"
-
-[projects."/Users/rmgpinto/dev/personal/fcf-compounders"]
-trust_level = "trusted"
-
 [projects."/Users/rmgpinto/dev/work/k8s"]
 trust_level = "trusted"
 
