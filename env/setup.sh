@@ -18,7 +18,7 @@ SECURITY="/usr/bin/security"
 SECRETS_FILE="${SCRIPT_DIR}/secrets"
 function require_op() {
   if ! command -v op >/dev/null 2>&1; then
-    log error "1Password CLI (op) not found. Install it (mise/packages: 1password-cli) and retry."
+    log error "1Password CLI (op) not found. Install it (brew install --cask 1password-cli) and retry."
     exit 1
   fi
   # No global `op signin`: secrets may live in different accounts, so each read

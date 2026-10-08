@@ -3,7 +3,6 @@ starship
 github-cli
 lazygit
 delta
-1password-cli
 # zellij # built from ~/dev/personal/zellij by dotfiles/setup.sh
 zjstatus # zellij plugin
 cargo:nono-cli
