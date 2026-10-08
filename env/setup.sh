@@ -1,108 +1,21 @@
 #!/bin/zsh -eo pipefail
 
-# Regenerate env: 1Password -> macOS keychain -> per-scope mise files.
-#
-# Run as the HOST user (needs `op` with biometric unlock). Reads env/secrets,
-# pulls each value from 1Password, stores it in the host login keychain, then
-# copies the *.mise.toml templates to their destinations. The mise files and the
-# nono AI profile (env_credentials) reference the keychain at load time, so no
-# plaintext secret is ever written to disk. The nono profile itself is stowed by
-# dotfiles/setup.sh; this script only populates the keychain accounts it reads.
+# Sync host mise secrets from 1Password to Keychain and install mise templates.
+# AI secrets are native op:// references in the nono profile, without signing.
+# Run as the host user with 1Password CLI desktop integration enabled.
 
 # This script handles plaintext secrets in shell variables. Force xtrace/verbose
 # OFF so a `set -x` / `setopt xtrace` inherited from ~/.zshenv (zsh sources it
 # even for scripts) or a `zsh -x` invocation can never echo a secret value.
 unsetopt xtrace verbose 2>/dev/null || set +x +v 2>/dev/null || true
 
-source "../utils/log.sh"
-
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/../utils/log.sh"
 cd "${SCRIPT_DIR}"
 
 DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
 SECURITY="/usr/bin/security"
 SECRETS_FILE="${SCRIPT_DIR}/secrets"
-# nono reads its own keychain items at sandbox startup; -T must point at the real
-# binary that runs. Resolve it via mise's absolute path — this script runs
-# non-interactively (no mise shell activation), so `command -v nono` would miss
-# it or return a shim, and -T on a shim wouldn't match the real reader.
-NONO_BIN="$(/opt/homebrew/bin/mise which nono 2>/dev/null || command -v nono 2>/dev/null || true)"
-NONO_SIGNING_IDENTITY="DevEnv Nono"
-NONO_SIGNING_IDENTIFIER="dev.rmgpinto.nono"
-NONO_ACL_REFRESH="${HOME}/.local/state/devenv/refresh-nono-keychain-acl"
-NONO_ACL_CONFIGURED="${HOME}/.local/state/devenv/nono-codesign-acl-v1"
-if [[ -e "${NONO_ACL_REFRESH}" ]]; then
-  REFRESH_NONO_KEYCHAIN_ACL=1
-else
-  REFRESH_NONO_KEYCHAIN_ACL="${REFRESH_NONO_KEYCHAIN_ACL:-0}"
-fi
-
-function create_nono_signing_identity() (
-  unsetopt xtrace verbose 2>/dev/null || true
-
-  local keychain="${HOME}/Library/Keychains/login.keychain-db"
-  local temporary
-  local private_key certificate bundle passphrase
-  temporary="$(mktemp -d -t devenv-nono-codesign.XXXXXX)"
-  private_key="${temporary}/nono.key"
-  certificate="${temporary}/nono.crt"
-  bundle="${temporary}/nono.p12"
-  trap '/bin/rm -f -- "${private_key}" "${certificate}" "${bundle}"; /bin/rmdir "${temporary}" 2>/dev/null || true' EXIT
-
-  passphrase="$(openssl rand -hex 32)"
-  openssl req -new -newkey rsa:3072 -x509 -sha256 -days 3650 -nodes \
-    -subj "/CN=${NONO_SIGNING_IDENTITY}" \
-    -addext "basicConstraints=critical,CA:FALSE" \
-    -addext "keyUsage=critical,digitalSignature" \
-    -addext "extendedKeyUsage=codeSigning" \
-    -keyout "${private_key}" \
-    -out "${certificate}" >/dev/null 2>&1
-  openssl pkcs12 -export \
-    -legacy \
-    -name "${NONO_SIGNING_IDENTITY}" \
-    -inkey "${private_key}" \
-    -in "${certificate}" \
-    -passout "pass:${passphrase}" \
-    -out "${bundle}"
-  "${SECURITY}" import "${bundle}" \
-    -k "${keychain}" \
-    -P "${passphrase}" \
-    -T /usr/bin/codesign \
-    -T "${SECURITY}" >/dev/null
-)
-
-function sign_nono() {
-  local keychain="${HOME}/Library/Keychains/login.keychain-db"
-  local needs_acl_refresh=false
-
-  [[ -n "${NONO_BIN}" && -x "${NONO_BIN}" ]] || return 0
-
-  if ! "${SECURITY}" find-certificate \
-      -c "${NONO_SIGNING_IDENTITY}" "${keychain}" >/dev/null 2>&1; then
-    log info "Creating stable local Nono code-signing identity..."
-    create_nono_signing_identity
-    needs_acl_refresh=true
-  fi
-
-  if [[ ! -e "${NONO_ACL_CONFIGURED}" ]]; then
-    needs_acl_refresh=true
-  fi
-
-  log info "Signing Nono with stable local identity..."
-  /usr/bin/codesign --force \
-    --sign "${NONO_SIGNING_IDENTITY}" \
-    --identifier "${NONO_SIGNING_IDENTIFIER}" \
-    --timestamp=none \
-    "${NONO_BIN}"
-  /usr/bin/codesign --verify --strict "${NONO_BIN}"
-
-  if [[ "${needs_acl_refresh}" == true ]]; then
-    mkdir -p "${NONO_ACL_REFRESH:h}"
-    touch "${NONO_ACL_REFRESH}"
-    REFRESH_NONO_KEYCHAIN_ACL=1
-  fi
-}
-
 function require_op() {
   if ! command -v op >/dev/null 2>&1; then
     log error "1Password CLI (op) not found. Install it (mise/packages: 1password-cli) and retry."
@@ -118,58 +31,13 @@ function require_op() {
   fi
 }
 
-# Cache a secret in the login keychain under service "${service}", account
-# "${account}". The reader differs per store, and so must the access grant:
-#
-#   - "nono" items are read by the nono binary itself when it sets up the sandbox,
-#     non-interactively. This script signs that binary with a stable local
-#     identity, and these items grant that identity access via -T. This survives
-#     mise upgrades after the replacement binary is re-signed. We also list
-#     `security` itself so this script can update values without re-triggering
-#     authorization.
-#   - "mise" items are read by the Apple-signed `security` CLI (via mise's
-#     exec()), which is trusted by default; -A keeps them readable with no prompt.
-#     Adding -T here would instead LOCK them to nono and make mise prompt.
-#
-# The first stable-signing migration recreates each cached nono item with the new
-# ACL. Existing items then preserve their ACLs on normal syncs. Set
-# REFRESH_NONO_KEYCHAIN_ACL=1 for a deliberate repair if the local signing
-# identity or Keychain ACL was replaced.
+# Host mise secrets retain their existing Keychain cache. Nono loads AI secrets directly from 1Password.
 function kc_add() {
   local service="$1" account="$2" value="$3"
-  local -a trust
-  local current_value
-  if [[ "${service}" == "nono" && -n "${NONO_BIN}" ]]; then
-    trust=(-T "${NONO_BIN}" -T "${SECURITY}")
-  else
-    [[ "${service}" == "nono" ]] \
-      && log info "  nono not found; granting ${account} to any app (-A)"
-    trust=(-A)
-  fi
   if "${SECURITY}" find-generic-password -a "${account}" -s "${service}" >/dev/null 2>&1; then
-    if [[ "${service}" == "nono" && -n "${NONO_BIN}" && "${REFRESH_NONO_KEYCHAIN_ACL}" == "1" ]]; then
-      # Recreating an item lets this trusted setup process establish the new ACL
-      # directly. Updating an existing ACL with -U -T makes macOS request the
-      # login password separately for every item.
-      "${SECURITY}" delete-generic-password -a "${account}" -s "${service}" >/dev/null
-      "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" "${trust[@]}"
-    elif [[ "${service}" == "nono" ]]; then
-      # Do not run add-generic-password -U for an unchanged Nono item: macOS can
-      # replace its access metadata and discard the persistent signed-Nono grant.
-      # Recreate only when 1Password contains a genuinely different value.
-      current_value="$("${SECURITY}" find-generic-password \
-        -a "${account}" -s "${service}" -w 2>/dev/null || true)"
-      if [[ "${current_value}" != "${value}" ]]; then
-        "${SECURITY}" delete-generic-password -a "${account}" -s "${service}" >/dev/null
-        "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" "${trust[@]}"
-      fi
-    else
-      # mise items are intentionally available through the Apple-signed security
-      # CLI, so their values can continue to be refreshed in place.
-      "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -U
-    fi
+    "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -U
   else
-    "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" "${trust[@]}"
+    "${SECURITY}" add-generic-password -a "${account}" -s "${service}" -w "${value}" -A
   fi
 }
 
@@ -196,6 +64,8 @@ function sync_secrets() {
     name=$(awk '{print $2}' <<<"${line}")
     account=$(awk '{print $NF}' <<<"${line}")
     ref=$(awk '{$1=""; $2=""; $NF=""; sub(/^[[:space:]]+/,""); sub(/[[:space:]]+$/,""); print}' <<<"${line}")
+
+    [[ "${store}" == "mise" ]] || continue
 
     log info "  ${store}-${name} <- ${ref} (account: ${account})"
 
@@ -229,14 +99,8 @@ function write_mise_files() {
 
 function main() {
   log info "Setting up env..."
-  sign_nono
   require_op
   sync_secrets
-  if [[ "${REFRESH_NONO_KEYCHAIN_ACL}" == "1" ]]; then
-    mkdir -p "${NONO_ACL_CONFIGURED:h}"
-    touch "${NONO_ACL_CONFIGURED}"
-    rm -f "${NONO_ACL_REFRESH}"
-  fi
   write_mise_files
   log info "Done."
 }
