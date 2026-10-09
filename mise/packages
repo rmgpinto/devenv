@@ -5,7 +5,7 @@ lazygit
 delta
 # zellij # built from ~/dev/personal/zellij by dotfiles/setup.sh
 zjstatus # zellij plugin
-cargo:nono-cli
+github:nolabs-ai/nono
 claude-code
 npm:@openai/codex
 ripgrep
