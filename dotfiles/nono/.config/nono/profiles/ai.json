@@ -85,15 +85,16 @@
     "(allow user-preference-read)"
   ],
   "env_credentials": {
-    "op://Employee/GitHub - AI read-only expires 25-04-2027/token": "GH_TOKEN",
-    "op://Employee/Elastic/username": "ELASTIC_READONLY_USER",
-    "op://Employee/Elastic/production-password": "ELASTIC_READONLY_PASS",
-    "op://Employee/Percona/username": "PMM_USER",
-    "op://Employee/Percona/staging-password": "PMM_STAGING_PASSWORD",
-    "op://Employee/Percona/production-password": "PMM_PRODUCTION_PASSWORD",
-    "op://Employee/DigitalOcean/credential": "DIGITALOCEAN_CREDENTIAL",
-    "op://Employee/ActivityPub - AI read-only/production": "ACTIVITYPUB_PRODUCTION_CREDENTIALS",
-    "op://Employee/GCP - AI read-only/username": "GCP_AI_READ_ONLY_USERNAME",
-    "op://Employee/GCP - AI read-only/password": "GCP_AI_READ_ONLY_CREDENTIALS"
+    "nono-gh-token-read-only": "GH_TOKEN",
+    "nono-github-token-read-only": "GITHUB_TOKEN",
+    "nono-elastic-readonly-user": "ELASTIC_READONLY_USER",
+    "nono-elastic-readonly-pass": "ELASTIC_READONLY_PASS",
+    "nono-pmm-user": "PMM_USER",
+    "nono-pmm-staging-password": "PMM_STAGING_PASSWORD",
+    "nono-pmm-production-password": "PMM_PRODUCTION_PASSWORD",
+    "nono-digital-ocean": "DIGITALOCEAN_CREDENTIAL",
+    "nono-gcp-activiypub-production": "ACTIVITYPUB_PRODUCTION_CREDENTIALS",
+    "nono-gcp-ai-read-only-username": "GCP_AI_READ_ONLY_USERNAME",
+    "nono-gcp-ai-read-only-password": "GCP_AI_READ_ONLY_CREDENTIALS"
   }
 }
