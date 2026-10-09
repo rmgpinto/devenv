@@ -6,7 +6,11 @@
     "commit": "",
     "pr": ""
   },
-  "model": "claude-fable-5-1[1m]",
+  "statusLine": {
+    "type": "command",
+    "command": "jq -r '.model.display_name'",
+    "padding": 0
+  },
   "enabledPlugins": {
     "repo-audit@ghost-claude-marketplace": true,
     "ghost-pro@ghost-claude-marketplace": true
@@ -23,13 +27,13 @@
   "spinnerTipsEnabled": false,
   "effortLevel": "medium",
   "fastMode": true,
-  "skipDangerousModePermissionPrompt": true,
-  "theme": "custom:catppuccin-mocha",
   "pluginConfigs": {
     "agents-md@builtin": {
       "options": {
         "instructionFiles": "claude-md-and-agents-md"
       }
     }
-  }
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "custom:catppuccin-mocha"
 }
