@@ -4,3 +4,4 @@ zsh-syntax-highlighting
 zsh-autosuggestions
 mise
 stow
+rust # needed for custom zellij
