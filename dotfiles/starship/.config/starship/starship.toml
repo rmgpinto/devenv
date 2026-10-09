@@ -1,6 +1,6 @@
 command_timeout = 1000
 scan_timeout = 100
-format = "$directory$git_branch$git_status${custom.mise}$kubernetes$fill$time$cmd_duration$line_break$character"
+format = "$directory$git_branch$git_status${custom.mise}$fill$time$cmd_duration$line_break$character"
 palette = "catppuccin_mocha"
 
 [directory]
@@ -42,16 +42,6 @@ modified = ""
 staged = "+${count}"
 renamed = "»${count}"
 deleted = "✘${count}"
-
-[kubernetes]
-disabled = false
-detect_folders = ["k8s"]
-format = "[$symbol$context]($style) "
-style = "bold blue"
-
-[[kubernetes.contexts]]
-context_pattern = "do-.*-(?P<environment>prd|sup|stg)-k8s-(?P<instance>[0-9]+)"
-context_alias = "$environment-k8s-$instance"
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"
