@@ -10,7 +10,7 @@ pick_linear_issue_description() {
   mkdir -p "$cache_dir"
 
   _wt_fetch_linear_issues() {
-    local query='query { viewer { assignedIssues(filter: {state: {name: {in: ["Backlog", "Todo", "In Progress", "Ready"]}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description state { name } } } } }'
+    local query='query { viewer { assignedIssues(filter: {state: {name: {in: ["Backlog", "Todo", "In Progress", "Ready"]}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description url state { name } } } } }'
     jq -nc --arg q "$query" '{query: $q}' |
       curl -fsS -X POST https://api.linear.app/graphql \
         -H "Content-Type: application/json" \
@@ -21,7 +21,9 @@ pick_linear_issue_description() {
   export LINEAR_API_KEY
 
   while :; do
-    if [ -s "$cache" ]; then
+    if [ -s "$cache" ] && jq -e \
+        '.data.viewer.assignedIssues.nodes | type == "array" and all(.[]; .url != null)' \
+        "$cache" >/dev/null 2>&1; then
       response=$(<"$cache")
     else
       tmp=$(mktemp -t wt-linear.XXXXXX)
@@ -55,7 +57,14 @@ pick_linear_issue_description() {
 
     issue_id=$(printf '%s' "$selection" | sed 's/^\[\([^]]*\)\].*/\1/')
     if [ -n "${WT_LINEAR_ISSUE_FILE:-}" ]; then
-      printf '%s\n' "$issue_id" > "$WT_LINEAR_ISSUE_FILE"
+      {
+        printf '%s\n' "$issue_id"
+        printf '%s' "$response" | jq -r --arg id "$issue_id" '
+          .data.viewer.assignedIssues.nodes[]
+          | select(.identifier == $id)
+          | .url // ""
+        '
+      } > "$WT_LINEAR_ISSUE_FILE"
     fi
     printf '%s' "$response" | jq -r --arg id "$issue_id" '
       .data.viewer.assignedIssues.nodes[]

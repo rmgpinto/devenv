@@ -22,7 +22,8 @@ trap 'rm -f "$ISSUE_FILE"' EXIT
 export WT_LINEAR_ISSUE_FILE="$ISSUE_FILE"
 ISSUE_DESC=$(pick_linear_issue_description)
 unset WT_LINEAR_ISSUE_FILE
-ISSUE_ID=$(<"$ISSUE_FILE")
+ISSUE_ID=$(sed -n '1p' "$ISSUE_FILE")
+ISSUE_URL=$(sed -n '2p' "$ISSUE_FILE")
 rm -f "$ISSUE_FILE"
 trap - EXIT
 
@@ -72,6 +73,10 @@ PROMPT=$(gum write \
   --header "Initial prompt (ctrl-d submit, esc skip)" \
   --width 100 --height 20 \
   --value "$ISSUE_DESC" || true)
+
+if [ -n "$ISSUE_ID" ] && [ -n "$ISSUE_URL" ]; then
+  PROMPT="${PROMPT}${PROMPT:+$'\n\n'}linear ref: $ISSUE_URL"
+fi
 
 if [ -n "$ISSUE_ID" ] && [ -n "$PROMPT" ]; then
   if mark_linear_issue_in_progress "$ISSUE_ID"; then
