@@ -1,5 +1,29 @@
 #!/usr/bin/env bash
 
+pick_github_pr() {
+  local prs selection
+  local branches_label="Existing branch or worktree"
+
+  # Keep the list query small; Worktrunk's --prs also fetches CI and reviews.
+  if ! prs=$(gh pr list --state open --limit 50 --search 'sort:created-desc' \
+      --json number,title --jq '.[] | "#\(.number) \(.title | gsub("[\\r\\n\\t]"; " "))"'); then
+    echo "wt-new: could not list PRs; opening the branch picker" >&2
+    return 0
+  fi
+  if [ -z "$prs" ]; then
+    return 0
+  fi
+
+  selection=$(printf '%s\n%s\n' "$branches_label" "$prs" |
+    gum filter --header "Pick a PR (newest 50) or browse branches" \
+      --placeholder "type to filter") || return 1
+  [ -n "$selection" ] || return 1
+  if [ "$selection" != "$branches_label" ]; then
+    selection=${selection%% *}
+    printf 'pr:%s' "${selection#\#}"
+  fi
+}
+
 pick_github_repo() {
   local org="$1"
   local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/wt"

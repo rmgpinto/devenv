@@ -49,9 +49,14 @@ else
   if [ -n "$BRANCH" ]; then
     SWITCH_JSON=$(command wt switch --create "$BRANCH" --no-cd --format=json)
   else
-    SWITCH_JSON=$(command wt \
-      --config-set 'list.columns=["branch","status","path"]' \
-      switch --branches --prs --no-cd --format=json)
+    PR=$(pick_github_pr)
+    if [ -n "$PR" ]; then
+      SWITCH_JSON=$(command wt switch "$PR" --no-cd --format=json)
+    else
+      SWITCH_JSON=$(command wt \
+        --config-set 'list.columns=["branch","status","path"]' \
+        switch --branches --no-cd --format=json)
+    fi
   fi
   TARGET=$(printf '%s' "$SWITCH_JSON" | jq -r '.path // empty')
 fi
