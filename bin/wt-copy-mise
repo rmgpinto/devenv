@@ -7,7 +7,7 @@ SOURCE=${1:?usage: wt copy-mise SOURCE_WORKTREE TARGET_WORKTREE}
 TARGET=${2:?usage: wt copy-mise SOURCE_WORKTREE TARGET_WORKTREE}
 
 cd "$SOURCE"
-find . -path './.worktrees' -prune -o \
+find . \( -path './.worktrees' -o -path './.git' \) -prune -o \
   -name '.mise*.toml' -type f -print | while IFS= read -r file; do
   git check-ignore -q "$file" 2>/dev/null || continue
   destination="$TARGET/${file#./}"

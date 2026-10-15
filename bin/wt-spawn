@@ -24,6 +24,8 @@
 
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
 DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
 WORK_DIR="${WT_WORK_DIR:-${DEV_WORKSPACE}/work}"
 ORG="${WT_ORG:-TryGhost}"
@@ -97,7 +99,7 @@ else
 fi
 
 # 3. Copy git-ignored mise configs
-find . -path './.worktrees' -prune -o \
+find . \( -path './.worktrees' -o -path './.git' \) -prune -o \
   \( -name '.mise.local.toml' -o -name '.mise.*.local.toml' \) \
   -type f -print | while IFS= read -r f; do
   git check-ignore -q "$f" 2>/dev/null || continue
@@ -112,6 +114,9 @@ find . -path './.worktrees' -prune -o \
 done
 
 ABS="$WORK_DIR/$REPO/$WT_DIR"
+
+# Git worktree add bypasses Worktrunk's pre-start hooks.
+"$SCRIPT_DIR/wt-fix-terraform-import" "$PWD" "$ABS"
 
 # 4. Seed the agent prompt
 if [ -n "$PROMPT" ]; then
