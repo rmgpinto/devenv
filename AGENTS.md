@@ -94,6 +94,8 @@ Agents have read-only filesystem access to these kubeconfigs through the nono `a
 
 For cluster debugging, use the kubeconfigs above. Never use `~/.kube/config`, the host's default context, or bare `kubectl` commands. Always select `prd`, `stg`, or `sup` explicitly with `--kubeconfig` on every command. If the requested cluster is unclear, ask which cluster to inspect.
 
+When showing Kubernetes commands to the user, use the alias for the environment being worked on: `ksup` for sup, `kstg` for staging, and `kprd` for production (e.g. `kstg get pods -A`). Commands executed by agents must still use the explicit `--kubeconfig` form below.
+
 Examples:
 
 ```sh
