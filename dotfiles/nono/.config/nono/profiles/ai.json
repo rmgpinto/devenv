@@ -76,9 +76,7 @@
       "ELASTIC_STAGING_URL": "https://elastic.ghostfoundation.org",
       "ELASTIC_BASE_URL": "https://elastic.ghost.org",
       "PROMETHEUS_STAGING_URL": "https://prometheus.ghostfoundation.org",
-      "PROMETHEUS_PRODUCTION_URL": "https://prometheus.ghost.org",
-      "PERCONA_STAGING_URL": "https://pmm.ghostfoundation.org",
-      "PERCONA_PRODUCTION_URL": "https://pmm.ghost.org"
+      "PROMETHEUS_PRODUCTION_URL": "https://prometheus.ghost.org"
     }
   },
   "unsafe_macos_seatbelt_rules": [
@@ -89,9 +87,6 @@
     "nono-github-token-read-only": "GITHUB_TOKEN",
     "nono-elastic-readonly-user": "ELASTIC_READONLY_USER",
     "nono-elastic-readonly-pass": "ELASTIC_READONLY_PASS",
-    "nono-pmm-user": "PMM_USER",
-    "nono-pmm-staging-password": "PMM_STAGING_PASSWORD",
-    "nono-pmm-production-password": "PMM_PRODUCTION_PASSWORD",
     "nono-digital-ocean": "DIGITALOCEAN_CREDENTIAL",
     "nono-gcp-activiypub-production": "ACTIVITYPUB_PRODUCTION_CREDENTIALS",
     "nono-gcp-ai-read-only-username": "GCP_AI_READ_ONLY_USERNAME",
