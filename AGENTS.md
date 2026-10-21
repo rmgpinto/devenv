@@ -43,6 +43,15 @@ When the user runs `wt go <path>` in their own shell, `zcode` spawns the session
 
 The source-of-truth is `personal/devenv/AGENTS.md`. `~/dev/AGENTS.md` is a symlink to it, created by `personal/devenv/dotfiles/setup.sh`, so agents launched anywhere under `~/dev` discover these instructions through the parent-directory walk.
 
+# Copyable shell commands
+
+Agents run in terminal panes. Copying visually wrapped output can insert extra newlines and break shell commands. When presenting commands for the user to copy:
+
+- Always wrap commands at shell argument boundaries roughly every 50 characters using explicit trailing `\` continuations, with no spaces after the backslash. Commands shorter than this can stay on one line. Never rely on visual wrapping to preserve a command.
+- Present commands in fenced shell code blocks without prompt prefixes.
+- Never split a quoted string, path, URL, or individual argument across lines. If an argument is too long, write a script in the workspace and give the user a short command to run it.
+- For complex or multiline operations, prefer a script in the workspace over a long pasted command or heredoc. Keep each copyable block limited to the commands needed for that step.
+
 # Git commits
 
 Before creating a commit, always run `git config commit.template` in the current directory. If a template is configured, read it and use its structure as the exact blueprint for the commit message, including when supplying a message with `-m` or `-F`.
