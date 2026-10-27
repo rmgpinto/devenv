@@ -18,11 +18,13 @@ export HISTCONTROL=ignoredups
 setopt INC_APPEND_HISTORY
 setopt SHARE_HISTORY
 
+BREW_PREFIX=${HOMEBREW_PREFIX:-/opt/homebrew}
+
 # Syntax highlighting
-source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
 # Auto suggestions
-source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 # Environment variables
 export XDG_CONFIG_HOME=${HOME}/.config
@@ -36,22 +38,9 @@ eval "$(mise activate zsh)"
 # worktrunk
 if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
 
-# zellij
-FPATH="${XDG_CONFIG_HOME}/zellij/zsh:${FPATH}"
-# Keep zellij's socket path short — macOS sun_path is 104 bytes and the default
-# ${TMPDIR}/zellij-<uid>/contract_version_1/ already eats ~79 chars. Keep the
-# uid suffix so per-user isolation matches zellij's default behavior.
-export ZELLIJ_SOCKET_DIR=/tmp/zellij-$(id -u)
-
 # starship
 export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/starship.toml"
 eval "$($HOME/.local/share/mise/installs/starship/latest/starship init zsh)"
-
-# homebrew
-if type brew &>/dev/null
-then
-  FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
-fi
 
 # bat
 export BAT_THEME="catppuccin-mocha"
