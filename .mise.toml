@@ -1,2 +1,6 @@
 [hooks]
-enter = 'if [ -n "${REX_SESSION:-}" ]; then rex session rename "$REX_SESSION" devenv >/dev/null; fi'
+enter = '''
+[ -n "${REX_SESSION:-}" ] || exit 0
+[ "$(rex block inspect "${REX_BLOCK:-}" --json --autostart=false 2>/dev/null | jq -r .block.label)" != ai ] || exit 0
+rex session rename "$REX_SESSION" devenv --autostart=false >/dev/null
+'''

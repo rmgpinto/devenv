@@ -41,6 +41,17 @@ if [ -z "$REPO" ] || [ -z "$BRANCH" ]; then
   exit 2
 fi
 
+# Fetch <branch> into origin/<branch>. origin is usually SSH, which the nono
+# sandbox cannot use (no known_hosts, no 1Password agent), so fall back to
+# HTTPS with gh's token. Read-only: pushing still needs the host.
+fetch_origin() {
+  local spec="+refs/heads/$1:refs/remotes/origin/$1"
+  git -C "$REPO" fetch origin "$spec" >&2 && return
+  echo "wt-spawn: fetch from origin failed, retrying over HTTPS" >&2
+  git -C "$REPO" -c credential.helper= -c 'credential.helper=!gh auth git-credential' \
+    fetch "https://github.com/$ORG/$REPO.git" "$spec" >&2
+}
+
 # 1. Clone if missing or pull the default branch
 mkdir -p "$WORK_DIR"
 cd "$WORK_DIR"
@@ -50,7 +61,8 @@ if [ ! -d "$REPO" ]; then
 else
   DEFAULT_BRANCH=$(git -C "$REPO" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')
   DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
-  if ! { git -C "$REPO" checkout "$DEFAULT_BRANCH" >&2 && git -C "$REPO" pull --ff-only >&2; }; then
+  if ! { git -C "$REPO" checkout "$DEFAULT_BRANCH" >&2 && fetch_origin "$DEFAULT_BRANCH" \
+         && git -C "$REPO" merge --ff-only "origin/$DEFAULT_BRANCH" >&2; }; then
     echo "wt-spawn: pull failed for $REPO (continuing)" >&2
   fi
 fi
@@ -63,7 +75,7 @@ git worktree prune
 WT_DIR=".worktrees/${BRANCH//\//-}"
 if [ "$FROM_PR" -eq 1 ]; then
   # Always base on origin's tip; -B resets a stale local branch of the same name.
-  git fetch origin "$BRANCH" >&2
+  (cd .. && fetch_origin "$BRANCH")
   git worktree add -B "$BRANCH" "$WT_DIR" "origin/$BRANCH" >&2
 elif git show-ref --verify --quiet "refs/heads/$BRANCH"; then
   EXISTING_WT=$(git worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '
