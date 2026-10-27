@@ -1,0 +1,14 @@
+# Installed to: ~/dev/work/.mise.toml
+
+[env]
+TF_VAR_DIGITALOCEAN_TOKEN = "{{ exec(command='security find-generic-password -s mise -a mise-digitalocean-api-token -w 2>/dev/null || true', cache_key='tf-var-digitalocean-token', cache_duration='1d') }}"
+TF_VAR_DIGITALOCEAN_SPACES_ACCESS_ID = "{{ exec(command='security find-generic-password -s mise -a mise-digitalocean-spaces-access-id -w 2>/dev/null || true', cache_key='tf-var-digitalocean-spaces-access-id', cache_duration='1d') }}"
+TF_VAR_DIGITALOCEAN_SPACES_SECRET_KEY = "{{ exec(command='security find-generic-password -s mise -a mise-digitalocean-spaces-secret-key -w 2>/dev/null || true', cache_key='tf-var-digitalocean-spaces-secret-key', cache_duration='1d') }}"
+TF_VAR_FASTLY_API_KEY = "{{ exec(command='security find-generic-password -s mise -a mise-fastly-api-key -w 2>/dev/null || true', cache_key='tf-var-fastly-api-key', cache_duration='1d') }}"
+TF_VAR_SIGSCI_EMAIL = "{{ exec(command='security find-generic-password -s mise -a mise-sigsci-email -w 2>/dev/null || true', cache_key='tf-var-sigsci-email', cache_duration='1d') }}"
+TF_VAR_SIGSCI_AUTH_TOKEN = "{{ exec(command='security find-generic-password -s mise -a mise-sigsci-auth-token -w 2>/dev/null || true', cache_key='tf-var-sigsci-auth-token', cache_duration='1d') }}"
+TF_VAR_GITHUB_TOKEN = "{{ exec(command='security find-generic-password -s mise -a mise-github-token -w 2>/dev/null || true', cache_key='tf-var-github-token', cache_duration='1d') }}"
+
+[tools]
+just = "latest"
+k6 = "latest"

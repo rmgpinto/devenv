@@ -5,8 +5,10 @@
 # Run as the HOST user (needs `op` with biometric unlock). Reads env/secrets,
 # pulls each value from 1Password, stores it in the host login keychain, then
 # copies the *.mise.toml templates to their destinations. The mise files and the
-# nono AI profile (env_credentials) reference the keychain at load time, so no
-# plaintext secret is ever written to disk. The nono profile itself is stowed by
+# nono AI profile (env_credentials) reference the keychain at load time. To keep
+# shell start-up fast, the mise templates cache each keychain read for a day
+# (exec cache_key/cache_duration), which stores those values unencrypted in
+# mise's cache directory. The nono profile itself is stowed by
 # dotfiles/setup.sh; this script only populates the keychain accounts it reads.
 
 # This script handles plaintext secrets in shell variables. Force xtrace/verbose
