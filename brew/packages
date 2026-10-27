@@ -4,3 +4,4 @@ zsh-syntax-highlighting
 zsh-autosuggestions
 mise
 stow
+libgit2 # needed by cargo:eza
