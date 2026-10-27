@@ -1,7 +1,0 @@
-[package]
-name = "zellij-agent-status"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-zellij-tile = { path = "../../../zellij/zellij-tile" }

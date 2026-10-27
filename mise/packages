@@ -3,8 +3,6 @@ starship
 github-cli
 lazygit
 delta
-# zellij # built from ~/dev/personal/zellij by dotfiles/setup.sh
-zjstatus # zellij plugin
 github:nolabs-ai/nono
 claude-code
 npm:@openai/codex

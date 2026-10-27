@@ -4,13 +4,13 @@
 # It prepares a worktree on a TryGhost repo, then opens a tab labelled
 # <repo>-<branch> in the caller's Rex session ($REX_SESSION) with nvim in the
 # worktree. The agent keeps working from its own pane; the tab is for the user.
-# Unlike zellij, the Rex server is reachable from the nono sandbox.
+# The Rex server is reachable from the nono sandbox.
 #
 # Usage:
 #   wt-spawn <repo> <branch> [--from-pr]
 #
 #   --from-pr      <branch> is an existing PR/remote branch; base the worktree
-#                  on origin's tip of it (mirrors bin/wt-new "From PR" mode).
+#                  on origin's tip of it (-B resets a stale local branch).
 #
 # stdout: the absolute worktree path (machine-readable, for the caller).
 # stderr: progress.
