@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/rex-tab-hook"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"${REX_BLOCK:-}\" ] || rex block rename -s \"$REX_SESSION\" \"$REX_BLOCK\" ai --autostart=false >/dev/null 2>&1 || true"
+          }
+        ]
+      }
+    ]
+  }
+}

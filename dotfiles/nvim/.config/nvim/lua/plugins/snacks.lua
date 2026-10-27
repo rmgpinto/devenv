@@ -71,6 +71,21 @@ return {
         end,
       },
     },
+    lazygit = {
+      config = {
+        os = {
+          open = vim.v.progpath
+            .. [[ --server "$NVIM" --remote-send q && ]]
+            .. vim.v.progpath
+            .. [[ --server "$NVIM" --remote {{filename}}]],
+        },
+      },
+      win = {
+        width = 0,
+        height = 0,
+        border = "none",
+      },
+    },
     indent = {
       enabled = true,
       only_scope = true,
@@ -95,6 +110,14 @@ return {
         Snacks.dashboard.open()
       end,
       desc = "Open Dashboard",
+    },
+    {
+      "<leader>gg",
+      function()
+        ---@diagnostic disable-next-line: undefined-global
+        Snacks.lazygit()
+      end,
+      desc = "Lazygit",
     },
     {
       "<leader>gB",

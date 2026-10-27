@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Guided launcher for a Rex task session: one session per ticket, spanning repos.
+# Picks an optional Linear issue, names the session, composes the agent prompt,
+# then creates the session with an "ai" tab running cc in ~/dev and switches
+# the Rex app to it. The agent opens one tab per worktree through wt-spawn.
+
+set -euo pipefail
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/../lib/wt/linear.sh"
+
+DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
+
+# 1. Pick Linear issue (optional)
+ISSUE_FILE=$(mktemp -t rex-task-issue.XXXXXX)
+trap 'rm -f "$ISSUE_FILE"' EXIT
+export WT_LINEAR_ISSUE_FILE="$ISSUE_FILE"
+ISSUE_DESC=$(pick_linear_issue_description)
+unset WT_LINEAR_ISSUE_FILE
+ISSUE_ID=$(sed -n '1p' "$ISSUE_FILE")
+ISSUE_URL=$(sed -n '2p' "$ISSUE_FILE")
+rm -f "$ISSUE_FILE"
+trap - EXIT
+
+# 2. Name the session, defaulting to the issue's title slug from its URL
+DEFAULT_NAME=""
+if [ -n "$ISSUE_URL" ]; then
+  DEFAULT_NAME=$(basename "$ISSUE_URL")
+fi
+NAME=$(gum input \
+  --header "Session name" \
+  --placeholder "prometheus-migration" \
+  --value "$DEFAULT_NAME")
+NAME=$(printf '%s' "$NAME" | tr '[:upper:] /' '[:lower:]--' | cut -c1-128)
+[ -n "$NAME" ] || {
+  echo "rex-task: a session name is required" >&2
+  exit 1
+}
+
+# 3. Compose the initial prompt for the agent
+PROMPT=$(gum write \
+  --header "Initial prompt (ctrl-d submit, esc skip)" \
+  --width 100 --height 20 \
+  --value "$ISSUE_DESC" || true)
+
+if [ -n "$ISSUE_ID" ] && [ -n "$ISSUE_URL" ]; then
+  PROMPT="${PROMPT}${PROMPT:+$'\n\n'}linear ref: $ISSUE_URL"
+fi
+
+if [ -n "$ISSUE_ID" ] && [ -n "$PROMPT" ]; then
+  if mark_linear_issue_in_progress "$ISSUE_ID"; then
+    rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/wt/linear.json"
+  else
+    echo "rex-task: warning: could not mark $ISSUE_ID In Progress with label 'Bots / Agent-assisted'" >&2
+  fi
+fi
+
+# 4. Create the session. The prompt goes through a file the task tab's shell
+# reads and removes, so it never has to survive shell quoting.
+INPUT="cc"
+if [ -n "$PROMPT" ]; then
+  PROMPT_FILE=$(mktemp -t rex-task-prompt.XXXXXX)
+  printf '%s' "$PROMPT" > "$PROMPT_FILE"
+  INPUT="p=\$(cat '$PROMPT_FILE'); rm -f '$PROMPT_FILE'; cc \"\$p\""
+fi
+
+REQUEST=$(jq -nc \
+  --arg label "$NAME" \
+  --arg cwd "$DEV_WORKSPACE" \
+  --arg input "$INPUT"$'\n' \
+  '{
+    label: $label,
+    initial_windows: [{
+      window_label: "ai",
+      layout: {block: {
+        flavor: "com.superlogical.terminal.shell",
+        label: "ai",
+        options: {cwd: $cwd, initial_input: $input}
+      }}
+    }]
+  }')
+SESSION_ID=$(rex api call session.create "$REQUEST" | jq -r '.session_id')
+
+# 5. Show it in the Rex app; this needs Remote Control on in Rex's settings.
+if ! rex do session.select session_id="$SESSION_ID" >/dev/null 2>&1; then
+  echo "rex-task: created session $NAME; switch to it with cmd+k" >&2
+  sleep 2
+fi

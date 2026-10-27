@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Open a background Rex tab with nvim at the git checkout holding PATH, labelled
+# <repo>-<branch>, in the caller's session ($REX_SESSION). Does nothing outside
+# Rex, outside git, or when the session already has that tab, so callers such as
+# wt-spawn and the agents' edit hooks can run it freely.
+#
+# <repo> is the primary checkout's directory name, matching Worktrunk's {{ repo }},
+# so wt-delete-session closes the tab when the worktree is removed.
+#
+# Usage: rex-tab PATH
+
+set -euo pipefail
+
+TARGET=${1:?usage: rex-tab PATH}
+[ -n "${REX_SESSION:-}" ] || exit 0
+
+[ -d "$TARGET" ] || TARGET=$(dirname "$TARGET")
+ROOT=$(git -C "$TARGET" rev-parse --show-toplevel 2>/dev/null) || exit 0
+PRIMARY=$(git -C "$ROOT" worktree list --porcelain | awk '/^worktree / { print substr($0, 10); exit }')
+BRANCH=$(git -C "$ROOT" branch --show-current)
+BRANCH=${BRANCH:-$(git -C "$ROOT" rev-parse --short HEAD)}
+LABEL="$(basename "${PRIMARY:-$ROOT}")-$BRANCH"
+
+VIEW=$(rex api call -s "$REX_SESSION" session.view --autostart=false 2>/dev/null) || exit 0
+if printf '%s' "$VIEW" | jq -e --arg label "$LABEL" 'any(.windows[]; .label == $label)' >/dev/null; then
+  exit 0
+fi
+
+# The shell types nvim, opening straight into Snacks' lazygit; quitting lazygit
+# leaves nvim, and quitting nvim leaves a shell in the checkout.
+REQUEST=$(jq -nc \
+  --arg label "$LABEL" \
+  --arg cwd "$ROOT" \
+  '{
+    window_label: $label,
+    focus: false,
+    layout: {block: {
+      flavor: "com.superlogical.terminal.shell",
+      label: "nvim",
+      options: {cwd: $cwd, initial_input: "nvim +'\''lua vim.schedule(function() Snacks.lazygit() end)'\''\n"}
+    }}
+  }')
+rex api call -s "$REX_SESSION" session.new_window "$REQUEST" --autostart=false >/dev/null
+echo "rex-tab: opened tab $LABEL" >&2

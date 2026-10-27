@@ -119,6 +119,13 @@ function setup_ssh() {
   /opt/homebrew/bin/stow --adopt ssh -t ${HOME}
 }
 
+function setup_rex() {
+  log info "Setting up rex..."
+  rex completion zsh | sudo tee /usr/local/share/zsh/site-functions/_rex > /dev/null
+  /opt/homebrew/bin/stow --adopt rex -t ${HOME}
+  log info "Done."
+}
+
 function setup_zellij() {
   log info "Setting up zellij..."
   local zellij_repo="${DEV_WORKSPACE}/personal/zellij"
@@ -298,6 +305,7 @@ function main() {
   setup_lazygit
   setup_worktrunk
   setup_ssh
+  setup_rex
   setup_zellij
   setup_neovim
   setup_bat

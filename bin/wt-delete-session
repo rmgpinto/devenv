@@ -1,13 +1,23 @@
 #!/usr/bin/env bash
-# Delete the Zellij session associated with a repository branch.
+# Close the Rex tab wt-spawn opened for a repository branch, in whichever
+# session holds it. Worktrunk's post-remove hook calls this, which covers mdr.
 
 set -euo pipefail
 
-source /Users/rmgpinto/dev/personal/devenv/lib/zellij/session.sh
-
-ZELLIJ=/Users/rmgpinto/dev/personal/devenv/bin/zellij
 REPO=${1:?usage: wt delete-session REPO BRANCH}
 BRANCH=${2:?usage: wt delete-session REPO BRANCH}
-SESSION=$(zellij_session_name_for "$REPO" "$BRANCH")
+LABEL="$REPO-$BRANCH"
 
-"$ZELLIJ" delete-session --force "$SESSION" 2>/dev/null || true
+# No Rex server means no tab to close.
+sessions=$(rex api call session.list --autostart=false 2>/dev/null) || exit 0
+
+printf '%s' "$sessions" |
+  jq -r '.sessions[].session_id' |
+  while IFS= read -r session; do
+    rex api call -s "$session" session.view --autostart=false |
+      jq -r --arg label "$LABEL" '.windows[] | select(.label == $label) | .window_id' |
+      while IFS= read -r window; do
+        rex api call -s "$session" session.close_window \
+          "$(jq -nc --arg id "$window" '{window_id: $id}')" --autostart=false >/dev/null
+      done
+  done

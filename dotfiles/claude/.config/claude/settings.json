@@ -11,18 +11,6 @@
     "command": "jq -r '.model.display_name'",
     "padding": 0
   },
-  "enabledPlugins": {
-    "repo-audit@ghost-claude-marketplace": true,
-    "ghost-pro@ghost-claude-marketplace": true
-  },
-  "extraKnownMarketplaces": {
-    "ghost-claude-marketplace": {
-      "source": {
-        "source": "directory",
-        "path": "/Users/rmgpinto/dev/work/Claude"
-      }
-    }
-  },
   "outputStyle": "Concise",
   "spinnerTipsEnabled": false,
   "effortLevel": "medium",
@@ -35,5 +23,28 @@
     }
   },
   "skipDangerousModePermissionPrompt": true,
-  "theme": "custom:catppuccin-mocha"
+  "theme": "dark",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/rmgpinto/dev/personal/devenv/bin/rex-tab-hook"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"${REX_BLOCK:-}\" ] || rex block rename -s \"$REX_SESSION\" \"$REX_BLOCK\" ai --autostart=false >/dev/null 2>&1 || true"
+          }
+        ]
+      }
+    ]
+  }
 }

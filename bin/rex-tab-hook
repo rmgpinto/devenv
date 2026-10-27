@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# PostToolUse hook for Claude Code (cc) and Codex (cx): after a file edit, open a
+# Rex tab for the edited file's checkout through rex-tab.
+#
+# Claude Code sends tool_input.file_path (or notebook_path). Codex sends its
+# apply_patch tool as tool_input.command, a patch naming each file on
+# "*** Add/Update/Delete File:" and "*** Move to:" lines, relative to cwd.
+# Never fails the agent's turn: errors are swallowed.
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+[ -n "${REX_SESSION:-}" ] || exit 0
+
+INPUT=$(cat)
+CWD=$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)
+
+printf '%s' "$INPUT" | jq -r '
+  .tool_input
+  | (.file_path // .notebook_path // empty),
+    ((.command // "") | strings | split("\n")[]
+      | capture("^\\*\\*\\* (?:(?:Add|Update|Delete) File|Move to): (?<path>.+)$")?.path)
+' 2>/dev/null |
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    case "$path" in
+      /*) ;;
+      *) path="${CWD:-$PWD}/$path" ;;
+    esac
+    # A deleted file's directory may be gone too; rex-tab walks up via dirname.
+    [ -e "$path" ] || path=$(dirname "$path")
+    dirname "$path"
+  done |
+  sort -u |
+  while IFS= read -r dir; do
+    "$SCRIPT_DIR/rex-tab" "$dir" >/dev/null 2>&1 || true
+  done
+
+exit 0

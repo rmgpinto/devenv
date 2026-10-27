@@ -23,21 +23,15 @@ For `personal/devenv`, always edit the top-level checkout on `main` without aski
 
 For every other repo, make edits in a worktree, never in the top-level checkout. Run `git worktree list` from the repo root first and reuse a worktree that clearly matches the task. If no matching worktree exists, create one with `personal/devenv/bin/wt-spawn` (see below) before editing.
 
-## Delegating work to another repo
+## Creating worktrees
 
-To hand a task to a fresh agent on a *different* repo, prepare a worktree there and seed its prompt with `bin/wt-spawn` (the non-interactive guts of `bin/wt-new`):
-
-```
-~/dev/personal/devenv/bin/wt-spawn <repo> <branch> --prompt "<task for the sub-agent>"
-```
-
-It clones/pulls the repo under `work/`, creates the worktree, and seeds `.wt-claude-prompt`, printing the worktree's absolute path on stdout. It does **not** open the zellij session. So `wt-spawn` ends by printing a handoff line — surface it to the user verbatim:
+Work happens in Rex task sessions: one session per ticket, spanning repos, with the agent in its first tab. Create each worktree you need with:
 
 ```
-wt go <path>
+~/dev/personal/devenv/bin/wt-spawn <repo> <branch>
 ```
 
-When the user runs `wt go <path>` in their own shell, `zcode` spawns the session and its agent pane reads the seeded prompt, starting the sub-agent on the task. Use `--from-pr` to base the worktree on an existing PR branch.
+It clones/pulls the repo under `work/`, creates the worktree, and prints its absolute path on stdout. Then keep working from your own pane in that path. Inside a Rex session (`$REX_SESSION` set) it also opens a background tab labelled `<repo>-<branch>` (e.g. `Ghost-fix-login`) with nvim in the worktree for the user; there is nothing to hand off. Editing files in any other checkout opens its tab the same way, through the `bin/rex-tab-hook` edit hook in Claude Code and Codex. Use `--from-pr` to base the worktree on an existing PR branch. Removing the worktree (`mdr` or `wt remove`) closes its tab.
 
 # This file
 

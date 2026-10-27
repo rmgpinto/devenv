@@ -69,7 +69,8 @@
       "LC_*",
       "TMPDIR",
       "MISE_*",
-      "XDG_*"
+      "XDG_*",
+      "REX_*"
     ],
     "set_vars": {
       "SSL_CERT_FILE": "/etc/ssl/cert.pem",

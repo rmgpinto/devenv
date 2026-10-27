@@ -1,3 +1,52 @@
+vim.keymap.set("n", "<leader>gl", function()
+  local root = vim.fn.system({ "git", "rev-parse", "--show-toplevel" })
+  if vim.v.shell_error ~= 0 then
+    vim.notify("Not inside a Git repository", vim.log.levels.WARN)
+    return
+  end
+  root = root:gsub("\n$", "")
+
+  local result = vim.system({
+    "git", "-C", root, "diff-tree", "--root", "--first-parent", "-m",
+    "--no-commit-id", "--name-only", "--diff-filter=d", "-r", "-z", "HEAD",
+  }):wait()
+  if result.code ~= 0 then
+    vim.notify("Could not read the latest commit", vim.log.levels.ERROR)
+    return
+  end
+
+  local previous = vim.api.nvim_list_bufs()
+  for _, buffer in ipairs(previous) do
+    if vim.bo[buffer].modified then
+      vim.notify("Save or discard unsaved changes before opening latest commit files", vim.log.levels.WARN)
+      return
+    end
+  end
+
+  local first
+  local keep = {}
+  for file in result.stdout:gmatch("[^%z]+") do
+    local path = root .. "/" .. file
+    if vim.fn.filereadable(path) == 1 then
+      local buffer = vim.fn.bufadd(path)
+      vim.fn.bufload(buffer)
+      vim.bo[buffer].buflisted = true
+      keep[buffer] = true
+      first = first or buffer
+    end
+  end
+  if first then
+    vim.api.nvim_set_current_buf(first)
+    for _, buffer in ipairs(previous) do
+      if not keep[buffer] and vim.api.nvim_buf_is_valid(buffer) and vim.bo[buffer].buflisted then
+        vim.api.nvim_buf_delete(buffer, {})
+      end
+    end
+  else
+    vim.notify("No existing files to open from the latest commit", vim.log.levels.INFO)
+  end
+end, { desc = "Open only latest commit files" })
+
 vim.keymap.set("n", "<leader>ts", function()
   local bufnr = 0
   local row = vim.api.nvim_win_get_cursor(0)[1]

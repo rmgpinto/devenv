@@ -51,16 +51,16 @@ if [[ "$state" != MERGED ]]; then
 
   repo=$(gh repo view --json nameWithOwner --jq '.nameWithOwner') || exit 1
   if ! (cd /tmp && gh pr merge "$number" --repo "$repo" --squash --delete-branch); then
-    echo "mdr: PR #$number was not merged; keeping the worktree and Zellij session" >&2
+    echo "mdr: PR #$number was not merged; keeping the worktree and its tab" >&2
     exit 1
   fi
 
   state=$(gh pr view "$number" --repo "$repo" --json state --jq '.state') || {
-    echo "mdr: could not verify PR #$number after the merge command; keeping the worktree and Zellij session" >&2
+    echo "mdr: could not verify PR #$number after the merge command; keeping the worktree and its tab" >&2
     exit 1
   }
   [[ "$state" == MERGED ]] || {
-    echo "mdr: PR #$number is $state, likely queued or awaiting auto-merge; keeping the worktree and Zellij session" >&2
+    echo "mdr: PR #$number is $state, likely queued or awaiting auto-merge; keeping the worktree and its tab" >&2
     exit 1
   }
 fi
@@ -68,8 +68,5 @@ fi
 git -C "$primary_worktree" switch main || exit 1
 git -C "$primary_worktree" pull --ff-only || exit 1
 
-if [[ -n "${ZELLIJ_SESSION_NAME:-}" ]]; then
-  zellij action detach
-fi
-zd
+# Worktrunk's post-remove hook closes the worktree's Rex tab.
 wt remove --force --yes "$worktree" || exit 1

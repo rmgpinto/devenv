@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Name the caller's Rex session <repo>-<branch> after the git checkout holding the
+# current directory, and label the agent's tab "ai". Repos' mise `cd` hooks call
+# it, so the name follows the agent between the primary checkout and worktrees.
+#
+# Only the agent's block (labelled "ai" by rex-task) acts, so shells in the
+# <repo>-<branch> nvim tabs that rex-tab opens never rename the session. Does
+# nothing outside Rex or outside git.
+#
+# <repo> is the primary checkout's directory name, matching rex-tab.
+#
+# Usage: rex-session-name
+
+set -euo pipefail
+
+[ -n "${REX_SESSION:-}" ] && [ -n "${REX_BLOCK:-}" ] || exit 0
+
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+PRIMARY=$(git -C "$ROOT" worktree list --porcelain | awk '/^worktree / { print substr($0, 10); exit }')
+BRANCH=$(git -C "$ROOT" branch --show-current)
+BRANCH=${BRANCH:-$(basename "$ROOT")}
+NAME="$(basename "${PRIMARY:-$ROOT}")-$BRANCH"
+
+BLOCK=$(rex block inspect "$REX_BLOCK" --json --autostart=false 2>/dev/null) || exit 0
+[ "$(printf '%s' "$BLOCK" | jq -r '.block.label')" = ai ] || exit 0
+WINDOW=$(printf '%s' "$BLOCK" | jq -r '.block.window_id')
+
+rex session rename "$REX_SESSION" "$NAME" --autostart=false >/dev/null
+rex window rename -s "$REX_SESSION" "$WINDOW" ai --autostart=false >/dev/null
