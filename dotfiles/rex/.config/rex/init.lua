@@ -8,8 +8,8 @@ end
 
 rex.bind("shift+cmd+[", "client.tab.previous")
 rex.bind("shift+cmd+]", "client.tab.next")
--- cmd+e enters tabs mode: arrows (with or without cmd) cycle tabs,
--- and escape, enter, or cmd+e again leave it.
+-- cmd+e enters tabs mode: arrows (with or without cmd) cycle tabs, p opens a
+-- floating shell, and escape, enter, or cmd+e again leave it.
 rex.mode("tabs", { exclusive = true })
 rex.bind("cmd+e", "client.mode.enter", { name = "tabs" })
 for _, modifier in ipairs({ "", "cmd+" }) do
@@ -41,3 +41,27 @@ rex.action{
   end,
 }
 rex.bind("cmd+g", "task")
+
+-- cmd+e then p opens a floating shell at 80% of the window, in the focused pane's
+-- directory, and leaves tabs mode so the new shell gets the keyboard.
+rex.action{
+  name  = "float",
+  title = "Floating Shell",
+  run   = function(ctx)
+    local options = {}
+    local ok, process = pcall(rex.block.call, "com.superlogical.terminal", "process", { block_id = ctx.block_id })
+    if ok and process and process.foreground and process.foreground.cwd then
+      options.cwd = process.foreground.cwd
+    end
+    rex.session.new_layer{
+      bounds = { 0.1, 0.1, 0.8, 0.8 },
+      focus  = true,
+      layout = rex.layout.block{
+        flavor  = "com.superlogical.terminal.shell",
+        options = options,
+      },
+    }
+    rex.client.queue("client.mode.exit")
+  end,
+}
+rex.bind("tabs/p", "float")
