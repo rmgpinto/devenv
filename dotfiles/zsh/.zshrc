@@ -1,13 +1,11 @@
 # zsh
 # Key bindings
-bindkey "^[b" backward-word
-bindkey "^[f" forward-word
-bindkey "^[[H" beginning-of-line
-bindkey "^[[F" end-of-line
-bindkey -a -r '\e'  # Disable vi mode on shell prompt
-bindkey -v -r '\e'  # Disable vi mode on shell prompt
+bindkey -e
+bindkey '^[[H' beginning-of-line
+bindkey '^[[F' end-of-line
+bindkey '^[[5~' up-line
+bindkey '^[[6~' down-line
 bindkey -M emacs "^[[3~" delete-char
-bindkey -M viins "^[[3~" delete-char
 
 # History
 export HISTFILE=~/.zsh_history
