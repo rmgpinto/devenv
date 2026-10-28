@@ -1,47 +1,146 @@
 #!/usr/bin/env bash
-# Guided launcher for a Rex task session: one session per ticket, spanning repos.
-# Picks an optional Linear issue, names the session, composes the agent prompt,
-# then creates the session with an "ai" tab running cc in ~/dev and switches
-# the Rex app to it. The agent opens one tab per worktree through wt-spawn.
+# Guided launcher for a Rex session, bound to cmd+g. Two flows:
+#
+#   Linear issue  Picks an optional Linear issue and names the session; the agent
+#                 starts in ~/dev and opens a tab per worktree through wt-spawn.
+#   PR review     Picks a PR requesting your review, or a repo and then one of
+#                 its open PRs; checks the PR out in a worktree and names the
+#                 session <repo>-<branch>, with the agent and a code tab there.
+#
+# Both then compose the agent prompt, create the session with an "ai" tab running
+# cc, and switch the Rex app to it.
 
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$SCRIPT_DIR/../lib/wt/linear.sh"
+source "$SCRIPT_DIR/../lib/wt/github.sh"
 
 DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
+WORK_DIR="${WT_WORK_DIR:-${DEV_WORKSPACE}/work}"
+ORG="TryGhost"
 
-# 1. Pick Linear issue (optional)
-ISSUE_FILE=$(mktemp -t rex-task-issue.XXXXXX)
-trap 'rm -f "$ISSUE_FILE"' EXIT
-export WT_LINEAR_ISSUE_FILE="$ISSUE_FILE"
-ISSUE_DESC=$(pick_linear_issue_description)
-unset WT_LINEAR_ISSUE_FILE
-ISSUE_ID=$(sed -n '1p' "$ISSUE_FILE")
-ISSUE_URL=$(sed -n '2p' "$ISSUE_FILE")
-rm -f "$ISSUE_FILE"
-trap - EXIT
-
-# 2. Name the session, defaulting to the issue's title slug from its URL
-DEFAULT_NAME=""
-if [ -n "$ISSUE_URL" ]; then
-  DEFAULT_NAME=$(basename "$ISSUE_URL")
-fi
-NAME=$(gum input \
-  --header "Session name" \
-  --placeholder "prometheus-migration" \
-  --value "$DEFAULT_NAME")
-NAME=$(printf '%s' "$NAME" | tr '[:upper:] /' '[:lower:]--' | cut -c1-128)
-[ -n "$NAME" ] || {
-  echo "rex-task: a session name is required" >&2
-  exit 1
+# Switch the Rex app to a session; this needs Remote Control on in Rex's settings.
+select_session() {
+  if ! rex do session.select session_id="$1" >/dev/null 2>&1; then
+    echo "rex-task: session $2 is ready; switch to it with cmd+k" >&2
+    sleep 2
+  fi
 }
+
+# Print the worktree path that has BRANCH checked out in REPO_DIR, if any.
+branch_worktree() {
+  git -C "$1" worktree list --porcelain 2>/dev/null |
+    awk -v b="refs/heads/$2" '/^worktree / { w = substr($0, 10) } /^branch / && $2 == b { print w; exit }'
+}
+
+# Escape at any picker closes the launcher quietly.
+MODE=$(gum choose --header "New session" "Linear issue" "PR review") || exit 0
+
+ISSUE_ID=""
+ISSUE_URL=""
+WORKTREE=""
+if [ "$MODE" = "Linear issue" ]; then
+  # 1. Pick Linear issue (optional)
+  ISSUE_FILE=$(mktemp -t rex-task-issue.XXXXXX)
+  trap 'rm -f "$ISSUE_FILE"' EXIT
+  export WT_LINEAR_ISSUE_FILE="$ISSUE_FILE"
+  DEFAULT_PROMPT=$(pick_linear_issue_description)
+  unset WT_LINEAR_ISSUE_FILE
+  ISSUE_ID=$(sed -n '1p' "$ISSUE_FILE")
+  ISSUE_URL=$(sed -n '2p' "$ISSUE_FILE")
+  rm -f "$ISSUE_FILE"
+  trap - EXIT
+
+  # 2. Name the session, defaulting to the issue's title slug from its URL
+  DEFAULT_NAME=""
+  if [ -n "$ISSUE_URL" ]; then
+    DEFAULT_NAME=$(basename "$ISSUE_URL")
+  fi
+  NAME=$(gum input \
+    --header "Session name" \
+    --placeholder "prometheus-migration" \
+    --value "$DEFAULT_NAME")
+  NAME=$(printf '%s' "$NAME" | tr '[:upper:] /' '[:lower:]--' | cut -c1-128)
+  [ -n "$NAME" ] || {
+    echo "rex-task: a session name is required" >&2
+    exit 1
+  }
+  CWD="$DEV_WORKSPACE"
+else
+  # 1. Pick a PR requesting your review, or a repo and then one of its PRs
+  REFRESH="↻ Refresh repos"
+  while :; do
+    SELECTION=$({
+      github_review_requests "$ORG"
+      github_repos "$ORG" | sed 's/^/repo: /'
+      printf '%s\n' "$REFRESH"
+    } | gum filter --header "Review requests, or pick a repo" --placeholder "type to filter") || exit 0
+    if [ "$SELECTION" = "$REFRESH" ]; then
+      rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/wt/repos.txt"
+      continue
+    fi
+    break
+  done
+  case "$SELECTION" in
+    "repo: "*)
+      REPO=${SELECTION#repo: }
+      PR_LINE=$(github_repo_prs "$ORG" "$REPO" |
+        gum filter --header "Pick a $REPO PR" --placeholder "type to filter") || exit 0
+      NUMBER=${PR_LINE%% *}
+      NUMBER=${NUMBER#\#}
+      ;;
+    *)
+      REF=${SELECTION%% *}
+      REPO=${REF%%#*}
+      NUMBER=${REF#*#}
+      ;;
+  esac
+  [ -n "$REPO" ] && [ -n "$NUMBER" ] || {
+    echo "rex-task: no PR picked" >&2
+    exit 1
+  }
+
+  PR_JSON=$(gh pr view "$NUMBER" -R "$ORG/$REPO" --json headRefName,isCrossRepository,url,title)
+  PR_URL=$(jq -r '.url' <<<"$PR_JSON")
+  BRANCH=$(jq -r '.headRefName' <<<"$PR_JSON")
+  FROM_PR=(--from-pr)
+  if [ "$(jq -r '.isCrossRepository' <<<"$PR_JSON")" = true ]; then
+    # A fork's branch isn't on origin; fetch the PR head into a local branch.
+    BRANCH="pr-$NUMBER"
+    FROM_PR=()
+    [ -d "$WORK_DIR/$REPO" ] || gum spin --title "Cloning $ORG/$REPO" -- gh repo clone "$ORG/$REPO" "$WORK_DIR/$REPO"
+    git -C "$WORK_DIR/$REPO" fetch origin "+pull/$NUMBER/head:$BRANCH" >&2
+  fi
+
+  # 2. Reuse an open session or worktree for the branch, else create the worktree.
+  # wt-spawn runs without REX_SESSION so it doesn't open a tab in this session.
+  NAME="$REPO-$BRANCH"
+  EXISTING=$(rex api call session.list | jq -r --arg name "$NAME" '.sessions[] | select(.label == $name) | .session_id' | head -1)
+  if [ -n "$EXISTING" ]; then
+    select_session "$EXISTING" "$NAME"
+    exit 0
+  fi
+  WORKTREE=$(branch_worktree "$WORK_DIR/$REPO" "$BRANCH")
+  if [ -z "$WORKTREE" ]; then
+    # wt-spawn prints the worktree path on stdout and its progress on stderr.
+    WORKTREE=$(gum spin --show-output --title "Checking out $REPO#$NUMBER" -- \
+      env -u REX_SESSION bash -c '"$@" 2>/dev/null' _ \
+      "$SCRIPT_DIR/wt-spawn" "$REPO" "$BRANCH" ${FROM_PR[@]+"${FROM_PR[@]}"} | tail -1)
+  fi
+  [ -n "$WORKTREE" ] && [ -d "$WORKTREE" ] || {
+    echo "rex-task: could not check out $REPO#$NUMBER" >&2
+    exit 1
+  }
+  DEFAULT_PROMPT="Review $PR_URL"$'\n\n'"$(jq -r '.title' <<<"$PR_JSON")"
+  CWD="$WORKTREE"
+fi
 
 # 3. Compose the initial prompt for the agent
 PROMPT=$(gum write \
   --header "Initial prompt (ctrl-d submit, esc skip)" \
   --width 100 --height 20 \
-  --value "$ISSUE_DESC" || true)
+  --value "$DEFAULT_PROMPT" || true)
 
 if [ -n "$ISSUE_ID" ] && [ -n "$ISSUE_URL" ]; then
   PROMPT="${PROMPT}${PROMPT:+$'\n\n'}linear ref: $ISSUE_URL"
@@ -55,7 +154,7 @@ if [ -n "$ISSUE_ID" ] && [ -n "$PROMPT" ]; then
   fi
 fi
 
-# 4. Create the session. The prompt goes through a file the task tab's shell
+# 4. Create the session. The prompt goes through a file the ai tab's shell
 # reads and removes, so it never has to survive shell quoting.
 INPUT="cc"
 if [ -n "$PROMPT" ]; then
@@ -66,7 +165,7 @@ fi
 
 REQUEST=$(jq -nc \
   --arg label "$NAME" \
-  --arg cwd "$DEV_WORKSPACE" \
+  --arg cwd "$CWD" \
   --arg input "$INPUT"$'\n' \
   '{
     label: $label,
@@ -80,9 +179,9 @@ REQUEST=$(jq -nc \
     }]
   }')
 SESSION_ID=$(rex api call session.create "$REQUEST" | jq -r '.session_id')
-
-# 5. Show it in the Rex app; this needs Remote Control on in Rex's settings.
-if ! rex do session.select session_id="$SESSION_ID" >/dev/null 2>&1; then
-  echo "rex-task: created session $NAME; switch to it with cmd+k" >&2
-  sleep 2
+if [ -n "$WORKTREE" ]; then
+  REX_SESSION="$SESSION_ID" "$SCRIPT_DIR/rex-tab" "$WORKTREE"
 fi
+
+# 5. Show it in the Rex app
+select_session "$SESSION_ID" "$NAME"
