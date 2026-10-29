@@ -50,6 +50,50 @@ if [[ "$state" != MERGED ]]; then
     "You're about to squash-merge PR #$number into main, proceed?" || exit 0
 
   repo=$(gh repo view --json nameWithOwner --jq '.nameWithOwner') || exit 1
+
+  # Wait until the branch policy allows the merge. A required check that hasn't
+  # been reported yet only shows up as BLOCKED, so poll the merge state rather than
+  # counting required checks. Give up on a failed check, a missing review, or a
+  # block that outlasts the timeout with nothing pending.
+  started=$SECONDS
+  blocked_since=$SECONDS
+  while :; do
+    merge_json=$(gh pr view "$number" --repo "$repo" --json mergeStateStatus,reviewDecision) || exit 1
+    merge_state=$(jq -r '.mergeStateStatus' <<<"$merge_json")
+    review=$(jq -r '.reviewDecision' <<<"$merge_json")
+    case "$merge_state" in
+      CLEAN|UNSTABLE|HAS_HOOKS)
+        break
+        ;;
+      BLOCKED|UNKNOWN)
+        if [[ "$review" == REVIEW_REQUIRED || "$review" == CHANGES_REQUESTED ]]; then
+          echo "mdr: PR #$number is blocked on review ($review); keeping the worktree and its tab" >&2
+          exit 1
+        fi
+        buckets=$(gh pr checks "$number" --repo "$repo" --required --json bucket --jq '[.[].bucket] | join(" ")' 2>/dev/null)
+        if [[ " $buckets " == *" fail "* || " $buckets " == *" cancel "* ]]; then
+          echo "\nmdr: PR #$number's required checks failed; keeping the worktree and its tab" >&2
+          gh pr checks "$number" --repo "$repo" --required >&2
+          exit 1
+        fi
+        pending=${#${(M)${=buckets}:#pending}}
+        if (( pending == 0 && SECONDS - blocked_since > 600 )); then
+          echo "\nmdr: PR #$number is still blocked by the branch policy with no checks pending; keeping the worktree and its tab" >&2
+          exit 1
+        fi
+        (( pending > 0 )) && blocked_since=$SECONDS
+        printf '\rmdr: waiting for PR #%s (%s, %d required checks pending, %ds)  ' \
+          "$number" "$merge_state" "$pending" $(( SECONDS - started )) >&2
+        sleep 10
+        ;;
+      *)
+        echo "\nmdr: PR #$number can't be merged ($merge_state); keeping the worktree and its tab" >&2
+        exit 1
+        ;;
+    esac
+  done
+  echo >&2
+
   if ! (cd /tmp && gh pr merge "$number" --repo "$repo" --squash --delete-branch); then
     echo "mdr: PR #$number was not merged; keeping the worktree and its tab" >&2
     exit 1
