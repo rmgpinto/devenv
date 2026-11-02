@@ -8,7 +8,7 @@ function main() {
   # Dock apps
   defaults write com.apple.dock persistent-apps -array
   local dock_persistent_apps=(
-    "/Applications/Ghostty.app"
+    "/Applications/Rex Beta.app"
     "/Applications/Google Chrome.app"
     "/Applications/Notion.app"
     "/Applications/Linear.app"
