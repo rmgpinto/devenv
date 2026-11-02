@@ -48,6 +48,8 @@ Agents run in terminal panes. Copying visually wrapped output can insert extra n
 
 # Git commits
 
+Commit finished work on the worktree branch without asking; never push unless asked.
+
 Before creating a commit, always run `git config commit.template` in the current directory. If a template is configured, read it and use its structure as the exact blueprint for the commit message, including when supplying a message with `-m` or `-F`.
 
 Fill all required placeholders, tags, and section headers using the staged changes and available task context. Preserve every template section and its formatting unless explicitly instructed otherwise. If required context such as a Linear URL is missing, ask rather than inventing it.
