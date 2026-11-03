@@ -87,6 +87,16 @@ Work vs personal env vars are **directory-scoped** — `work/.mise.toml` loads o
 - read-only Google Cloud access is available through `~/dev/personal/devenv/bin/gcloud-ai`
 - claude-code
 
+## Missing CLI tools
+
+A command missing from `PATH` (e.g. `helm: command not found`) does **not** mean the tool is unavailable. mise has many more tools installed than the ones active for the current directory. Before saying a tool isn't available, check `mise ls <tool>` and run it through mise:
+
+```sh
+mise x helm -- helm template charts/k8s-app
+```
+
+The sandbox has no network access, so `mise x` works only for versions that are already installed. Pin one (`mise x helm@4.1.4 -- …`) if mise tries to resolve `latest` online. For kustomize, use `kubectl kustomize <dir>`, which is built into kubectl and active everywhere. Don't edit a repo's mise config to activate a tool just for your own use.
+
 # Kubernetes
 
 Agents have read-only filesystem access to these kubeconfigs through the nono `ai` profile:
