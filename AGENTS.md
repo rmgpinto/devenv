@@ -97,6 +97,14 @@ mise x helm -- helm template charts/k8s-app
 
 The sandbox has no network access, so `mise x` works only for versions that are already installed. Pin one (`mise x helm@4.1.4 -- …`) if mise tries to resolve `latest` online. For kustomize, use `kubectl kustomize <dir>`, which is built into kubectl and active everywhere. Don't edit a repo's mise config to activate a tool just for your own use.
 
+Helm can't read `~/.config/helm` from the sandbox (`repositories.yaml: operation not permitted`). Point its dirs at a scratch directory and re-add the repos the chart needs. After that, `helm dependency build` and scripts that call helm (e.g. a repo's `scripts/regen.sh`) work:
+
+```sh
+export HELM_CONFIG_HOME=$TMPDIR/helm/config HELM_CACHE_HOME=$TMPDIR/helm/cache HELM_DATA_HOME=$TMPDIR/helm/data
+mise x helm@4.1.4 -- helm repo add bjw-s https://bjw-s-labs.github.io/helm-charts
+mise x helm@4.1.4 -- sh scripts/regen.sh
+```
+
 # Kubernetes
 
 Agents have read-only filesystem access to these kubeconfigs through the nono `ai` profile:
