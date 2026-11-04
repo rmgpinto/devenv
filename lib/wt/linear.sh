@@ -12,7 +12,7 @@ pick_linear_issue_description() {
   mkdir -p "$cache_dir"
 
   _wt_fetch_linear_issues() {
-    local query='query { viewer { assignedIssues(filter: {state: {name: {in: ["Backlog", "Todo", "In Progress", "Ready"]}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description url state { name } } } } }'
+    local query='query { viewer { assignedIssues(filter: {state: {name: {in: ["Backlog", "Todo", "In Progress", "Ready", "Shaping", "Proposal", "Triage", "This Week"]}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description url state { name } } } } }'
     case "$WT_LINEAR_SOURCE" in
       "ONC triage")
         query='query { issues(filter: {team: {key: {eq: "ONC"}}, state: {type: {eq: "triage"}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description url state { name } } } }'
