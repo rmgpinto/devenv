@@ -18,6 +18,11 @@ setopt SHARE_HISTORY
 
 BREW_PREFIX=${HOMEBREW_PREFIX:-/opt/homebrew}
 
+# Default dir
+if [[ "$PWD" == "$HOME" ]]; then
+  cd "$HOME/dev"
+fi
+
 # Syntax highlighting
 source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
