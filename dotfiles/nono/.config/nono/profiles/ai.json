@@ -74,10 +74,10 @@
     ],
     "set_vars": {
       "SSL_CERT_FILE": "/etc/ssl/cert.pem",
-      "ELASTIC_STAGING_URL": "https://elastic.ghostfoundation.org",
       "ELASTIC_BASE_URL": "https://elastic.ghost.org",
-      "PROMETHEUS_STAGING_URL": "https://prometheus.ghostfoundation.org",
-      "PROMETHEUS_PRODUCTION_URL": "https://prometheus.ghost.org"
+      "ELASTIC_STAGING_URL": "https://elastic.ghostfoundation.org",
+      "PROMETHEUS_STAGING_URL": "https://prometheus.ghostinfra.net",
+      "PROMETHEUS_PRODUCTION_URL": "https://prometheus.ghostinfra.com"
     }
   },
   "unsafe_macos_seatbelt_rules": [
