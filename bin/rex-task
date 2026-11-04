@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Guided launcher for a Rex session, bound to cmd+g. Two flows:
+# Guided launcher for a Rex session, bound to cmd+g. Issue and PR flows:
 #
 #   Linear issue  Picks an optional Linear issue and names the session; the agent
 #                 starts in ~/dev and opens a tab per worktree through wt-spawn.
@@ -7,7 +7,7 @@
 #                 its open PRs; checks the PR out in a worktree and names the
 #                 session <repo>-<branch>, with the agent and a code tab there.
 #
-# Both then compose the agent prompt, create the session with an "ai" tab running
+# All flows then compose the agent prompt, create the session with an "ai" tab running
 # cc, and switch the Rex app to it.
 
 set -euo pipefail
@@ -35,17 +35,17 @@ branch_worktree() {
 }
 
 # Escape at any picker closes the launcher quietly.
-MODE=$(gum choose --header "New session" "Linear issue" "PR review") || exit 0
+MODE=$(gum choose --header "New session" "Linear issue" "ONC triage" "PR review") || exit 0
 
 ISSUE_ID=""
 ISSUE_URL=""
 WORKTREE=""
-if [ "$MODE" = "Linear issue" ]; then
+if [ "$MODE" != "PR review" ]; then
   # 1. Pick Linear issue (optional)
   ISSUE_FILE=$(mktemp -t rex-task-issue.XXXXXX)
   trap 'rm -f "$ISSUE_FILE"' EXIT
   export WT_LINEAR_ISSUE_FILE="$ISSUE_FILE"
-  DEFAULT_PROMPT=$(pick_linear_issue_description)
+  DEFAULT_PROMPT=$(pick_linear_issue_description "$MODE")
   unset WT_LINEAR_ISSUE_FILE
   ISSUE_ID=$(sed -n '1p' "$ISSUE_FILE")
   ISSUE_URL=$(sed -n '2p' "$ISSUE_FILE")
@@ -148,7 +148,8 @@ fi
 
 if [ -n "$ISSUE_ID" ] && [ -n "$PROMPT" ]; then
   if mark_linear_issue_in_progress "$ISSUE_ID"; then
-    rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/wt/linear.json"
+    rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/wt/linear.json" \
+      "${XDG_CACHE_HOME:-$HOME/.cache}/wt/linear-onc-triage.json"
   else
     echo "rex-task: warning: could not mark $ISSUE_ID In Progress with label 'Bots / Agent-assisted'" >&2
   fi

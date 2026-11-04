@@ -9,6 +9,9 @@ function setup_workspace() {
   mkdir -p "${DEV_WORKSPACE}"
   rm -f "${DEV_WORKSPACE}/AGENTS.md"
   ln -s personal/devenv/AGENTS.md "${DEV_WORKSPACE}/AGENTS.md"
+  mkdir -p "${DEV_WORKSPACE}/work"
+  rm -f "${DEV_WORKSPACE}/work/AGENTS.md"
+  ln -s ../personal/devenv/work-AGENTS.md "${DEV_WORKSPACE}/work/AGENTS.md"
   log info "Done."
 }
 
