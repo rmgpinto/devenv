@@ -1,42 +1,36 @@
 #!/usr/bin/env bash
-# Make a sibling terraform import resolve inside Worktrunk's nested worktrees.
-#
-# Repos such as pro-infra import '../terraform/justfile', which points at
-# ~/dev/work/terraform from the primary checkout. From .worktrees/<branch> the
-# same path resolves to .worktrees/terraform, so link that to the real sibling
-# repository instead of rewriting the tracked justfile (a rewrite is lost on
-# every rebase, stash or checkout, and can end up committed).
+# Fix a sibling terraform import after Worktrunk adds .worktrees/<branch> depth.
 
 set -euo pipefail
 
 SOURCE=${1:?usage: wt fix-terraform-import SOURCE_WORKTREE TARGET_WORKTREE}
 TARGET=${2:?usage: wt fix-terraform-import SOURCE_WORKTREE TARGET_WORKTREE}
+JUSTFILE="$TARGET/justfile"
 
+# Only rewrite Worktrunk's nested worktrees, and only when the sibling terraform
+# repository exists where the adjusted import expects it.
 case "$TARGET" in
   "$SOURCE"/.worktrees/*) ;;
   *) exit 0 ;;
 esac
 
+[ -f "$JUSTFILE" ] || exit 0
 [ -f "$SOURCE/../terraform/justfile" ] || exit 0
 
-# Only repos whose justfile imports the sibling terraform justfile need the link
-# (an earlier rewrite may have turned '../' into '../../../').
-JUSTFILE="$TARGET/justfile"
-[ -f "$JUSTFILE" ] || exit 0
-grep -Eq "^[[:space:]]*import[[:space:]]+[\"'](\.\./)+terraform/justfile[\"'][[:space:]]*$" "$JUSTFILE" || exit 0
+TEMP=$(mktemp "$TARGET/.wt-justfile.XXXXXX")
+trap 'rm -f "$TEMP"' EXIT
 
-LINK="$SOURCE/.worktrees/terraform"
-if [ -L "$LINK" ] || [ ! -e "$LINK" ]; then
-  ln -sfn ../../terraform "$LINK"
-fi
+awk '
+  /^[[:space:]]*import[[:space:]]+["'\'']\.\.\/terraform\/justfile["'\''][[:space:]]*$/ {
+    match($0, /^[[:space:]]*/)
+    indentation = substr($0, 1, RLENGTH)
+    quote = index($0, "\"") ? "\"" : sprintf("%c", 39)
+    print indentation "import " quote "../../../terraform/justfile" quote
+    next
+  }
+  { print }
+' "$JUSTFILE" > "$TEMP"
 
-# Undo the justfile rewrite done by earlier versions of this script, when that
-# rewrite is the only local change to the file.
-if git -C "$TARGET" diff --quiet HEAD -- justfile 2>/dev/null; then
-  exit 0
-fi
-ORIGINAL=$(git -C "$TARGET" show HEAD:justfile 2>/dev/null) || exit 0
-REWRITTEN=$(sed "s#\.\./\.\./\.\./terraform/justfile#../terraform/justfile#" "$JUSTFILE")
-if [ "$ORIGINAL" = "$REWRITTEN" ]; then
-  git -C "$TARGET" checkout HEAD -- justfile
+if ! cmp -s "$JUSTFILE" "$TEMP"; then
+  mv "$TEMP" "$JUSTFILE"
 fi
