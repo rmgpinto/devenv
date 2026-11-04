@@ -19,6 +19,12 @@ esac
 
 [ -f "$SOURCE/../terraform/justfile" ] || exit 0
 
+# Only repos whose justfile imports the sibling terraform justfile need the link
+# (an earlier rewrite may have turned '../' into '../../../').
+JUSTFILE="$TARGET/justfile"
+[ -f "$JUSTFILE" ] || exit 0
+grep -Eq "^[[:space:]]*import[[:space:]]+[\"'](\.\./)+terraform/justfile[\"'][[:space:]]*$" "$JUSTFILE" || exit 0
+
 LINK="$SOURCE/.worktrees/terraform"
 if [ -L "$LINK" ] || [ ! -e "$LINK" ]; then
   ln -sfn ../../terraform "$LINK"
@@ -26,8 +32,6 @@ fi
 
 # Undo the justfile rewrite done by earlier versions of this script, when that
 # rewrite is the only local change to the file.
-JUSTFILE="$TARGET/justfile"
-[ -f "$JUSTFILE" ] || exit 0
 if git -C "$TARGET" diff --quiet HEAD -- justfile 2>/dev/null; then
   exit 0
 fi
