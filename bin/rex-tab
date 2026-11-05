@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Open a background Rex tab with nvim at the git checkout holding PATH, labelled
+# Open a background Rex tab with nvim and hunk at the checkout holding PATH, labelled
 # <repo>-<branch>, in the caller's session ($REX_SESSION). Does nothing outside
 # Rex, outside git, or when the session already has that tab, so callers such as
 # wt-spawn and the agents' edit hooks can run it freely.
@@ -28,16 +28,25 @@ fi
 
 # The shell types nvim, opening straight into Snacks' lazygit; quitting lazygit
 # leaves nvim, and quitting nvim leaves a shell in the checkout.
+# A second shell beside it opens the diff against HEAD~.
 REQUEST=$(jq -nc \
   --arg label "$LABEL" \
   --arg cwd "$ROOT" \
   '{
     window_label: $label,
     focus: false,
-    layout: {block: {
-      flavor: "com.superlogical.terminal.shell",
-      label: "nvim",
-      options: {cwd: $cwd, initial_input: "nvim +'\''lua vim.schedule(function() Snacks.lazygit() end)'\''\n"}
+    layout: {split: {
+      direction: "horizontal",
+      before: {block: {
+        flavor: "com.superlogical.terminal.shell",
+        label: "nvim",
+        options: {cwd: $cwd, initial_input: "nvim +'\''lua vim.schedule(function() Snacks.lazygit() end)'\''\n"}
+      }},
+      after: {block: {
+        flavor: "com.superlogical.terminal.shell",
+        label: "hunk",
+        options: {cwd: $cwd, initial_input: "hunk diff HEAD~\n"}
+      }}
     }}
   }')
 rex api call -s "$REX_SESSION" session.new_window "$REQUEST" --autostart=false >/dev/null
