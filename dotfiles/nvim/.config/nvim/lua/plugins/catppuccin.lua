@@ -8,7 +8,6 @@ return {
       integrations = {
         dap = true,
         dap_ui = true,
-        gitsigns = true,
         mason = true,
         native_lsp = {
           enabled = true,
