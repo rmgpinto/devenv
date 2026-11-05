@@ -6,6 +6,7 @@ delta
 github:nolabs-ai/nono
 claude-code
 npm:@openai/codex
+hunk
 ripgrep
 nodejs
 aqua:neovim/neovim # registry default is vfox; pick aqua for prebuilt binary

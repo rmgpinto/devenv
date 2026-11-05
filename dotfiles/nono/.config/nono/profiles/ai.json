@@ -12,6 +12,7 @@
     "allow": [
       "$WORKDIR",
       "$HOME/.agents",
+      "$HOME/.hunk",
       "$HOME/.config/claude",
       "$HOME/.config/claude.lock",
       "$HOME/.config/codex",
