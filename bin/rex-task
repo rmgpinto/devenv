@@ -73,7 +73,7 @@ else
   while :; do
     SELECTION=$({
       github_review_requests "$ORG"
-      github_repos "$ORG" | sed 's/^/repo: /'
+      github_repos "$ORG"
       printf '%s\n' "$REFRESH"
     } | gum filter --header "Review requests, or pick a repo" --placeholder "type to filter") || exit 0
     if [ "$SELECTION" = "$REFRESH" ]; then
@@ -83,17 +83,17 @@ else
     break
   done
   case "$SELECTION" in
-    "repo: "*)
-      REPO=${SELECTION#repo: }
+    *'#'*)
+      REF=${SELECTION%% *}
+      REPO=${REF%%#*}
+      NUMBER=${REF#*#}
+      ;;
+    *)
+      REPO="$SELECTION"
       PR_LINE=$(github_repo_prs "$ORG" "$REPO" |
         gum filter --header "Pick a $REPO PR" --placeholder "type to filter") || exit 0
       NUMBER=${PR_LINE%% *}
       NUMBER=${NUMBER#\#}
-      ;;
-    *)
-      REF=${SELECTION%% *}
-      REPO=${REF%%#*}
-      NUMBER=${REF#*#}
       ;;
   esac
   [ -n "$REPO" ] && [ -n "$NUMBER" ] || {
