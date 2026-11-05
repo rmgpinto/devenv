@@ -6,24 +6,6 @@
     "commit": "",
     "pr": ""
   },
-  "statusLine": {
-    "type": "command",
-    "command": "jq -r '.model.display_name'",
-    "padding": 0
-  },
-  "outputStyle": "Concise",
-  "spinnerTipsEnabled": false,
-  "effortLevel": "medium",
-  "fastMode": true,
-  "pluginConfigs": {
-    "agents-md@builtin": {
-      "options": {
-        "instructionFiles": "claude-md-and-agents-md"
-      }
-    }
-  },
-  "skipDangerousModePermissionPrompt": true,
-  "theme": "dark",
   "hooks": {
     "PostToolUse": [
       {
@@ -46,5 +28,24 @@
         ]
       }
     ]
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "jq -r '.model.display_name'",
+    "padding": 0
+  },
+  "outputStyle": "Concise",
+  "spinnerTipsEnabled": false,
+  "effortLevel": "medium",
+  "fastMode": true,
+  "pluginConfigs": {
+    "agents-md@builtin": {
+      "options": {
+        "instructionFiles": "claude-md-and-agents-md"
+      }
+    }
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark",
+  "tui": "fullscreen"
 }
