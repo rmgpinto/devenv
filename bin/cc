@@ -15,6 +15,14 @@ for arg in "$@"; do
   esac
 done
 
+if [[ -n ${REX_SESSION:-} && -n ${REX_BLOCK:-} ]]; then
+  rex_window=$(rex block inspect "$REX_BLOCK" --json --autostart=false 2>/dev/null |
+    jq -er '.block.window_id // empty') || rex_window=
+  if [[ -n $rex_window ]]; then
+    rex window rename -s "$REX_SESSION" "$rex_window" ai --autostart=false >/dev/null 2>&1 || true
+  fi
+fi
+
 exec env NONO_AUTO_MIGRATE=1 NONO_NO_SAVE_PROMPT=1 nono run \
   --profile ai \
   --allow-cwd \
