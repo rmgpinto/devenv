@@ -35,7 +35,7 @@ branch_worktree() {
 }
 
 # Escape at any picker closes the launcher quietly.
-MODE=$(gum choose --header "New session" "Linear issue" "ONC triage" "PR review") || exit 0
+MODE=$(gum choose --header "New session" "Linear issue" "On-Call issue" "PR review") || exit 0
 
 ISSUE_ID=""
 ISSUE_URL=""

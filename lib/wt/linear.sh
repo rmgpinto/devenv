@@ -6,7 +6,7 @@ pick_linear_issue_description() {
   local source="${1:-Linear issue}"
   local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/wt"
   local cache="$cache_dir/linear.json"
-  [ "$source" != "ONC triage" ] || cache="$cache_dir/linear-onc-triage.json"
+  [ "$source" != "On-Call issue" ] || cache="$cache_dir/linear-onc-triage.json"
   local refresh_label="Refresh Linear issues"
   local response display selection issue_id rc tmp
   mkdir -p "$cache_dir"
@@ -14,7 +14,7 @@ pick_linear_issue_description() {
   _wt_fetch_linear_issues() {
     local query='query { viewer { assignedIssues(filter: {state: {name: {in: ["Backlog", "Todo", "In Progress", "Ready", "Shaping", "Proposal", "Triage", "This Week"]}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description url state { name } } } } }'
     case "$WT_LINEAR_SOURCE" in
-      "ONC triage")
+      "On-Call issue")
         query='query { issues(filter: {team: {key: {eq: "ONC"}}, state: {type: {eq: "triage"}}}, first: 100, orderBy: updatedAt) { nodes { identifier title description url state { name } } } }'
         ;;
     esac
