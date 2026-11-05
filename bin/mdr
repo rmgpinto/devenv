@@ -21,14 +21,26 @@ branch=$(git branch --show-current)
 pr_fields=number,baseRefName,headRefName,state,isDraft,mergeable
 pr_json=$(gh pr view --json "$pr_fields" 2>/dev/null)
 
-# Push unless the PR is already merged (its remote branch may be gone, and
-# pushing would recreate it).
-if [[ -z "$pr_json" || $(jq -r '.state' <<<"$pr_json") != MERGED ]]; then
-  git push --force --set-upstream origin "$branch" || {
-    echo "mdr: could not push $branch" >&2
+# Finished PRs only need local cleanup. Do this before pushing or updating main:
+# the remote branch may be gone, and neither operation is needed for removal.
+if [[ -n "$pr_json" ]]; then
+  [[ $(jq -r '.headRefName' <<<"$pr_json") == "$branch" ]] || {
+    echo "mdr: PR does not belong to the checked-out branch $branch" >&2
     exit 1
   }
+  case $(jq -r '.state' <<<"$pr_json") in
+    MERGED|CLOSED)
+      # Worktrunk's post-remove hook also closes the worktree's Rex tab.
+      wt remove --force --yes "$worktree"
+      exit $?
+      ;;
+  esac
 fi
+
+git push --force --set-upstream origin "$branch" || {
+  echo "mdr: could not push $branch" >&2
+  exit 1
+}
 
 if [[ -z "$pr_json" ]]; then
   gh pr create --base main --head "$branch" --fill || {
