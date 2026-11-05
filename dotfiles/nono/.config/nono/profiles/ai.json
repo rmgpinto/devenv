@@ -24,6 +24,8 @@
       "$HOME/.local/state/linear",
       "$HOME/.local/share/mise",
       "$HOME/Library/Caches/mise",
+      "$HOME/Library/Caches/pnpm",
+      "$HOME/Library/pnpm",
       "$HOME/dev",
       "/tmp",
       "/private/tmp"
