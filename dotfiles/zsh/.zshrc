@@ -20,7 +20,7 @@ BREW_PREFIX=${HOMEBREW_PREFIX:-/opt/homebrew}
 
 # Default dir
 if [[ "$PWD" == "$HOME" ]]; then
-  cd "$HOME/dev"
+  cd "$HOME/dev/work"
 fi
 
 # Syntax highlighting
