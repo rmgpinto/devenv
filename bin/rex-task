@@ -149,7 +149,7 @@ fi
 if [ -n "$ISSUE_ID" ] && [ -n "$PROMPT" ]; then
   if mark_linear_issue_in_progress "$ISSUE_ID"; then
     rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/wt/linear.json" \
-      "${XDG_CACHE_HOME:-$HOME/.cache}/wt/linear-onc-triage.json"
+      "${XDG_CACHE_HOME:-$HOME/.cache}/wt/linear-onc-triage-escalations-v3.json"
   else
     echo "rex-task: warning: could not mark $ISSUE_ID In Progress with label 'Bots / Agent-assisted'" >&2
   fi
