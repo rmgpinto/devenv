@@ -23,6 +23,24 @@ op account add --address my.1password.com --signin
 4. Follow 1Password SSH agent [instructions](https://developer.1password.com/docs/ssh/get-started#step-3-turn-on-the-1password-ssh-agent)
 5. Download [AppCleaner](https://freemacsoft.net/appcleaner/)
 
+## macOS Dock
+
+The Dock is intentionally kept effectively hidden by setting its auto-hide delay
+to 1000 seconds. This command has already been run manually; setup does not apply it:
+
+```sh
+defaults write com.apple.dock autohide-delay \
+  -float 1000
+killall Dock
+```
+
+To restore the default auto-hide delay:
+
+```sh
+defaults delete com.apple.dock autohide-delay
+killall Dock
+```
+
 ## Secrets & env vars
 
 Secrets are defined in 1Password and synced to env vars via `env/`:
