@@ -168,6 +168,14 @@ function setup_claude() {
   local -a claude_skills
   mkdir -p "${HOME}/.config/claude/themes"
   /opt/homebrew/bin/stow --adopt --no-folding claude -t "${HOME}"
+  if /opt/homebrew/bin/mise which claude >/dev/null 2>&1; then
+    if ! /opt/homebrew/bin/mise exec -- claude mcp get superlogical >/dev/null 2>&1; then
+      /opt/homebrew/bin/mise exec -- claude mcp add -s user --transport http \
+        superlogical https://www.superlogical.com/rex/community-mcp
+    fi
+  else
+    log error "Claude Code not found; skipping Superlogical MCP setup"
+  fi
   if /opt/homebrew/bin/mise which claude >/dev/null 2>&1 && [[ -d "${claude_skills_dir}/skills" ]]; then
     claude_skills=("${claude_skills_dir}"/skills/repo-*(N:t) troubleshoot-ghost-pro)
     /opt/homebrew/bin/mise exec -- npx --yes skills add "${claude_skills_dir}" \

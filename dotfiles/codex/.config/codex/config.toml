@@ -1,6 +1,9 @@
 sandbox_mode = "danger-full-access"
 approval_policy = "never"
 
+[mcp_servers.superlogical]
+url = "https://www.superlogical.com/rex/community-mcp"
+
 [projects."/Users/rmgpinto/dev"]
 trust_level = "trusted"
 
