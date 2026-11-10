@@ -107,6 +107,8 @@ mise x helm@4.1.4 -- sh scripts/regen.sh
 
 # Kubernetes
 
+Keep comments in Kubernetes YAML (including Helm templates and values files) minimal. Add a comment only to explain an uncommon pattern or a non-obvious constraint; explain why it is needed. Do not annotate standard Kubernetes fields, common patterns, or behavior already clear from the YAML.
+
 Agents have read-only filesystem access to these kubeconfigs through the nono `ai` profile:
 
 | Cluster | Kubeconfig |
