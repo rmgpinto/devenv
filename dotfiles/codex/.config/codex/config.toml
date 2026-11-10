@@ -1,6 +1,9 @@
 sandbox_mode = "danger-full-access"
 approval_policy = "never"
 
+[features]
+shell_snapshot = false
+
 [mcp_servers.superlogical]
 url = "https://www.superlogical.com/rex/community-mcp"
 
