@@ -30,6 +30,13 @@ SECRETS_FILE="${SCRIPT_DIR}/secrets"
 NONO_BIN="$(/opt/homebrew/bin/mise which nono 2>/dev/null || command -v nono 2>/dev/null || true)"
 REFRESH_NONO_KEYCHAIN_ACL="${REFRESH_NONO_KEYCHAIN_ACL:-0}"
 
+function require_nono() {
+  if [[ -z "${NONO_BIN}" || ! -f "${NONO_BIN}" || ! -x "${NONO_BIN}" ]]; then
+    log error "nono executable not found; refusing to sync secrets without restricted Keychain access. Install nono with mise and retry."
+    exit 1
+  fi
+}
+
 function require_op() {
   if ! command -v op >/dev/null 2>&1; then
     log error "1Password CLI (op) not found. Install it (brew install --cask 1password-cli) and retry."
@@ -64,15 +71,14 @@ function kc_add() {
   local service="$1" account="$2" value="$3"
   local -a trust
   local current_value
-  if [[ "${service}" == "nono" && -n "${NONO_BIN}" ]]; then
+  if [[ "${service}" == "nono" ]]; then
+    require_nono
     trust=(-T "${NONO_BIN}" -T "${SECURITY}")
   else
-    [[ "${service}" == "nono" ]] \
-      && log info "  nono not found; granting ${account} to any app (-A)"
     trust=(-A)
   fi
   if "${SECURITY}" find-generic-password -a "${account}" -s "${service}" >/dev/null 2>&1; then
-    if [[ "${service}" == "nono" && -n "${NONO_BIN}" && "${REFRESH_NONO_KEYCHAIN_ACL}" == "1" ]]; then
+    if [[ "${service}" == "nono" && "${REFRESH_NONO_KEYCHAIN_ACL}" == "1" ]]; then
       # Recreating an item lets this trusted setup process establish the new ACL
       # directly. Updating an existing ACL with -U -T makes macOS request the
       # login password separately for every item.
@@ -154,6 +160,7 @@ function write_mise_files() {
 
 function main() {
   log info "Setting up env..."
+  require_nono
   require_op
   sync_secrets
   write_mise_files
