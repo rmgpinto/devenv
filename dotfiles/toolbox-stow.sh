@@ -15,11 +15,11 @@ done
 cp "${TOOLBOX_DIR}/.toolbox/sammy.json" "${TOOLBOX_DIR}/stow/toolbox/sammy.json"
 
 sudo mkdir -p /usr/local/bin
-if [[ -L "${HOME}/.config/toolbox" && ! -e "${HOME}/.config/toolbox" ]]; then
-  unlink "${HOME}/.config/toolbox"
+if [[ -L "${HOME}/.toolbox" && ! -e "${HOME}/.toolbox" ]]; then
+  unlink "${HOME}/.toolbox"
 fi
-mkdir -p "${HOME}/.config/toolbox"
+mkdir -p "${HOME}/.toolbox"
 sudo /opt/homebrew/bin/stow --dir="${TOOLBOX_DIR}/stow" \
   --target=/usr/local/bin bin
 /opt/homebrew/bin/stow --dir="${TOOLBOX_DIR}/stow" \
-  --target="${HOME}/.config/toolbox" toolbox
+  --target="${HOME}/.toolbox" toolbox
