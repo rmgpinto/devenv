@@ -2,6 +2,57 @@
 
 set -o pipefail
 
+# Called in the background; history is cached for this mdr invocation.
+ci_progress() {
+  local checks run workflow past jobs history result
+  checks=$(gh pr checks "$number" --repo "$repo" --required --json bucket,name,link)
+  [[ -n "$checks" ]] || return 1
+  jobs='[]'
+  history='[]'
+  for run in "${(@f)$(jq -r '[.[] | select(.bucket == "pending") | .link |
+      capture("/actions/runs/(?<id>[0-9]+)")? | .id] | unique[]' <<<"$checks")}"; do
+    if [[ ! -f "$progress_dir/run-$run" ]]; then
+      gh api "repos/$repo/actions/runs/$run" --jq .workflow_id > "$progress_dir/run-$run" || return 1
+    fi
+    workflow=$(<"$progress_dir/run-$run")
+    [[ "$workflow" == <-> ]] || return 1
+    if [[ ! -f "$progress_dir/workflow-$workflow" ]]; then
+      local samples='[]' batch
+      for past in "${(@f)$(gh api "repos/$repo/actions/workflows/$workflow/runs?status=success&per_page=10" \
+          | jq -r '.workflow_runs[].id')}"; do
+        batch=$(gh api --paginate "repos/$repo/actions/runs/$past/jobs?per_page=100" \
+          --jq '.jobs[] | select(.conclusion == "success") | {name, started_at, completed_at}') || return 1
+        samples=$(jq -s '.[0] + .[1:]' <(print -r -- "$samples") <(print -r -- "$batch")) || return 1
+      done
+      print -r -- "$samples" > "$progress_dir/workflow-$workflow"
+    fi
+    batch=$(gh api --paginate "repos/$repo/actions/runs/$run/jobs?per_page=100" --jq '.jobs[] | {name, status, started_at}') || return 1
+    jobs=$(jq -s '.[0] + .[1:]' <(print -r -- "$jobs") <(print -r -- "$batch")) || return 1
+    history=$(jq -s 'add | unique_by(.name, .started_at)' \
+      <(print -r -- "$history") "$progress_dir/workflow-$workflow") || return 1
+  done
+  jq -nr --argjson checks "$checks" --argjson jobs "$jobs" --argjson history "$history" '
+    def epoch: sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601;
+    def median: sort | length as $n |
+      if $n == 0 then null else (.[(($n - 1) / 2 | floor)] + .[($n / 2 | floor)]) / 2 end;
+    [$checks[] | select(.bucket == "pending") | . as $check |
+      ([$jobs[] | select(.name == $check.name)] | first) as $job |
+      if ($check.link | test("/actions/runs/[0-9]+") | not) then {unknown:true}
+      elif $job == null or $job.status == "queued" then {queued:true}
+      else ([$history[] | select(.name == $check.name and .started_at != null and .completed_at != null) |
+        ((.completed_at | epoch) - (.started_at | epoch))] | median) as $median |
+        if $median == null or $job.started_at == null then {unknown:true}
+        else {remaining: ($median - (now - ($job.started_at | epoch)))} end end] as $pending |
+    "CI \($checks | length - ($pending | length))/\($checks | length) done" +
+    if any($pending[]; .queued) then " · queued"
+    elif any($pending[]; .unknown) then " · ETA unavailable"
+    elif any($pending[]; .remaining <= 0) then " · taking longer than usual"
+    elif ($pending | length) > 0 then
+      ([$pending[].remaining] | max | ceil) as $seconds |
+      " · ~\($seconds / 60 | floor)m \($seconds % 60)s remaining"
+    else "" end'
+}
+
 worktree=$(git rev-parse --show-toplevel 2>/dev/null) || {
   echo 'mdr: not inside a Git worktree' >&2
   exit 1
@@ -95,6 +146,9 @@ if [[ "$state" != MERGED ]]; then
   # block that outlasts the timeout with nothing pending.
   started=$SECONDS
   blocked_since=$SECONDS
+  progress_dir=$(mktemp -d)
+  progress_pid=
+  trap '[[ -n "$progress_pid" ]] && kill "$progress_pid" 2>/dev/null; rm -rf "$progress_dir"' EXIT
   while :; do
     merge_json=$(gh pr view "$number" --repo "$repo" --json mergeStateStatus,reviewDecision) || exit 1
     merge_state=$(jq -r '.mergeStateStatus' <<<"$merge_json")
@@ -120,8 +174,15 @@ if [[ "$state" != MERGED ]]; then
           exit 1
         fi
         (( pending > 0 )) && blocked_since=$SECONDS
-        printf '\rmdr: waiting for PR #%s (%s, %d required checks pending, %ds)  ' \
-          "$number" "$merge_state" "$pending" $(( SECONDS - started )) >&2
+        if [[ -z "$progress_pid" ]] || ! kill -0 "$progress_pid" 2>/dev/null; then
+          [[ -s "$progress_dir/next" ]] && mv "$progress_dir/next" "$progress_dir/current"
+          (ci_progress || print -r -- "CI · ETA unavailable") > "$progress_dir/next" 2>/dev/null &
+          progress_pid=$!
+        fi
+        progress="CI · $pending required checks pending"
+        [[ -f "$progress_dir/current" ]] && progress=$(<"$progress_dir/current")
+        printf '\r\033[Kmdr: PR #%s · %s · %ds elapsed' \
+          "$number" "$progress" $(( SECONDS - started )) >&2
         sleep 10
         ;;
       *)
