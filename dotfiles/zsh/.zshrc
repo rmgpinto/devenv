@@ -93,9 +93,6 @@ export GUM_SPIN_TITLE_FOREGROUND="#cdd6f4"
 # yarn
 PATH="${PATH}:${HOME}/.yarn/bin"
 
-# gh enhance
-export ENHANCE_THEME=catppuccin_mocha
-
 # devenv scripts
 PATH="${HOME}/dev/personal/devenv/bin:${PATH}"
 

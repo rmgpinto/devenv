@@ -184,7 +184,6 @@ function setup_ghost() {
   HAL_DIR="${DEV_WORKSPACE}/work/HAL"
   if [[ -d ${HAL_DIR} ]]; then
     cd ${HAL_DIR}
-    /opt/homebrew/bin/mise trust
     /opt/homebrew/bin/mise install
     /opt/homebrew/bin/mise exec -- pnpm install
     PNPM_HOME="${HOME}/Library/pnpm" \
