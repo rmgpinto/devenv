@@ -61,45 +61,9 @@ function setup_git() {
 function setup_gh() {
   log info "Setting up gh..."
   local -a gh_cmd=(/opt/homebrew/bin/mise exec -- gh)
-  gh_enhance_repo="${DEV_WORKSPACE}/personal/gh-enhance"
-  local upstream
   "${gh_cmd[@]}" completion -s zsh | sudo tee /usr/local/share/zsh/site-functions/_gh > /dev/null
   /opt/homebrew/bin/stow --adopt gh -t ${HOME}
 
-  if [[ ! -d "${gh_enhance_repo}/.git" ]]; then
-    "${gh_cmd[@]}" repo clone rmgpinto/gh-enhance "${gh_enhance_repo}"
-  fi
-  /usr/bin/git -C "${gh_enhance_repo}" remote set-url origin https://github.com/rmgpinto/gh-enhance.git
-  if /usr/bin/git -C "${gh_enhance_repo}" remote get-url upstream >/dev/null 2>&1; then
-    /usr/bin/git -C "${gh_enhance_repo}" remote set-url upstream https://github.com/dlvhdr/gh-enhance.git
-  fi
-  if [[ "$(/usr/bin/git -C "${gh_enhance_repo}" branch --show-current)" != "main" ]]; then
-    log error "gh-enhance repo is not on main; skipping sync/build"
-    return 1
-  fi
-  if [[ -z "$(/usr/bin/git -C "${gh_enhance_repo}" status --porcelain)" ]]; then
-    if /usr/bin/git -C "${gh_enhance_repo}" remote get-url upstream >/dev/null 2>&1; then
-      upstream="upstream/main"
-    else
-      upstream="origin/main"
-    fi
-    if /usr/bin/git -C "${gh_enhance_repo}" fetch --all --prune; then
-      if ! /usr/bin/git -C "${gh_enhance_repo}" merge --no-edit "${upstream}"; then
-        /usr/bin/git -C "${gh_enhance_repo}" merge --abort >/dev/null 2>&1 || true
-        log error "gh-enhance main conflicts with ${upstream}; merge aborted"
-      fi
-    else
-      log error "Unable to fetch gh-enhance remotes; continuing with local checkout"
-    fi
-  else
-    log error "gh-enhance repo has local changes; skipping sync to avoid clobbering them"
-  fi
-  (
-    cd "${gh_enhance_repo}"
-    /opt/homebrew/bin/mise exec go@1.25.8 -- go build -o gh-enhance .
-    "${gh_cmd[@]}" extension remove gh-enhance > /dev/null
-    "${gh_cmd[@]}" extension install . --force
-  )
   log info "Done."
 }
 
