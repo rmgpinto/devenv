@@ -207,15 +207,7 @@ function setup_glow() {
 
 function setup_ghost() {
   log info "Setting up Ghost Toolbox..."
-  ORIGINAL_DIR=$(pwd)
-  TOOLBOX_DIR="${DEV_WORKSPACE}/work/Toolbox"
-  if [[ -d ${TOOLBOX_DIR} ]]; then
-    cd ${TOOLBOX_DIR}/stow
-    ./stow.sh
-  else
-    log error "Toolbox not found in ${DEV_WORKSPACE}/work."
-  fi
-  cd ${ORIGINAL_DIR}
+  zsh "${0:A:h}/toolbox-stow.sh" "${DEV_WORKSPACE}/work/Toolbox"
   log info "Done."
   log info "Setting up Ghost kubectl..."
   mkdir -p ~/.kube
@@ -231,7 +223,9 @@ function setup_ghost() {
     /opt/homebrew/bin/mise trust
     /opt/homebrew/bin/mise install
     /opt/homebrew/bin/mise exec -- pnpm install
-    /opt/homebrew/bin/mise exec -- pnpm add -g .
+    PNPM_HOME="${HOME}/Library/pnpm" \
+      PATH="${HOME}/Library/pnpm/bin:${PATH}" \
+      /opt/homebrew/bin/mise exec -- pnpm add -g .
   else
     log error "HAL not found in ${DEV_WORKSPACE}/work."
   fi
