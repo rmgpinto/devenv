@@ -2,7 +2,6 @@
 # List Worktrunk worktrees for every repository under ~/dev.
 
 set -uo pipefail
-shopt -s nullglob
 
 DEV_WORKSPACE="${DEV_WORKSPACE:-${HOME}/dev}"
 roots=()
@@ -19,8 +18,12 @@ status=0
 for root in "${roots[@]}"; do
   for repo in "$root"/*; do
     [ -d "$repo/.git" ] || continue
-    worktrees=("$repo"/.worktrees/*/)
-    [ "${#worktrees[@]}" -gt 0 ] || continue
+    if ! worktree_count=$(git -C "$repo" worktree list --porcelain |
+      awk '/^worktree / { count++ } END { print count + 0 }'); then
+      status=1
+      continue
+    fi
+    [ "$worktree_count" -gt 1 ] || continue
     printf '\n\033[1;34m━━ %s ━━\033[0m\n' "${repo#"$DEV_WORKSPACE"/}"
     wt -C "$repo" list --no-progressive "$@" || status=$?
   done
