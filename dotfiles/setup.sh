@@ -230,9 +230,8 @@ function setup_ghost() {
     cd ${HAL_DIR}
     /opt/homebrew/bin/mise trust
     /opt/homebrew/bin/mise install
-    /opt/homebrew/bin/mise exec -- yarn
-    /opt/homebrew/bin/mise exec -- yarn unlink 2>/dev/null || true
-    /opt/homebrew/bin/mise exec -- yarn link
+    /opt/homebrew/bin/mise exec -- pnpm install
+    /opt/homebrew/bin/mise exec -- pnpm add -g .
   else
     log error "HAL not found in ${DEV_WORKSPACE}/work."
   fi
