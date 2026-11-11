@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Preserve sibling Terraform imports in nested worktrees without editing files.
+
+set -euo pipefail
+
+SOURCE=${1:?usage: wt link-terraform SOURCE_WORKTREE TARGET_WORKTREE}
+TARGET=${2:?usage: wt link-terraform SOURCE_WORKTREE TARGET_WORKTREE}
+
+case "$TARGET" in
+  "$SOURCE"/.worktrees/*) ;;
+  *) exit 0 ;;
+esac
+
+[ -f "$TARGET/justfile" ] || exit 0
+[ -f "$SOURCE/../terraform/justfile" ] || exit 0
+rg -q "^[[:space:]]*import[[:space:]]+['\"]\.\./terraform/justfile['\"][[:space:]]*$" \
+  "$TARGET/justfile" || exit 0
+
+LINK="$(dirname "$TARGET")/terraform"
+DEPENDENCY=$(cd "$SOURCE/../terraform" && pwd -P)
+if [ -L "$LINK" ] && [ -d "$LINK" ] &&
+  [ "$(cd "$LINK" && pwd -P)" = "$DEPENDENCY" ]; then
+  exit 0
+fi
+if [ -e "$LINK" ] || [ -L "$LINK" ]; then
+  echo "wt-link-terraform: refusing to replace $LINK" >&2
+  exit 1
+fi
+
+ln -s "$DEPENDENCY" "$LINK"

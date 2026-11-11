@@ -109,7 +109,7 @@ done
 ABS="$WORK_DIR/$REPO/$WT_DIR"
 
 # Git worktree add bypasses Worktrunk's pre-start hooks.
-"$SCRIPT_DIR/wt-fix-terraform-import" "$PWD" "$ABS"
+"$SCRIPT_DIR/wt-link-terraform" "$PWD" "$ABS"
 
 # 4. Open the worktree's tab in the caller's Rex session, without stealing focus.
 echo "$ABS"
