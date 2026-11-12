@@ -38,9 +38,9 @@ function install_brew_mas_packages() {
 function upgrade_brew_packages() {
   log info "Upgrading brew packages..."
   brew update --force
-  brew outdated --cask
+  brew outdated --cask --greedy-auto-updates
   brew upgrade -y
-  brew upgrade --cask -y
+  brew upgrade --cask --greedy-auto-updates -y
   brew cleanup
   log info "Done."
 }
