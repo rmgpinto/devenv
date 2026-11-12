@@ -25,6 +25,8 @@ For every other repo, make edits in a worktree, never in the top-level checkout.
 
 ## Creating worktrees
 
+Name new branches using only a short, descriptive kebab-case slug, e.g. `fix-openresty-startup`. Do not prefix branch names with a user name or Linear issue ID, and do not copy Linear's suggested branch name. When checking out an existing branch or PR, preserve its existing name.
+
 Work happens in Rex task sessions: one session per ticket, spanning repos, with the agent in its first tab. Create each worktree you need with:
 
 ```
