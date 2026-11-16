@@ -19,7 +19,7 @@ Each subdirectory is its own repo with its own conventions. When working in one,
 
 # Worktrees
 
-For `personal/devenv`, always edit the top-level checkout on `main` without asking.
+For `personal/devenv` and `personal/operations-control`, always edit the top-level checkout on `main` without asking.
 
 For every other repo, make edits in a worktree, never in the top-level checkout. Run `git worktree list` from the repo root first and reuse a worktree that clearly matches the task. If no matching worktree exists, create one with `personal/devenv/bin/wt-spawn` (see below) before editing.
 
