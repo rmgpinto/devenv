@@ -27,6 +27,7 @@
       "$HOME/Library/Caches/mise",
       "$HOME/Library/Caches/pnpm",
       "$HOME/Library/pnpm",
+      "$HOME/Library/Application Support/rex",
       "$HOME/dev",
       "/tmp",
       "/private/tmp"
@@ -48,6 +49,7 @@
       "$HOME/.kube-ai/sup-k8s-01-ai-agent.yaml"
     ],
     "read": [
+      "$HOME/Library/Application Support/com.superlogical.rex/RexServer",
       "/bin",
       "/etc",
       "/opt",
