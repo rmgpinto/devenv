@@ -19,30 +19,6 @@ end
 rex.bind("tabs/enter", "client.mode.exit")
 rex.bind("tabs/cmd+e", "client.mode.exit")
 
--- cmd+g opens the guided rex-task launcher in a floating pane; it closes when done.
-rex.action({
-  name = "task",
-  title = "New Task Session",
-  run = function()
-    rex.session.new_layer({
-      bounds = { 0.2, 0.2, 0.6, 0.6 },
-      focus = true,
-      layout = rex.layout.block({
-        flavor = "com.superlogical.terminal.shell",
-        options = {
-          shell = "none",
-          command = {
-            "/bin/zsh",
-            "-ic",
-            "/Users/rmgpinto/dev/personal/devenv/bin/rex-task || read -k1 '?rex-task failed, press any key'",
-          },
-        },
-      }),
-    })
-  end,
-})
-rex.bind("cmd+g", "task")
-
 -- cmd+e then p opens a floating shell at 80% of the window, in the focused pane's
 -- directory, and leaves tabs mode so the new shell gets the keyboard.
 rex.action({

@@ -3,9 +3,9 @@
 # current directory, and label the agent's tab "ai". Repos' mise `cd` hooks call
 # it, so the name follows the agent between the primary checkout and worktrees.
 #
-# Only the agent's block (labelled "ai" by rex-task) acts, so shells in the
-# <repo>-<branch> nvim tabs that rex-tab opens never rename the session. Does
-# nothing outside Rex or outside git.
+# Only the agent's block (labelled "ai" by Operations Control and cc) acts, so
+# shells in the <repo>-<branch> nvim tabs that rex-tab opens never rename the
+# session. Does nothing outside Rex or outside git.
 #
 # <repo> is the primary checkout's directory name, matching rex-tab.
 #
