@@ -135,9 +135,6 @@ if [[ "$state" != MERGED ]]; then
     exit 1
   }
 
-  gum confirm --default --affirmative Yes --negative No \
-    "You're about to squash-merge PR #$number into main, proceed?" || exit 0
-
   repo=$(gh repo view --json nameWithOwner --jq '.nameWithOwner') || exit 1
 
   # Wait until the branch policy allows the merge. A required check that hasn't
