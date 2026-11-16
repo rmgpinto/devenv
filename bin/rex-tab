@@ -14,6 +14,15 @@ set -euo pipefail
 TARGET=${1:?usage: rex-tab PATH}
 [ -n "${REX_SESSION:-}" ] || exit 0
 
+REX=$(command -v rex) || REX=
+if [ -z "$REX" ] && [ -n "${REX_BIN_DIR:-}" ] && [ -x "$REX_BIN_DIR/rex" ]; then
+  REX="$REX_BIN_DIR/rex"
+fi
+if [ -z "$REX" ]; then
+  echo 'rex-tab: warning: rex not found on PATH or in REX_BIN_DIR; cannot open tab' >&2
+  exit 0
+fi
+
 [ -d "$TARGET" ] || TARGET=$(dirname "$TARGET")
 ROOT=$(git -C "$TARGET" rev-parse --show-toplevel 2>/dev/null) || exit 0
 PRIMARY=$(git -C "$ROOT" worktree list --porcelain | awk '/^worktree / { print substr($0, 10); exit }')
@@ -21,7 +30,10 @@ BRANCH=$(git -C "$ROOT" branch --show-current)
 BRANCH=${BRANCH:-$(git -C "$ROOT" rev-parse --short HEAD)}
 LABEL="$(basename "${PRIMARY:-$ROOT}")-$BRANCH"
 
-VIEW=$(rex api call -s "$REX_SESSION" session.view --autostart=false 2>/dev/null) || exit 0
+VIEW=$("$REX" api call -s "$REX_SESSION" session.view --autostart=false) || {
+  echo 'rex-tab: warning: could not inspect Rex session; cannot open tab' >&2
+  exit 0
+}
 if printf '%s' "$VIEW" | jq -e --arg label "$LABEL" 'any(.windows[]; .label == $label)' >/dev/null; then
   exit 0
 fi
@@ -49,5 +61,5 @@ REQUEST=$(jq -nc \
       }}
     }}
   }')
-rex api call -s "$REX_SESSION" session.new_window "$REQUEST" --autostart=false >/dev/null
+"$REX" api call -s "$REX_SESSION" session.new_window "$REQUEST" --autostart=false >/dev/null
 echo "rex-tab: opened tab $LABEL" >&2
