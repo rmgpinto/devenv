@@ -130,12 +130,28 @@ function setup_claude() {
   log info "Setting up claude code..."
   local claude_skills_dir="${DEV_WORKSPACE}/work/Claude"
   local -a claude_skills
+  # Match bin/cc so `claude mcp add -s user` writes the config agents read.
+  local -x CLAUDE_CONFIG_DIR="${HOME}/.config/claude"
   mkdir -p "${HOME}/.config/claude/themes"
   /opt/homebrew/bin/stow --adopt --no-folding claude -t "${HOME}"
   if /opt/homebrew/bin/mise which claude >/dev/null 2>&1; then
     if ! /opt/homebrew/bin/mise exec -- claude mcp get superlogical >/dev/null 2>&1; then
       /opt/homebrew/bin/mise exec -- claude mcp add -s user --transport http \
         superlogical https://www.superlogical.com/rex/community-mcp
+    fi
+    if ! /opt/homebrew/bin/mise exec -- claude mcp get slack >/dev/null 2>&1; then
+      # Read-only: token has no write scopes and only read tools are registered.
+      # Caches live in the Claude state dir because the AI sandbox can't write
+      # ~/Library/Caches or ~/.npm. SLACK_MCP_XOXP_TOKEN comes from nono.
+      local slack_cache="${HOME}/.config/claude/cache"
+      mkdir -p "${slack_cache}/slack-mcp-server"
+      # Name goes before -e, which is variadic and would swallow it.
+      /opt/homebrew/bin/mise exec -- claude mcp add -s user slack \
+        -e SLACK_MCP_ENABLED_TOOLS=channels_list,conversations_history,conversations_replies,conversations_search_messages,usergroups_list,usergroups_me \
+        -e SLACK_MCP_USERS_CACHE="${slack_cache}/slack-mcp-server/users_cache.json" \
+        -e SLACK_MCP_CHANNELS_CACHE="${slack_cache}/slack-mcp-server/channels_cache_v2.json" \
+        -e npm_config_cache="${slack_cache}/npm" \
+        -- npx -y slack-mcp-server@1.3.0 --transport stdio
     fi
   else
     log error "Claude Code not found; skipping Superlogical MCP setup"

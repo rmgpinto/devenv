@@ -96,6 +96,7 @@
     "nono-digital-ocean": "DIGITALOCEAN_CREDENTIAL",
     "nono-gcp-activiypub-production": "ACTIVITYPUB_PRODUCTION_CREDENTIALS",
     "nono-gcp-ai-read-only-username": "GCP_AI_READ_ONLY_USERNAME",
-    "nono-gcp-ai-read-only-password": "GCP_AI_READ_ONLY_CREDENTIALS"
+    "nono-gcp-ai-read-only-password": "GCP_AI_READ_ONLY_CREDENTIALS",
+    "nono-slack-read-only": "SLACK_MCP_XOXP_TOKEN"
   }
 }
