@@ -69,10 +69,16 @@ branch=$(git branch --show-current)
   exit 1
 }
 
+# Repos such as Octo use staging, not main, as their default branch.
+default_branch=$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name') || {
+  echo 'mdr: could not determine the default branch' >&2
+  exit 1
+}
+
 pr_fields=number,baseRefName,headRefName,state,isDraft,mergeable
 pr_json=$(gh pr view --json "$pr_fields" 2>/dev/null)
 
-# Finished PRs only need local cleanup. Do this before pushing or updating main:
+# Finished PRs only need local cleanup. Do this before pushing or updating the default branch:
 # the remote branch may be gone, and neither operation is needed for removal.
 if [[ -n "$pr_json" ]]; then
   [[ $(jq -r '.headRefName' <<<"$pr_json") == "$branch" ]] || {
@@ -94,7 +100,7 @@ git push --force --set-upstream origin "$branch" || {
 }
 
 if [[ -z "$pr_json" ]]; then
-  gh pr create --base main --head "$branch" --fill || {
+  gh pr create --base "$default_branch" --head "$branch" --fill || {
     echo "mdr: could not create a pull request for $branch" >&2
     exit 1
   }
@@ -121,8 +127,8 @@ mergeable=$(jq -r '.mergeable' <<<"$pr_json")
   echo "mdr: PR #$number does not belong to the checked-out branch $branch" >&2
   exit 1
 }
-[[ "$base" == main ]] || {
-  echo "mdr: PR #$number targets $base, not main" >&2
+[[ "$base" == "$default_branch" ]] || {
+  echo "mdr: PR #$number targets $base, not $default_branch" >&2
   exit 1
 }
 if [[ "$state" != MERGED ]]; then
@@ -205,7 +211,7 @@ if [[ "$state" != MERGED ]]; then
   }
 fi
 
-git -C "$primary_worktree" switch main || exit 1
+git -C "$primary_worktree" switch "$default_branch" || exit 1
 git -C "$primary_worktree" pull --ff-only || exit 1
 
 # Worktrunk's post-remove hook closes the worktree's Rex tab.
