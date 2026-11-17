@@ -9,6 +9,7 @@ npm:@openai/codex
 hunk
 ripgrep
 nodejs
+1password-cli
 aqua:neovim/neovim # registry default is vfox; pick aqua for prebuilt binary
 aqua:max-sixty/worktrunk
 tree-sitter # used by tree-sitter-manager.nvim to build parsers
@@ -24,7 +25,9 @@ gum
 glow
 
 # Work
+pnpm
 gitleaks
 doctl
 gcloud
 kubectl
+just
