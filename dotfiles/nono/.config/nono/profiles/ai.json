@@ -93,6 +93,7 @@
     "nono-github-token-read-only": "GITHUB_TOKEN",
     "nono-elastic-readonly-user": "ELASTIC_READONLY_USER",
     "nono-elastic-readonly-pass": "ELASTIC_READONLY_PASS",
+    "nono-elastic-staging-pass": "ELASTIC_STAGING_PASS",
     "nono-digital-ocean": "DIGITALOCEAN_CREDENTIAL",
     "nono-gcp-activiypub-production": "ACTIVITYPUB_PRODUCTION_CREDENTIALS",
     "nono-gcp-ai-read-only-username": "GCP_AI_READ_ONLY_USERNAME",
