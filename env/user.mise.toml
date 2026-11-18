@@ -6,8 +6,8 @@ ruby.compile = false
 [env]
 SAMMY_SSH_USER = "ricardo"
 HAL_1P_ACCOUNT_ID = "GHXJDH3PVNHG3PLWLS5RT4HOHI"
-HAL_1P_STAGING = "Employee/Ghost - staging"
-HAL_1P_PRODUCTION = "Employee/Ghost - production"
+HAL_1P_STAGING = "op://Employee/sjjoy6jmkocspdzwjzy7oixadq"
+HAL_1P_PRODUCTION = "op://Employee/fjz4vrmfm2ajhnl3lmhl3jj37m"
 LINEAR_API_KEY = "{{ exec(command='security find-generic-password -s mise -a mise-linear-api-key -w 2>/dev/null || true', cache_key='linear-api-key', cache_duration='1d') }}"
 OPERATIONS_CONTROL_ONCALL_ICS = "{{ exec(command='security find-generic-password -s mise -a mise-incidentio-oncall-ics -w 2>/dev/null || true', cache_key='incidentio-oncall-ics', cache_duration='1d') }}"
 SLACK_TOKEN = "{{ exec(command='security find-generic-password -s mise -a mise-slack-alerts-token -w 2>/dev/null || true', cache_key='slack-alerts-token', cache_duration='1d') }}"
