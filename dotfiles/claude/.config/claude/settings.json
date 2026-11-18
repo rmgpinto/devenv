@@ -6,6 +6,7 @@
     "commit": "",
     "pr": ""
   },
+  "model": "claude-fable-5-2[1m]",
   "hooks": {
     "PostToolUse": [
       {
@@ -45,7 +46,7 @@
       }
     }
   },
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "theme": "dark",
-  "tui": "fullscreen"
+  "theme": "dark"
 }
