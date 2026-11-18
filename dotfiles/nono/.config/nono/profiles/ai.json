@@ -49,6 +49,7 @@
       "$HOME/.kube-ai/sup-k8s-01-ai-agent.yaml"
     ],
     "read": [
+      "$HOME/Library/Application Support/CleanShot/media",
       "$HOME/Library/Application Support/com.superlogical.rex/RexServer",
       "/bin",
       "/etc",
