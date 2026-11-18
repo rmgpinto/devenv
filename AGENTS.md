@@ -54,7 +54,7 @@ Commit finished work on the worktree branch without asking; never push unless as
 
 Before creating a commit, always run `git config commit.template` in the current directory. If a template is configured, read it and use its structure as the exact blueprint for the commit message, including when supplying a message with `-m` or `-F`.
 
-Fill all required placeholders, tags, and section headers using the staged changes and available task context. Preserve every template section and its formatting unless explicitly instructed otherwise. If required context such as a Linear URL is missing, ask rather than inventing it.
+Fill all required placeholders, tags, and section headers using the staged changes and available task context. Preserve every template section and its formatting unless explicitly instructed otherwise. If a required Linear URL is missing, first search Linear through the connected MCP for an issue assigned to the current user that matches the task and staged changes. Use its URL when there is one clear match; if no clear match exists or multiple issues fit, ask the user rather than guessing. Ask for any other missing required context rather than inventing it.
 
 The work commit template is enabled through `includeIf` only for repositories under `~/dev/work/` and its subdirectories. Work commit subjects start with a verb such as `Added`, `Created`, `Changed`, `Fixed`, or `Removed`. The body contains `ref <linear-url>`, a blank line, and at least one bullet explaining the changes. Add as many bullets as needed; there is no maximum. Keep commits small and atomic, with each commit covering one coherent change. Template comments are guidance and should not appear in the final commit message.
 
