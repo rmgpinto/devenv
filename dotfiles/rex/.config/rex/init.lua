@@ -47,7 +47,7 @@ rex.bind("tabs/p", "float")
 if os.getenv("REX_PROGRAM_RESTORE") ~= "off" then
   local home = os.getenv("HOME")
   local script = home .. "/dev/personal/devenv/dotfiles/rex/.config/rex/program-restore.lua"
-  local state = os.getenv("REX_PROGRAM_RESTORE_STATE") or home .. "/dev/.rex-program-restore"
+  local state = os.getenv("REX_PROGRAM_RESTORE_STATE") or home .. "/dev/.rex-program-restore/programs"
   local binary = os.getenv("REX_PROGRAM_RESTORE_CLI") or
     home .. "/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"
   local server = os.getenv("REX_PROGRAM_RESTORE_SERVER")

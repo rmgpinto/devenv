@@ -27,7 +27,8 @@ alias kstg='kubectl --context do-ams3-stg-k8s-01'
 if [[ -n ${REX_BLOCK:-} && ${REX_PROGRAM_RESTORE:-} != off ]]; then
   autoload -Uz add-zsh-hook
   _rex_restore_program() {
-    local state=${REX_PROGRAM_RESTORE_STATE:-$HOME/dev/.rex-program-restore}
+    local previous_state=$HOME/dev/.rex-program-restore
+    local state=${REX_PROGRAM_RESTORE_STATE:-$previous_state/programs}
     local script=$HOME/dev/personal/devenv/dotfiles/rex/.config/rex/program-restore.lua
     local mode=clear
     local -a target=(-s "$REX_SESSION" -b "$REX_BLOCK" --autostart=false)
@@ -36,7 +37,9 @@ if [[ -n ${REX_BLOCK:-} && ${REX_PROGRAM_RESTORE:-} != off ]]; then
       typeset -g _rex_restore_checked=1
       mode=take
     fi
-    [[ -f "$state/$REX_BLOCK.json" ]] || return 0
+    if [[ ! -f "$state/$REX_BLOCK.json" ]]; then
+      [[ -z ${REX_PROGRAM_RESTORE_STATE:-} && -f "$previous_state/$REX_BLOCK.json" ]] || return 0
+    fi
 
     local result
     result=$(rex do "$script" "${target[@]}" "mode=$mode" --json) || return 0
