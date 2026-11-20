@@ -27,5 +27,5 @@ exec env NONO_AUTO_MIGRATE=1 NONO_NO_SAVE_PROMPT=1 nono run \
   --profile ai \
   --allow-cwd \
   --workdir "$PWD" -- \
-    /usr/bin/env CLAUDE_CONFIG_DIR="$HOME/.config/claude" \
+    /usr/bin/env CLAUDE_CONFIG_DIR="$HOME/.config/claude" REX_PROGRAM_RESTORE_LAUNCHER=cc \
     claude --dangerously-skip-permissions "$@"

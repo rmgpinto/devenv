@@ -25,6 +25,10 @@
           {
             "type": "command",
             "command": "[ -z \"${REX_BLOCK:-}\" ] || rex block rename -s \"$REX_SESSION\" \"$REX_BLOCK\" ai --autostart=false >/dev/null 2>&1 || true"
+          },
+          {
+            "type": "command",
+            "command": "[ -z \"${REX_BLOCK:-}\" ] || rex do \"$HOME/dev/personal/devenv/dotfiles/rex/.config/rex/program-restore.lua\" -s \"$REX_SESSION\" -b \"$REX_BLOCK\" mode=register agent=claude --autostart=false >/dev/null"
           }
         ]
       }

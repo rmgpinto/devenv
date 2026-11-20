@@ -42,3 +42,24 @@ rex.action({
   end,
 })
 rex.bind("tabs/p", "float")
+
+-- Config loads have no API client. Start the watcher as a separate Rex script.
+if os.getenv("REX_PROGRAM_RESTORE") ~= "off" then
+  local home = os.getenv("HOME")
+  local script = home .. "/dev/personal/devenv/dotfiles/rex/.config/rex/program-restore.lua"
+  local state = os.getenv("REX_PROGRAM_RESTORE_STATE") or home .. "/dev/.rex-program-restore"
+  local binary = os.getenv("REX_PROGRAM_RESTORE_CLI") or
+    home .. "/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"
+  local server = os.getenv("REX_PROGRAM_RESTORE_SERVER")
+  local mkdir = rex.exec({ "/bin/mkdir", "-m", "700", "-p", state })
+  if mkdir and mkdir.code == 0 then
+    local argv = { "/usr/bin/lockf", "-k", "-t", "0", state .. "/watch.lock", binary }
+    if server then
+      argv[#argv + 1] = "--server=" .. server
+    end
+    for _, arg in ipairs({ "do", script, "--all", "--autostart=false" }) do
+      argv[#argv + 1] = arg
+    end
+    rex.exec.start(argv, { detach = true })
+  end
+end

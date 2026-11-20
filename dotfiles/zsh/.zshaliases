@@ -23,5 +23,44 @@ alias halstg='NODE_ENV=staging hal'
 alias k='kubectl'
 alias ksup='kubectl --context do-ams3-sup-k8s-01'
 alias kstg='kubectl --context do-ams3-stg-k8s-01'
+
+if [[ -n ${REX_BLOCK:-} && ${REX_PROGRAM_RESTORE:-} != off ]]; then
+  autoload -Uz add-zsh-hook
+  _rex_restore_program() {
+    local state=${REX_PROGRAM_RESTORE_STATE:-$HOME/dev/.rex-program-restore}
+    local script=$HOME/dev/personal/devenv/dotfiles/rex/.config/rex/program-restore.lua
+    local mode=clear
+    local -a target=(-s "$REX_SESSION" -b "$REX_BLOCK" --autostart=false)
+    [[ -z ${REX_PROGRAM_RESTORE_SERVER:-} ]] || target+=(--server "$REX_PROGRAM_RESTORE_SERVER")
+    if [[ -z ${_rex_restore_checked:-} ]]; then
+      typeset -g _rex_restore_checked=1
+      mode=take
+    fi
+    [[ -f "$state/$REX_BLOCK.json" ]] || return 0
+
+    local result
+    result=$(rex do "$script" "${target[@]}" "mode=$mode" --json) || return 0
+    [[ $mode == take && $result == \[* ]] || return 0
+
+    local item
+    local -a command_line
+    while IFS= read -r -d '' item; do
+      command_line+=("$item")
+    done < <(jq --raw-output0 '.[]' <<< "$result")
+    (( ${#command_line} >= 2 )) || return 0
+
+    local cwd=$command_line[1] program=$command_line[2]
+    if ! command -v "$program" >/dev/null || ! cd -- "$cwd"; then
+      print -u2 -- "Rex could not restore $program in $cwd"
+      return 0
+    fi
+    "$program" "${command_line[@]:2}" || print -u2 -- "Rex restore: $program exited with an error"
+    if [[ -f "$state/$REX_BLOCK.json" ]]; then
+      rex do "$script" "${target[@]}" mode=clear >/dev/null
+    fi
+    return 0
+  }
+  add-zsh-hook precmd _rex_restore_program
+fi
 alias kprd='kubectl --context do-ams3-prd-k8s-01'
 

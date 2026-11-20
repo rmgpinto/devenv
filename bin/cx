@@ -7,7 +7,7 @@ exec env NONO_AUTO_MIGRATE=1 NONO_NO_SAVE_PROMPT=1 nono run \
   --profile ai \
   --allow-cwd \
   --workdir "$PWD" -- \
-    /usr/bin/env CODEX_HOME="$HOME/.config/codex" codex \
+    /usr/bin/env CODEX_HOME="$HOME/.config/codex" REX_PROGRAM_RESTORE_LAUNCHER=cx codex \
     --dangerously-bypass-approvals-and-sandbox \
     --no-daemon \
     "$@"

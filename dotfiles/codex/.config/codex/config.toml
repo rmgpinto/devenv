@@ -42,3 +42,6 @@ trusted_hash = "sha256:a02add5b167a209dd753d29ab3c8c952e7a58bc3a3b2056e32c5aab1a
 
 [hooks.state."/Users/rmgpinto/.config/codex/hooks.json:session_start:0:0"]
 trusted_hash = "sha256:a0e95e6e48a19ee603a3186a961d274c4f33c9dda8d440af941b8083b15c3557"
+
+[hooks.state."/Users/rmgpinto/.config/codex/hooks.json:session_start:0:1"]
+trusted_hash = "sha256:14f0dcf55820410ee52989b33a29df3b271be0a85c348dbed715276a22264206"

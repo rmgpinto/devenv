@@ -39,10 +39,6 @@ It clones/pulls the repo under `work/`, creates the worktree, and prints its abs
 
 The source-of-truth is `personal/devenv/AGENTS.md`. `~/dev/AGENTS.md` is a symlink to it, created by `personal/devenv/dotfiles/setup.sh`, so agents launched anywhere under `~/dev` discover these instructions through the parent-directory walk.
 
-# Wrap-up messages
-
-Use Markdown bullet points in every section of the final wrap-up message, even when a section has only one item. For a wrap-up without headings, use a single bullet list.
-
 # Copyable shell commands
 
 Agents run in terminal panes. Copying visually wrapped output can insert extra newlines and break shell commands. When presenting commands for the user to copy:
