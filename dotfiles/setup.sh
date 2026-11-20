@@ -176,15 +176,6 @@ function setup_codex() {
   log info "Done."
 }
 
-function setup_glow() {
-  log info "Setting up Glow..."
-  curl -fsSL \
-    -o glow/.config/glow/themes/catppuccin-mocha.json \
-    https://raw.githubusercontent.com/catppuccin/glamour/main/themes/catppuccin-mocha.json
-  /opt/homebrew/bin/stow --adopt glow -t ${HOME}
-  log info "Done."
-}
-
 function setup_ghost() {
   log info "Setting up Ghost Toolbox..."
   zsh "${0:A:h}/toolbox-stow.sh" "${DEV_WORKSPACE}/work/Toolbox"
@@ -232,7 +223,6 @@ function main() {
   setup_nono
   setup_claude
   setup_codex
-  setup_glow
   setup_ghost
 }
 

@@ -22,7 +22,6 @@ fzf
 cargo:eza
 zoxide
 gum
-glow
 
 # Work
 pnpm
